@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'password_service.dart';
+import 'password_recovery_service.dart';
 
 class GoogleSignInFailure implements Exception {
   const GoogleSignInFailure(this.message);
@@ -55,6 +56,37 @@ class AuthService {
     reauthenticateGoogle: _reauthenticateGoogle,
     supportsGoogle: supportsGoogleSignIn,
   );
+
+  /// Uses this app's existing Auth instance and Firebase's hosted email handler.
+  /// Request completion is not evidence of delivery or a changed password.
+  Future<void> sendPasswordResetEmail(String email) async {
+    final normalizedEmail = email.trim();
+    final validation = validateRecoveryEmail(normalizedEmail);
+    if (validation != null) {
+      throw PasswordRecoveryFailure(validation, invalidEmail: true);
+    }
+    try {
+      await _auth.sendPasswordResetEmail(email: normalizedEmail);
+    } on FirebaseAuthException catch (error) {
+      final code = error.code.replaceFirst(RegExp(r'^auth/'), '');
+      // Older SDK/project configurations can reveal a nonexistent account.
+      // Keep the same neutral confirmation as enumeration-protected projects.
+      if (code == 'user-not-found') return;
+      if (kDebugMode) debugPrint('Password recovery failed: $code');
+      throw PasswordRecoveryFailure(
+        passwordRecoveryErrorMessage(error),
+        invalidEmail: code == 'invalid-email' || code == 'missing-email',
+        rateLimited: code == 'too-many-requests' || code == 'quota-exceeded',
+      );
+    } catch (error) {
+      if (kDebugMode) {
+        debugPrint('Password recovery failed: ${error.runtimeType}');
+      }
+      throw const PasswordRecoveryFailure(
+        'Password recovery is temporarily unavailable. Please try again later.',
+      );
+    }
+  }
 
   Future<bool> _reauthenticateGoogle(User user) async {
     if (_auth.currentUser?.uid != user.uid ||

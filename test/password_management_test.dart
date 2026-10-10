@@ -13,6 +13,7 @@ import 'package:myproject/auth_service.dart';
 import 'package:myproject/design_system.dart';
 import 'package:myproject/password_dialog.dart';
 import 'package:myproject/password_service.dart';
+import 'package:myproject/password_recovery_dialog.dart';
 
 class ProviderInfo extends Fake implements UserInfo {
   ProviderInfo(this.providerId);
@@ -489,20 +490,19 @@ void main() {
     await tester.ensureVisible(find.text('Save New Password'));
   }
 
-  testWidgets(
-    'login recovery has no password form, provider claims or email request',
-    (tester) async {
-      await mount(tester, recovery: true);
-      expect(find.text(recoveryUnavailable), findsOneWidget);
-      expect(find.text('Reset Your Password'), findsOneWidget);
-      expect(find.byType(TextFormField), findsNothing);
-      expect(find.text('Save New Password'), findsNothing);
-      expect(auth.policyChecks, 0);
-      await tester.tap(find.text('Cancel'));
-      await tester.pumpAndSettle();
-      expect(find.byType(PasswordDialog), findsNothing);
-    },
-  );
+  testWidgets('login recovery requests email without asking for passwords', (
+    tester,
+  ) async {
+    await mount(tester, recovery: true);
+    expect(find.text('Forgot Password?'), findsOneWidget);
+    expect(find.byType(TextFormField), findsOneWidget);
+    expect(find.text('Send Reset Link'), findsOneWidget);
+    expect(find.text('Save New Password'), findsNothing);
+    expect(auth.policyChecks, 0);
+    await tester.tap(find.text('Back to Login'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PasswordRecoveryDialog), findsNothing);
+  });
 
   testWidgets(
     'change form hides all passwords and validates mismatch before Firebase',

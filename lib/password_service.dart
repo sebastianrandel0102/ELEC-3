@@ -1,8 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 
-const recoveryUnavailable =
-    'Password recovery is not available for this account without an enrolled verification method.';
-
 class PasswordFailure implements Exception {
   const PasswordFailure(this.message);
   final String message;

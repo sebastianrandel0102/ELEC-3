@@ -2,13 +2,21 @@ import 'package:flutter/material.dart';
 
 import 'design_system.dart';
 import 'password_service.dart';
+import 'auth_service.dart';
+import 'password_recovery_dialog.dart';
 
-Future<void> showPasswordRecoveryDialog(BuildContext context) =>
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => const PasswordDialog(),
-    );
+Future<void> showPasswordRecoveryDialog(
+  BuildContext context, {
+  AuthService? authService,
+  String initialEmail = '',
+}) => showDialog<void>(
+  context: context,
+  barrierDismissible: false,
+  builder: (_) => PasswordRecoveryDialog(
+    authService: authService,
+    initialEmail: initialEmail,
+  ),
+);
 
 Future<void> showChangePasswordDialog(
   BuildContext context,
@@ -19,12 +27,10 @@ Future<void> showChangePasswordDialog(
   builder: (_) => PasswordDialog(session: session),
 );
 
-/// Login recovery deliberately fails closed: this project has no trusted
-/// recovery enrollment/lookup and no phone integration. Provider sign-in alone
-/// could create or automatically link an account; it is not recovery evidence.
+/// Signed-in password changes require the existing authenticated session.
 class PasswordDialog extends StatefulWidget {
-  const PasswordDialog({super.key, this.session});
-  final PasswordChangeSession? session;
+  const PasswordDialog({super.key, required this.session});
+  final PasswordChangeSession session;
 
   @override
   State<PasswordDialog> createState() => _PasswordDialogState();
@@ -47,7 +53,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
       _error = null;
     });
     try {
-      final verified = await widget.session!.verifyGoogle();
+      final verified = await widget.session.verifyGoogle();
       if (verified) {
         _current.clear();
         _password.clear();
@@ -68,7 +74,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
       _error = null;
     });
     try {
-      await widget.session!.save(
+      await widget.session.save(
         password: _password.text,
         confirmation: _confirm.text,
         currentPassword: _current.text,
@@ -126,20 +132,15 @@ class _PasswordDialogState extends State<PasswordDialog> {
   @override
   Widget build(BuildContext context) {
     final session = widget.session;
-    final recovery = session == null;
-    final verified = session?.googleVerified ?? false;
-    final editable = session?.hasPassword ?? false;
+    final verified = session.googleVerified;
+    final editable = session.hasPassword;
     final title = _success
         ? 'Password Changed'
-        : recovery
-        ? 'Reset Your Password'
         : verified
         ? 'Create New Password'
         : 'Change Password';
     final subtitle = _success
         ? 'Your SaveTrack password has been updated.'
-        : recovery
-        ? 'Verify your identity to create a new password.'
         : verified
         ? 'Choose a secure password for your SaveTrack account.'
         : editable
@@ -201,17 +202,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
                           child: const Text('Done'),
                         ),
                       ] else ...[
-                        if (recovery) ...[
-                          const Text(recoveryUnavailable),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'SaveTrack cannot verify an enrolled recovery method from this screen. '
-                            'If Google is already linked to your SaveTrack account, return to sign in with Google, '
-                            'then open Profile and select Change Password. Otherwise, a supported verified recovery method '
-                            'must be enrolled while you can still sign in.',
-                            style: TextStyle(color: muted),
-                          ),
-                        ] else if (!editable) ...[
+                        if (!editable) ...[
                           Text(
                             session.hasGoogle
                                 ? 'This account uses Google Sign-In and has no SaveTrack password. '

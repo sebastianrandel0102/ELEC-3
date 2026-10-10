@@ -235,7 +235,11 @@ class _AuthScreenState extends State<AuthScreen> {
       _error = null;
     });
     try {
-      await showPasswordRecoveryDialog(context);
+      await showPasswordRecoveryDialog(
+        context,
+        authService: _authService,
+        initialEmail: _email.text,
+      );
     } finally {
       if (mounted) setState(() => _recoveryOpen = false);
     }

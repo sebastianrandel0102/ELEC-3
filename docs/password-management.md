@@ -1,18 +1,8 @@
 # SaveTrack password management
 
-Implemented October 11, 2026. Forgot Password opens an in-place mint dialog titled **Reset Your Password**, with **Verify your identity to create a new password.** It no longer requires an email address or calls `sendPasswordResetEmail`. There was no separate reset screen to remove: the old callback sent email directly from the login form.
+Forgot Password now uses Firebase email recovery. The previous login dialog deliberately blocked recovery and made no email request; that client-side limitation has been removed. See [Firebase password recovery](password-recovery.md) for the current flow, configuration checks, and live-versus-automated verification report.
 
-## Recovery availability
-
-**Unauthenticated password recovery is deliberately unavailable in this project configuration.** The dialog shows:
-
-> Password recovery is not available for this account without an enrolled verification method.
-
-It explains that SaveTrack cannot verify an enrolled recovery identity from this login screen. This is a configuration limitation, not a claim that a particular Firebase account has no linked providers: no authenticated Firebase console/account inventory was available.
-
-The existing code has no provider enrollment, trusted recovery lookup, or phone authentication integration. The checked-in Android Google JSON has an empty `oauth_client` list. Google provider enablement and existing account links cannot be established from local files. Ordinary Google sign-in may create an account or trigger Firebase trusted-provider behavior; using it as a recovery shortcut would not prove that a provider was previously linked. The new recovery dialog therefore exposes no Google/SMS verification buttons and never accepts passwords, email/phone claims, or arbitrary target UIDs.
-
-An owner who already has Google linked can use the existing Google login, then Profile → Change Password. A password-only user who has lost their password cannot use this non-email flow. No unsupported bypass is included. Enrollment must occur while the user can still authenticate; this change does not add enrollment or a backend recovery service.
+This document describes the existing signed-in Profile password-change behavior. It remains unchanged by the email-recovery fix.
 
 ## Signed-in password change
 
@@ -32,10 +22,9 @@ Both UI and service prevent duplicate operations. Cancel/back are disabled while
 
 1. Keep Email/Password enabled; review Authentication → Settings → Password policy. No Firebase settings were changed by this implementation.
 2. For existing linked Google accounts, complete [Google setup](google-sign-in.md): provider enablement, proper OAuth clients, Android signing fingerprints/refreshed JSON, and web authorized domains/popup permissions. Merely enabling Google does not enroll it on existing password accounts.
-3. Before unauthenticated recovery can be enabled, add a secure provider enrollment and verification design that proves the provider was already associated with the target Firebase UID. If a server lookup is needed, it must validate provider credentials and existing Firebase links, without trusting caller-supplied UID/email. Do not enable a client-only flag or infer ownership from Firestore fields.
-4. Phone recovery is not implemented/configured and is not offered. It would require prior Firebase `phone` provider enrollment, provider enablement, SMS verification and platform app/reCAPTCHA setup, plus verification that the authenticated UID is the original enrolled account.
+3. For login recovery, review the existing Firebase Password reset email template and hosted action URL using the [recovery Console checklist](password-recovery.md#firebase-console-checklist). No separate provider enrollment or phone integration is required for Firebase's emailed action-code flow.
 
-## Scope and verification
+## Earlier signed-in password-management scope and verification
 
 Changed implementation: `lib/main.dart`, `lib/auth_service.dart`; new `lib/password_dialog.dart` and `lib/password_service.dart`. Existing recovery expectations were updated in `test/google_sign_in_test.dart` and `test/redesign_test.dart`; `test/password_management_test.dart` adds 25 SDK-double service/widget tests. README, these docs, and a current-behavior note in `docs/google-sign-in.md` describe availability.
 
@@ -45,7 +34,7 @@ Automated tests validate client logic using isolated SDK doubles; they do not pr
 
 Official API basis: [Firebase user management and recent-login reauthentication](https://firebase.google.com/docs/auth/flutter/manage-users), [Flutter password authentication](https://firebase.google.com/docs/auth/flutter/password-auth).
 
-## Executed checks (October 11, 2026)
+## Earlier executed checks (October 11, 2026)
 
 Flutter 3.47.7 / Dart 3.13.5, with the existing dependency versions.
 

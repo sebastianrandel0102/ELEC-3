@@ -585,9 +585,9 @@ void main() {
       await tester.ensureVisible(find.text('Forgot password?'));
       await tester.tap(find.text('Forgot password?'));
       await tester.pumpAndSettle();
-      expect(find.text('Reset Your Password'), findsOneWidget);
+      expect(find.text('Forgot Password?'), findsOneWidget);
       expect(find.text('New Password'), findsNothing);
-      await tester.tap(find.text('Cancel'));
+      await tester.tap(find.text('Back to Login'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(
         find.text('New to SaveTrack? Create an account'),
