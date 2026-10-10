@@ -164,6 +164,13 @@ void main() {
         await loader.load();
       }
     }
+    final googleFont = FontLoader('GoogleSans')
+      ..addFont(
+        File('assets/branding/GoogleSans.ttf')
+            .readAsBytes()
+            .then((bytes) => ByteData.sublistView(bytes)),
+      );
+    await googleFont.load();
   });
   tearDown(() {
     final view = TestWidgetsFlutterBinding.ensureInitialized()
@@ -207,6 +214,7 @@ void main() {
     await tester.ensureVisible(
       find.text('New to SaveTrack? Create an account'),
     );
+    await tester.pumpAndSettle();
     await tester.tap(find.text('New to SaveTrack? Create an account'));
     await tester.pumpAndSettle();
     expect(find.text('Create your account'), findsOneWidget);
@@ -237,6 +245,15 @@ void main() {
 
   testWidgets('login preview', (tester) async {
     await mount(tester, const AuthScreen());
+    if (const bool.fromEnvironment('SAVE_UI_PREVIEWS')) {
+      await tester.runAsync(
+        () => precacheImage(
+          const AssetImage('assets/branding/google_g.png'),
+          tester.element(find.byType(AuthScreen)),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
     await capture(tester, 'login');
     expect(tester.takeException(), isNull);
   });

@@ -16,6 +16,8 @@ The app initializes Firebase with native default configuration and displays a se
 
 ## Data layout
 
+Google Sign-In is available alongside email/password login. See [Google Sign-In setup and validation](docs/google-sign-in.md) for the existing Firebase project's required OAuth configuration, platform setup, and manual acceptance checks.
+
 - `users/{uid}`: display name, email, account creation time, and currency preference.
 - `users/{uid}/goals/{goalId}`: title, optional note and deadline, target amount, saved amount, and timestamps.
 - `users/{uid}/goals/{goalId}/transactions/{transactionId}`: append-only deposit records. Deposit creation and the goal balance update are committed in one Firestore batch.
