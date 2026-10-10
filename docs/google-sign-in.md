@@ -1,6 +1,6 @@
 # SaveTrack Google Sign-In
 
-Google Sign-In is an additional method on the existing login form. Email/password registration, sign-in, recovery, the mint theme, Firebase initialization, and the existing HomeShell navigation remain in place.
+Google Sign-In is an additional method on the existing login form. Email/password registration, sign-in, the mint theme, Firebase initialization, and the existing HomeShell navigation remain in place. On October 11, 2026, email recovery was replaced by the [secure password modal](password-management.md); the October 10 validation report below describes the earlier implementation. Use the password-management report for current recovery availability and acceptance checks.
 
 ## Implementation
 

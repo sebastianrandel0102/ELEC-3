@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+import 'password_service.dart';
+
 class GoogleSignInFailure implements Exception {
   const GoogleSignInFailure(this.message);
   final String message;
@@ -47,6 +49,75 @@ class AuthService {
         TargetPlatform.macOS => true,
         _ => false,
       };
+
+  PasswordChangeSession passwordChangeSession() => PasswordChangeSession(
+    auth: _auth,
+    reauthenticateGoogle: _reauthenticateGoogle,
+    supportsGoogle: supportsGoogleSignIn,
+  );
+
+  Future<bool> _reauthenticateGoogle(User user) async {
+    if (_auth.currentUser?.uid != user.uid ||
+        !user.providerData.any((p) => p.providerId == 'google.com')) {
+      throw const PasswordFailure(
+        'Identity verification did not match your account.',
+      );
+    }
+    try {
+      final UserCredential result;
+      if (isWeb) {
+        result = await user.reauthenticateWithPopup(
+          GoogleAuthProvider()
+            ..setCustomParameters({'prompt': 'select_account'}),
+        );
+      } else {
+        await _initializeGoogle();
+        if (!_google.supportsAuthenticate()) {
+          throw const PasswordFailure(
+            'Google verification is unavailable on this device.',
+          );
+        }
+        final account = await _google.authenticate();
+        final token = account.authentication.idToken;
+        if (token == null || token.isEmpty) {
+          throw const PasswordFailure(
+            'Google could not verify your identity. Try again.',
+          );
+        }
+        result = await user.reauthenticateWithCredential(
+          GoogleAuthProvider.credential(idToken: token),
+        );
+      }
+      if (result.user?.uid != user.uid || _auth.currentUser?.uid != user.uid) {
+        throw const PasswordFailure(
+          'Identity verification did not match your account.',
+        );
+      }
+      return true;
+    } on GoogleSignInException catch (error) {
+      if (error.code == GoogleSignInExceptionCode.canceled) return false;
+      if (error.code == GoogleSignInExceptionCode.clientConfigurationError ||
+          error.code == GoogleSignInExceptionCode.providerConfigurationError) {
+        throw const PasswordFailure(
+          'Google verification is not configured. Use your current password or contact support.',
+        );
+      }
+      throw PasswordFailure(_messageFor(error));
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'popup-closed-by-user' ||
+          error.code == 'cancelled-popup-request' ||
+          error.code == 'web-context-cancelled') {
+        return false;
+      }
+      if (error.code == 'invalid-credential' ||
+          error.code == 'invalid-id-token') {
+        throw const PasswordFailure(
+          'Google could not verify your identity. Please try again.',
+        );
+      }
+      throw PasswordFailure(passwordErrorMessage(error));
+    }
+  }
 
   Future<void> _initializeGoogle() async {
     // Cache even a failed initialization: the package requires exactly one

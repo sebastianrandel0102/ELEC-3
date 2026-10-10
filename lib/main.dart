@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'auth_service.dart';
 import 'firebase_options.dart';
+import 'password_dialog.dart';
 
 import 'design_system.dart';
 export 'design_system.dart';
@@ -141,6 +142,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _password = TextEditingController();
   bool _register = false, _busy = false, _showPassword = false;
   bool _googleBusy = false;
+  bool _recoveryOpen = false;
   String? _error;
   AuthService get _authService => widget.authService ?? AuthService.instance;
 
@@ -226,21 +228,16 @@ class _AuthScreenState extends State<AuthScreen> {
   }
 
   Future<void> _resetPassword() async {
-    if (_email.text.trim().isEmpty || !_email.text.contains('@')) {
-      setState(() => _error = 'Enter your email address first.');
-      return;
-    }
+    if (_busy || _recoveryOpen) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _recoveryOpen = true;
+      _error = null;
+    });
     try {
-      await FirebaseAuth.instance.sendPasswordResetEmail(
-        email: _email.text.trim(),
-      );
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password reset email sent.')),
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      setState(() => _error = e.message ?? 'Could not send reset email.');
+      await showPasswordRecoveryDialog(context);
+    } finally {
+      if (mounted) setState(() => _recoveryOpen = false);
     }
   }
 
@@ -360,7 +357,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: _busy ? null : _resetPassword,
+                              onPressed: _busy || _recoveryOpen
+                                  ? null
+                                  : _resetPassword,
                               child: const Text('Forgot password?'),
                             ),
                           ),
@@ -1374,6 +1373,19 @@ class ProfileScreen extends StatelessWidget {
             leading: Icon(Icons.info_outline, color: teal),
             title: Text('SaveTrack'),
             subtitle: Text('Your goals, your progress.'),
+          ),
+        ),
+        const SizedBox(height: 18),
+        Card(
+          child: ListTile(
+            leading: const Icon(Icons.lock_outline, color: teal),
+            title: const Text('Change Password'),
+            subtitle: const Text('Keep your account secure'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => showChangePasswordDialog(
+              context,
+              AuthService.instance.passwordChangeSession(),
+            ),
           ),
         ),
         const SizedBox(height: 18),

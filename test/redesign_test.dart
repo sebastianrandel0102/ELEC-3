@@ -232,16 +232,22 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('password recovery retains existing email validation', (
-    tester,
-  ) async {
-    await mount(tester, const AuthScreen());
-    await tester.ensureVisible(find.text('Forgot password?'));
-    await tester.tap(find.text('Forgot password?'));
-    await tester.pumpAndSettle();
-    expect(find.text('Enter your email address first.'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-  });
+  testWidgets(
+    'password recovery opens a secure modal without requiring email',
+    (tester) async {
+      await mount(tester, const AuthScreen());
+      await tester.ensureVisible(find.text('Forgot password?'));
+      await tester.tap(find.text('Forgot password?'));
+      await tester.pumpAndSettle();
+      expect(find.text('Reset Your Password'), findsOneWidget);
+      expect(find.text('New Password'), findsNothing);
+      await capture(tester, 'password-recovery');
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('Welcome back'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('login preview', (tester) async {
     await mount(tester, const AuthScreen());
