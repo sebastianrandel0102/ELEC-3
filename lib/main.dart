@@ -1,0 +1,1789 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'firebase_options.dart';
+
+const mint = Color(0xFFA8E6CF);
+const teal = Color(0xFF245C50);
+const canvas = Color(0xFFF0FAF5);
+const ink = Color(0xFF24352F);
+const muted = Color(0xFF72847B);
+
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Object? startupError;
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (error) {
+    startupError = error;
+  }
+
+  runApp(SaveTrackApp(startupError: startupError));
+}
+
+class SaveTrackApp extends StatelessWidget {
+  const SaveTrackApp({super.key, this.startupError});
+  final Object? startupError;
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    title: 'SaveTrack',
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(
+      useMaterial3: true,
+      scaffoldBackgroundColor: canvas,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: teal,
+        primary: teal,
+        surface: Colors.white,
+        error: const Color(0xFFD96868),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: canvas,
+        foregroundColor: ink,
+        elevation: 0,
+        centerTitle: false,
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white,
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFFDCEDE4)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFFDCEDE4)),
+        ),
+      ),
+    ),
+    home: startupError != null
+        ? SetupScreen(error: startupError!)
+        : const AuthGate(),
+  );
+}
+
+class SetupScreen extends StatelessWidget {
+  const SetupScreen({super.key, required this.error});
+  final Object error;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(28),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 440),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const BrandMark(),
+              const SizedBox(height: 28),
+              const Text(
+                'Connect your Firebase project',
+                style: TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.w800,
+                  color: ink,
+                ),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                'SaveTrack needs Firebase Authentication and Cloud Firestore to keep your data private and in sync.',
+                style: TextStyle(color: muted, height: 1.5),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                'Run `flutterfire configure`, then install the generated Android configuration and enable Email/Password sign-in and Cloud Firestore.',
+                style: TextStyle(height: 1.5),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Startup detail: $error',
+                style: const TextStyle(color: muted, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class AuthGate extends StatelessWidget {
+  const AuthGate({super.key});
+  @override
+  Widget build(BuildContext context) => StreamBuilder<User?>(
+    stream: FirebaseAuth.instance.authStateChanges(),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Scaffold(
+          body: Center(child: CircularProgressIndicator(color: teal)),
+        );
+      }
+      if (snapshot.hasError) {
+        return Scaffold(
+          body: Center(
+            child: Text('Could not check your session: ${snapshot.error}'),
+          ),
+        );
+      }
+      return snapshot.data == null ? const AuthScreen() : const HomeShell();
+    },
+  );
+}
+
+class AuthScreen extends StatefulWidget {
+  const AuthScreen({super.key});
+  @override
+  State<AuthScreen> createState() => _AuthScreenState();
+}
+
+class _AuthScreenState extends State<AuthScreen> {
+  final _form = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  bool _register = false, _busy = false, _showPassword = false;
+  String? _error;
+
+  Future<void> _submit() async {
+    if (!_form.currentState!.validate()) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final auth = FirebaseAuth.instance;
+      if (_register) {
+        final credential = await auth.createUserWithEmailAndPassword(
+          email: _email.text.trim(),
+          password: _password.text,
+        );
+        await credential.user!.updateDisplayName(_name.text.trim());
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(credential.user!.uid)
+            .set({
+              'displayName': _name.text.trim(),
+              'email': _email.text.trim(),
+              'createdAt': FieldValue.serverTimestamp(),
+              'currency': 'PHP',
+            });
+      } else {
+        await auth.signInWithEmailAndPassword(
+          email: _email.text.trim(),
+          password: _password.text,
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(
+        () => _error = switch (e.code) {
+          'email-already-in-use' => 'An account already exists for this email.',
+          'invalid-credential' ||
+          'wrong-password' ||
+          'user-not-found' => 'Email or password is incorrect.',
+          'weak-password' =>
+            'Choose a stronger password (at least 6 characters).',
+          'network-request-failed' =>
+            'Check your internet connection and try again.',
+          _ => e.message ?? 'Authentication failed. Please try again.',
+        },
+      );
+    } catch (e) {
+      setState(() => _error = 'Could not save your account: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _resetPassword() async {
+    if (_email.text.trim().isEmpty || !_email.text.contains('@')) {
+      setState(() => _error = 'Enter your email address first.');
+      return;
+    }
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(
+        email: _email.text.trim(),
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Password reset email sent.')),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() => _error = e.message ?? 'Could not send reset email.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 430),
+            child: Form(
+              key: _form,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const BrandMark(),
+                  const SizedBox(height: 32),
+                  Text(
+                    _register ? 'Create your account' : 'Welcome back',
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: ink,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Your goals, your progress.',
+                    style: TextStyle(color: muted),
+                  ),
+                  const SizedBox(height: 26),
+                  if (_register) ...[
+                    TextFormField(
+                      controller: _name,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: const InputDecoration(
+                        labelText: 'Your name',
+                        prefixIcon: Icon(Icons.person_outline),
+                      ),
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Enter your name.'
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                  TextFormField(
+                    controller: _email,
+                    keyboardType: TextInputType.emailAddress,
+                    autocorrect: false,
+                    decoration: const InputDecoration(
+                      labelText: 'Email address',
+                      prefixIcon: Icon(Icons.mail_outline),
+                    ),
+                    validator: (v) =>
+                        (v == null ||
+                            !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                .hasMatch(v.trim()))
+                        ? 'Enter a valid email.'
+                        : null,
+                  ),
+                  const SizedBox(height: 14),
+                  TextFormField(
+                    controller: _password,
+                    obscureText: !_showPassword,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        tooltip: _showPassword
+                            ? 'Hide password'
+                            : 'Show password',
+                        onPressed: () =>
+                            setState(() => _showPassword = !_showPassword),
+                        icon: Icon(
+                          _showPassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                      ),
+                    ),
+                    validator: (v) => (v == null || v.length < 6)
+                        ? 'Use at least 6 characters.'
+                        : null,
+                  ),
+                  if (!_register)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _busy ? null : _resetPassword,
+                        child: const Text('Forgot password?'),
+                      ),
+                    ),
+                  if (_error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(color: Color(0xFFD96868)),
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  FilledButton(
+                    onPressed: _busy ? null : _submit,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: teal,
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                    child: _busy
+                        ? const SizedBox.square(
+                            dimension: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(_register ? 'Create account' : 'Sign in'),
+                  ),
+                  TextButton(
+                    onPressed: _busy
+                        ? null
+                        : () => setState(() {
+                            _register = !_register;
+                            _error = null;
+                          }),
+                    child: Text(
+                      _register
+                          ? 'Already have an account? Sign in'
+                          : 'New to SaveTrack? Create an account',
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class HomeShell extends StatefulWidget {
+  const HomeShell({super.key});
+  @override
+  State<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends State<HomeShell> {
+  int _index = 0;
+  static const _titles = [
+    'Today',
+    'Savings goals',
+    'Planner',
+    'Reports',
+    'Profile',
+  ];
+
+  void selectTab(int index) {
+    if (mounted) setState(() => _index = index);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pages = [
+      const DashboardScreen(),
+      const GoalsScreen(),
+      const PlannerScreen(),
+      const ReportsScreen(),
+      const ProfileScreen(),
+    ];
+    return Scaffold(
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const BrandDot(),
+            const SizedBox(width: 10),
+            Text(
+              _titles[_index],
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        actions: [
+          if (_index != 4)
+            IconButton(
+              tooltip: 'Profile',
+              onPressed: () => setState(() => _index = 4),
+              icon: const Icon(Icons.account_circle_outlined),
+            ),
+        ],
+      ),
+      body: IndexedStack(index: _index, children: pages),
+      floatingActionButton: _index == 1 || _index == 2
+          ? FloatingActionButton.extended(
+              backgroundColor: teal,
+              foregroundColor: Colors.white,
+              onPressed: () =>
+                  _index == 1 ? showGoalForm(context) : showTaskForm(context),
+              icon: const Icon(Icons.add),
+              label: Text(_index == 1 ? 'New goal' : 'Add task'),
+            )
+          : null,
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: _index,
+        onDestinationSelected: (i) => setState(() => _index = i),
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home),
+            label: 'Today',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.savings_outlined),
+            selectedIcon: Icon(Icons.savings),
+            label: 'Goals',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.checklist_outlined),
+            selectedIcon: Icon(Icons.checklist),
+            label: 'Planner',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.insights_outlined),
+            selectedIcon: Icon(Icons.insights),
+            label: 'Reports',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser!;
+    final today = _dateKey(DateTime.now());
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      children: [
+        Text(
+          'Hello, ${user.displayName?.split(' ').first ?? 'there'} ',
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: ink,
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'A little progress adds up.',
+          style: TextStyle(color: muted),
+        ),
+        const SizedBox(height: 20),
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _goals(user.uid)
+              .where('archived', isEqualTo: false)
+              .snapshots(),
+          builder: (context, snap) {
+            if (snap.hasError) {
+              return ErrorPanel(
+                message: 'Could not load your goals. ${snap.error}',
+              );
+            }
+            if (!snap.hasData) return const LoadingPanel();
+            final docs = snap.data!.docs;
+            final total = docs.fold<double>(
+              0,
+              (total, d) => total + _number(d.data()['savedAmount']),
+            );
+            final target = docs.fold<double>(
+              0,
+              (total, d) => total + _number(d.data()['targetAmount']),
+            );
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(22),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Total saved', style: TextStyle(color: muted)),
+                    const SizedBox(height: 6),
+                    Text(
+                      _money(total),
+                      style: const TextStyle(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w800,
+                        color: teal,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    LinearProgressIndicator(
+                      value: target == 0 ? 0 : (total / target).clamp(0, 1),
+                      minHeight: 8,
+                      backgroundColor: const Color(0xFFE5F4EC),
+                      color: teal,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    const SizedBox(height: 9),
+                    Text(
+                      '${docs.length} active ${docs.length == 1 ? 'goal' : 'goals'}  ${_money(target)} target',
+                      style: const TextStyle(color: muted, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: SummaryTile(
+                icon: Icons.flag_outlined,
+                label: 'Active goals',
+                stream: _goals(user.uid)
+                    .where('archived', isEqualTo: false)
+                    .snapshots(),
+                count: true,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SummaryTile(
+                icon: Icons.check_circle_outline,
+                label: 'Done today',
+                stream: _tasks(user.uid)
+                    .where('dateKey', isEqualTo: today)
+                    .snapshots(),
+                count: false,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
+        SectionHeader(
+          title: 'Your goals',
+          action: 'See all',
+          onTap: () => _openTab(context, 1),
+        ),
+        GoalsPreview(uid: user.uid),
+        const SizedBox(height: 22),
+        SectionHeader(
+          title: 'Todays plan',
+          action: 'Open planner',
+          onTap: () => _openTab(context, 2),
+        ),
+        TasksList(uid: user.uid, dateKey: today, compact: true),
+      ],
+    );
+  }
+}
+
+class GoalsScreen extends StatelessWidget {
+  const GoalsScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+      stream: _goals(uid).orderBy('createdAt', descending: true).snapshots(),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          return ErrorPanel(message: 'Could not load goals. ${snap.error}');
+        }
+        if (!snap.hasData) return const LoadingPanel();
+        final docs = snap.data!.docs
+            .where((d) => d.data()['archived'] != true)
+            .toList();
+        if (docs.isEmpty) {
+          return EmptyPanel(
+            icon: Icons.savings_outlined,
+            title: 'Start with a savings goal',
+            detail: 'Give your next milestone a name and target.',
+            action: 'Create goal',
+            onTap: () => showGoalForm(context),
+          );
+        }
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
+          children: docs.map((d) => GoalCard(uid: uid, doc: d)).toList(),
+        );
+      },
+    );
+  }
+}
+
+class GoalsPreview extends StatelessWidget {
+  const GoalsPreview({super.key, required this.uid});
+  final String uid;
+  @override
+  Widget build(BuildContext context) =>
+      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _goals(uid)
+            .where('archived', isEqualTo: false)
+            .limit(3)
+            .snapshots(),
+        builder: (context, s) {
+          if (!s.hasData) return const LoadingPanel();
+          if (s.data!.docs.isEmpty) {
+            return EmptyPanel(
+              icon: Icons.savings_outlined,
+              title: 'No goals yet',
+              detail: 'Create a goal to start tracking progress.',
+              action: 'Create goal',
+              onTap: () => showGoalForm(context),
+            );
+          }
+          return Column(
+            children: s.data!.docs
+                .map((d) => GoalCard(uid: uid, doc: d))
+                .toList(),
+          );
+        },
+      );
+}
+
+class GoalCard extends StatelessWidget {
+  const GoalCard({super.key, required this.uid, required this.doc});
+  final String uid;
+  final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  @override
+  Widget build(BuildContext context) {
+    final data = doc.data();
+    final saved = _number(data['savedAmount']),
+        target = _number(data['targetAmount']);
+    final double pct = target == 0 ? 0 : (saved / target).clamp(0.0, 1.0);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    '${data['title']}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: ink,
+                    ),
+                  ),
+                ),
+                PopupMenuButton<String>(
+                  tooltip: 'Goal actions',
+                  onSelected: (v) {
+                    if (v == 'deposit') showDepositForm(context, uid, doc);
+                    if (v == 'edit') showGoalForm(context, doc: doc);
+                    if (v == 'delete') {
+                      confirmDelete(
+                        context,
+                        'Delete this goal and its savings history?',
+                        () => _deleteGoal(doc),
+                      );
+                    }
+                  },
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'deposit', child: Text('Add savings')),
+                    PopupMenuItem(value: 'edit', child: Text('Edit goal')),
+                    PopupMenuItem(value: 'delete', child: Text('Delete goal')),
+                  ],
+                ),
+              ],
+            ),
+            if ((data['note'] as String? ?? '').isNotEmpty)
+              Text(
+                data['note'] as String,
+                style: const TextStyle(color: muted, fontSize: 13),
+              ),
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: pct,
+              minHeight: 7,
+              backgroundColor: const Color(0xFFE5F4EC),
+              color: teal,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text(
+                  '${_money(saved)} saved',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: teal,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  '${(pct * 100).round()}%  ${_money((target - saved).clamp(0, double.infinity))} to go',
+                  style: const TextStyle(fontSize: 12, color: muted),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (data['deadline'] is Timestamp)
+              Text(
+                'Target date  ${_shortDate((data['deadline'] as Timestamp).toDate())}',
+                style: const TextStyle(color: muted, fontSize: 12),
+              ),
+            if (data['deadline'] is Timestamp && saved < target)
+              Builder(
+                builder: (context) {
+                  final deadline = (data['deadline'] as Timestamp).toDate();
+                  final needed = target - saved;
+                  final now = DateTime.now();
+                  final isOverdue = deadline.isBefore(
+                    DateTime(now.year, now.month, now.day),
+                  );
+                  final days = deadline
+                      .difference(DateTime(now.year, now.month, now.day))
+                      .inDays
+                      .clamp(1, 365000);
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      isOverdue
+                          ? 'Overdue  ${_money(needed)} remaining'
+                          : 'Suggested pace: ${_money(needed / days)} daily, ${_money(needed * 7 / days)} weekly',
+                      style: TextStyle(
+                        color: isOverdue ? const Color(0xFFD96868) : muted,
+                        fontSize: 12,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => showTransactionHistory(context, doc),
+                  child: const Text('History'),
+                ),
+                TextButton.icon(
+                  onPressed: () => showDepositForm(context, uid, doc),
+                  icon: const Icon(Icons.add, size: 18),
+                  label: const Text('Add savings'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class PlannerScreen extends StatefulWidget {
+  const PlannerScreen({super.key});
+  @override
+  State<PlannerScreen> createState() => _PlannerScreenState();
+}
+
+class _PlannerScreenState extends State<PlannerScreen> {
+  DateTime _day = DateTime.now();
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final key = _dateKey(_day);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: 'Previous day',
+                onPressed: () => setState(
+                  () => _day = _day.subtract(const Duration(days: 1)),
+                ),
+                icon: const Icon(Icons.chevron_left),
+              ),
+              Expanded(
+                child: Text(
+                  _dateTitle(_day),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 17,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Next day',
+                onPressed: () =>
+                    setState(() => _day = _day.add(const Duration(days: 1))),
+                icon: const Icon(Icons.chevron_right),
+              ),
+              TextButton(
+                onPressed: () => setState(() => _day = DateTime.now()),
+                child: const Text('Today'),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: TasksList(uid: uid, dateKey: key),
+        ),
+      ],
+    );
+  }
+}
+
+class TasksList extends StatelessWidget {
+  const TasksList({
+    super.key,
+    required this.uid,
+    required this.dateKey,
+    this.compact = false,
+  });
+  final String uid, dateKey;
+  final bool compact;
+  @override
+  Widget build(BuildContext context) =>
+      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
+        builder: (context, s) {
+          if (s.hasError) {
+            return ErrorPanel(message: 'Could not load tasks. ${s.error}');
+          }
+          if (!s.hasData) return const LoadingPanel();
+          final docs = s.data!.docs;
+          if (docs.isEmpty) {
+            return compact
+                ? EmptyPanel(
+                    icon: Icons.event_available_outlined,
+                    title: 'A clear day',
+                    detail: 'Add tasks when youre ready.',
+                    action: 'Add a task',
+                    onTap: () => showTaskForm(context, dateKey: dateKey),
+                  )
+                : EmptyPanel(
+                    icon: Icons.event_note_outlined,
+                    title: 'Nothing planned yet',
+                    detail: 'Add a task to make a plan for this day.',
+                    action: 'Add a task',
+                    onTap: () => showTaskForm(context, dateKey: dateKey),
+                  );
+          }
+          final list = docs.map((d) => TaskTile(uid: uid, doc: d)).toList();
+          return compact
+              ? Column(children: list)
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 90),
+                  children: list,
+                );
+        },
+      );
+}
+
+class TaskTile extends StatelessWidget {
+  const TaskTile({super.key, required this.uid, required this.doc});
+  final String uid;
+  final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  @override
+  Widget build(BuildContext context) {
+    final d = doc.data();
+    final done = d['completed'] == true;
+    return Card(
+      margin: const EdgeInsets.only(bottom: 9),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+        leading: Checkbox(
+          value: done,
+          activeColor: teal,
+          onChanged: (v) => doc.reference.update({
+            'completed': v == true,
+            'updatedAt': FieldValue.serverTimestamp(),
+          }),
+        ),
+        title: Text(
+          '${d['title']}',
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            decoration: done ? TextDecoration.lineThrough : null,
+            color: done ? muted : ink,
+          ),
+        ),
+        subtitle: Text(
+          [
+            if ((d['time'] as String? ?? '').isNotEmpty) d['time'],
+            '${d['priority'] ?? 'Normal'} priority',
+          ].join('  '),
+          style: const TextStyle(color: muted),
+        ),
+        trailing: PopupMenuButton<String>(
+          tooltip: 'Task actions',
+          onSelected: (v) {
+            if (v == 'edit') showTaskForm(context, doc: doc);
+            if (v == 'delete') {
+              confirmDelete(
+                context,
+                'Delete this task?',
+                () => doc.reference.delete(),
+              );
+            }
+          },
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'edit', child: Text('Edit')),
+            PopupMenuItem(value: 'delete', child: Text('Delete')),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ReportsScreen extends StatelessWidget {
+  const ReportsScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final today = _dateKey(DateTime.now());
+    final start = DateTime.now().subtract(
+      Duration(days: DateTime.now().weekday - 1),
+    );
+    final weekStart = _dateKey(start);
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        const Text('Your progress at a glance', style: TextStyle(color: muted)),
+        const SizedBox(height: 18),
+        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _goals(uid).snapshots(),
+          builder: (context, s) {
+            if (!s.hasData) return const LoadingPanel();
+            final ds = s.data!.docs;
+            final total = ds.fold<double>(
+              0,
+              (p, d) => p + _number(d.data()['savedAmount']),
+            );
+            final target = ds.fold<double>(
+              0,
+              (p, d) => p + _number(d.data()['targetAmount']),
+            );
+            return ReportMetric(
+              title: 'Savings balance',
+              value: _money(total),
+              caption:
+                  'Across ${ds.length} goals  ${_money(target)} total target',
+              icon: Icons.savings_outlined,
+            );
+          },
+        ),
+        const SizedBox(height: 12),
+        ReportTaskMetric(uid: uid, dateKey: today, title: 'Todays tasks'),
+        const SizedBox(height: 12),
+        ReportTaskMetric(
+          uid: uid,
+          dateKey: weekStart,
+          title: 'This weeks tasks',
+          week: true,
+        ),
+        const SizedBox(height: 20),
+        const Text(
+          'Savings progress',
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
+        ),
+        const SizedBox(height: 10),
+        GoalsPreview(uid: uid),
+      ],
+    );
+  }
+}
+
+class ReportTaskMetric extends StatelessWidget {
+  const ReportTaskMetric({
+    super.key,
+    required this.uid,
+    required this.dateKey,
+    required this.title,
+    this.week = false,
+  });
+  final String uid, dateKey, title;
+  final bool week;
+  @override
+  Widget build(BuildContext context) =>
+      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: week
+            ? _tasks(uid)
+                  .where('dateKey', isGreaterThanOrEqualTo: dateKey)
+                  .where(
+                    'dateKey',
+                    isLessThanOrEqualTo: _dateKey(
+                      DateTime.parse(dateKey).add(const Duration(days: 6)),
+                    ),
+                  )
+                  .snapshots()
+            : _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
+        builder: (context, s) {
+          if (!s.hasData) return const LoadingPanel();
+          final all = s.data!.docs;
+          final done = all.where((d) => d.data()['completed'] == true).length;
+          return ReportMetric(
+            title: title,
+            value: '$done / ${all.length} completed',
+            caption: all.isEmpty
+                ? 'No tasks scheduled'
+                : '${all.length - done} remaining',
+            icon: Icons.check_circle_outline,
+          );
+        },
+      );
+}
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser!;
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(22),
+            child: Row(
+              children: [
+                CircleAvatar(
+                  radius: 28,
+                  backgroundColor: mint,
+                  child: Text(
+                    (user.displayName ?? user.email ?? 'S')
+                        .substring(0, 1)
+                        .toUpperCase(),
+                    style: const TextStyle(
+                      color: teal,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        user.displayName ?? 'SaveTrack user',
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        user.email ?? '',
+                        style: const TextStyle(color: muted),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Card(
+          child: ListTile(
+            leading: Icon(Icons.currency_exchange, color: teal),
+            title: Text('Currency'),
+            subtitle: Text('Philippine Peso (PHP)'),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Card(
+          child: ListTile(
+            leading: Icon(Icons.info_outline, color: teal),
+            title: Text('SaveTrack'),
+            subtitle: Text('Your goals, your progress.'),
+          ),
+        ),
+        const SizedBox(height: 18),
+        OutlinedButton.icon(
+          onPressed: () => FirebaseAuth.instance.signOut(),
+          icon: const Icon(Icons.logout),
+          label: const Text('Sign out'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: const Color(0xFFD96868),
+            minimumSize: const Size.fromHeight(50),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class SummaryTile extends StatelessWidget {
+  const SummaryTile({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.stream,
+    required this.count,
+  });
+  final IconData icon;
+  final String label;
+  final Stream<QuerySnapshot<Map<String, dynamic>>> stream;
+  final bool count;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: stream,
+        builder: (context, s) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: teal),
+            const SizedBox(height: 12),
+            Text(
+              s.hasData
+                  ? (count
+                        ? '${s.data!.docs.length}'
+                        : '${s.data!.docs.where((d) => d.data()['completed'] == true).length}/${s.data!.docs.length}')
+                  : '',
+              style: const TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.w800,
+                color: ink,
+              ),
+            ),
+            Text(label, style: const TextStyle(color: muted, fontSize: 12)),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class ReportMetric extends StatelessWidget {
+  const ReportMetric({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.caption,
+    required this.icon,
+  });
+  final String title, value, caption;
+  final IconData icon;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: ListTile(
+      contentPadding: const EdgeInsets.all(14),
+      leading: CircleAvatar(
+        backgroundColor: const Color(0xFFE5F4EC),
+        child: Icon(icon, color: teal),
+      ),
+      title: Text(title, style: const TextStyle(color: muted, fontSize: 13)),
+      subtitle: Text(
+        caption,
+        style: const TextStyle(color: muted, fontSize: 12),
+      ),
+      trailing: Text(
+        value,
+        style: const TextStyle(fontWeight: FontWeight.w800, color: teal),
+      ),
+    ),
+  );
+}
+
+class SectionHeader extends StatelessWidget {
+  const SectionHeader({
+    super.key,
+    required this.title,
+    required this.action,
+    required this.onTap,
+  });
+  final String title, action;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 17,
+              color: ink,
+            ),
+          ),
+        ),
+        TextButton(onPressed: onTap, child: Text(action)),
+      ],
+    ),
+  );
+}
+
+class BrandMark extends StatelessWidget {
+  const BrandMark({super.key});
+  @override
+  Widget build(BuildContext context) => const Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      BrandDot(),
+      SizedBox(width: 10),
+      Text(
+        'SaveTrack',
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w800,
+          color: teal,
+        ),
+      ),
+    ],
+  );
+}
+
+class BrandDot extends StatelessWidget {
+  const BrandDot({super.key});
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 34,
+    height: 34,
+    decoration: const BoxDecoration(color: mint, shape: BoxShape.circle),
+    child: const Icon(Icons.trending_up, color: teal, size: 21),
+  );
+}
+
+class LoadingPanel extends StatelessWidget {
+  const LoadingPanel({super.key});
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.all(28),
+    child: Center(child: CircularProgressIndicator(color: teal)),
+  );
+}
+
+class ErrorPanel extends StatelessWidget {
+  const ErrorPanel({super.key, required this.message});
+  final String message;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(22),
+    child: Text(message, style: const TextStyle(color: Color(0xFFD96868))),
+  );
+}
+
+class EmptyPanel extends StatelessWidget {
+  const EmptyPanel({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.action,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title, detail, action;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(22),
+      child: Column(
+        children: [
+          Icon(icon, color: teal, size: 32),
+          const SizedBox(height: 10),
+          Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 5),
+          Text(
+            detail,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: muted),
+          ),
+          const SizedBox(height: 8),
+          TextButton(onPressed: onTap, child: Text(action)),
+        ],
+      ),
+    ),
+  );
+}
+
+CollectionReference<Map<String, dynamic>> _goals(String uid) =>
+    FirebaseFirestore.instance.collection('users').doc(uid).collection('goals');
+CollectionReference<Map<String, dynamic>> _tasks(String uid) =>
+    FirebaseFirestore.instance.collection('users').doc(uid).collection('tasks');
+double _number(dynamic v) => v is num ? v.toDouble() : 0;
+String _money(num v) => 'PHP ${v.toStringAsFixed(2)}';
+String _dateKey(DateTime d) =>
+    '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+String _shortDate(DateTime d) => '${d.day}/${d.month}/${d.year}';
+String _dateTitle(DateTime d) => _dateKey(d) == _dateKey(DateTime.now())
+    ? 'Today  ${_shortDate(d)}'
+    : '${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][d.weekday - 1]}  ${_shortDate(d)}';
+void _openTab(BuildContext context, int index) {
+  final state = context.findAncestorStateOfType<_HomeShellState>();
+  state?.selectTab(index);
+}
+
+Future<void> _deleteGoal(
+  QueryDocumentSnapshot<Map<String, dynamic>> goal,
+) async {
+  final transactions = await goal.reference.collection('transactions').get();
+  for (var offset = 0; offset < transactions.docs.length; offset += 450) {
+    final batch = FirebaseFirestore.instance.batch();
+    for (final transaction in transactions.docs.skip(offset).take(450)) {
+      batch.delete(transaction.reference);
+    }
+    await batch.commit();
+  }
+  await goal.reference.delete();
+}
+
+Future<void> showTransactionHistory(
+  BuildContext context,
+  QueryDocumentSnapshot<Map<String, dynamic>> goal,
+) async {
+  await showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => SafeArea(
+      child: SizedBox(
+        height: MediaQuery.sizeOf(context).height * 0.7,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                '${goal.data()['title']} history',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Expanded(
+              child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                stream: goal.reference
+                    .collection('transactions')
+                    .orderBy('date', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return ErrorPanel(
+                      message:
+                          'Could not load savings history. ${snapshot.error}',
+                    );
+                  }
+                  if (!snapshot.hasData) return const LoadingPanel();
+                  final records = snapshot.data!.docs;
+                  if (records.isEmpty) {
+                    return const Center(
+                      child: Text('No savings deposits yet.'),
+                    );
+                  }
+                  return ListView(
+                    children: records.map((record) {
+                      final data = record.data();
+                      final timestamp = data['date'];
+                      return ListTile(
+                        leading: const CircleAvatar(
+                          backgroundColor: Color(0xFFE5F4EC),
+                          child: Icon(Icons.south_west, color: teal),
+                        ),
+                        title: Text(
+                          '+${_money(_number(data['amount']))}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: teal,
+                          ),
+                        ),
+                        subtitle: Text(
+                          (data['note'] as String? ?? '').isEmpty
+                              ? 'Savings deposit'
+                              : data['note'] as String,
+                        ),
+                        trailing: Text(
+                          timestamp is Timestamp
+                              ? _shortDate(timestamp.toDate())
+                              : 'Today',
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+Future<void> confirmDelete(
+  BuildContext context,
+  String message,
+  Future<void> Function() action,
+) async {
+  final ok = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Please confirm'),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          style: FilledButton.styleFrom(
+            backgroundColor: const Color(0xFFD96868),
+          ),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+  if (ok == true) {
+    try {
+      await action();
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Could not delete item: $e')));
+      }
+    }
+  }
+}
+
+Future<void> showGoalForm(
+  BuildContext context, {
+  QueryDocumentSnapshot<Map<String, dynamic>>? doc,
+}) async {
+  final form = GlobalKey<FormState>();
+  final title = TextEditingController(text: doc?.data()['title'] as String?);
+  final note = TextEditingController(text: doc?.data()['note'] as String?);
+  final target = TextEditingController(
+    text: doc == null
+        ? ''
+        : _number(doc.data()['targetAmount']).toStringAsFixed(2),
+  );
+  DateTime? deadline = (doc?.data()['deadline'] as Timestamp?)?.toDate();
+  bool busy = false;
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
+        title: Text(doc == null ? 'Create a goal' : 'Edit goal'),
+        content: Form(
+          key: form,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: title,
+                  decoration: const InputDecoration(labelText: 'Goal name'),
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Enter a goal name.'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: target,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Target amount (PHP)',
+                    prefixText: ' ',
+                  ),
+                  validator: (v) {
+                    final n = double.tryParse(v ?? '');
+                    return n == null || n <= 0
+                        ? 'Enter an amount greater than zero.'
+                        : null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: note,
+                  maxLines: 2,
+                  decoration: const InputDecoration(
+                    labelText: 'Note (optional)',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () async {
+                    final d = await showDatePicker(
+                      context: ctx,
+                      firstDate: DateTime.now().subtract(
+                        const Duration(days: 1),
+                      ),
+                      lastDate: DateTime.now().add(const Duration(days: 3650)),
+                      initialDate:
+                          deadline ??
+                          DateTime.now().add(const Duration(days: 90)),
+                    );
+                    if (d != null) setState(() => deadline = d);
+                  },
+                  icon: const Icon(Icons.calendar_month),
+                  label: Text(
+                    deadline == null
+                        ? 'Set target date'
+                        : _shortDate(deadline!),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: busy ? null : () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: busy
+                ? null
+                : () async {
+                    if (!form.currentState!.validate()) return;
+                    setState(() => busy = true);
+                    try {
+                      final data = {
+                        'title': title.text.trim(),
+                        'note': note.text.trim(),
+                        'targetAmount': double.parse(target.text),
+                        'deadline': deadline == null
+                            ? null
+                            : Timestamp.fromDate(deadline!),
+                        'updatedAt': FieldValue.serverTimestamp(),
+                      };
+                      if (doc == null) {
+                        data.addAll({
+                          'savedAmount': 0.0,
+                          'archived': false,
+                          'createdAt': FieldValue.serverTimestamp(),
+                        });
+                        await _goals(FirebaseAuth.instance.currentUser!.uid)
+                            .add(data);
+                      } else {
+                        await doc.reference.update(data);
+                      }
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    } catch (e) {
+                      setState(() => busy = false);
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(content: Text('Could not save goal: $e')),
+                        );
+                      }
+                    }
+                  },
+            child: Text(busy ? 'Saving' : 'Save'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Future<void> showDepositForm(
+  BuildContext context,
+  String uid,
+  QueryDocumentSnapshot<Map<String, dynamic>> goal,
+) async {
+  final form = GlobalKey<FormState>();
+  final amount = TextEditingController();
+  final note = TextEditingController();
+  bool busy = false;
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
+        title: Text('Add to ${goal.data()['title']}'),
+        content: Form(
+          key: form,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: amount,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: const InputDecoration(
+                  labelText: 'Amount saved',
+                  prefixText: ' ',
+                ),
+                validator: (v) {
+                  final n = double.tryParse(v ?? '');
+                  return n == null || n <= 0
+                      ? 'Enter an amount greater than zero.'
+                      : null;
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: note,
+                decoration: const InputDecoration(labelText: 'Note (optional)'),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: busy ? null : () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: busy
+                ? null
+                : () async {
+                    if (!form.currentState!.validate()) return;
+                    setState(() => busy = true);
+                    final value = double.parse(amount.text);
+                    final db = FirebaseFirestore.instance;
+                    final batch = db.batch();
+                    batch.set(goal.reference.collection('transactions').doc(), {
+                      'amount': value,
+                      'note': note.text.trim(),
+                      'date': FieldValue.serverTimestamp(),
+                      'type': 'deposit',
+                    });
+                    batch.update(goal.reference, {
+                      'savedAmount': FieldValue.increment(value),
+                      'updatedAt': FieldValue.serverTimestamp(),
+                    });
+                    try {
+                      await batch.commit();
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    } catch (e) {
+                      setState(() => busy = false);
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(content: Text('Could not add savings: $e')),
+                        );
+                      }
+                    }
+                  },
+            child: Text(busy ? 'Saving' : 'Add savings'),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Future<void> showTaskForm(
+  BuildContext context, {
+  String? dateKey,
+  QueryDocumentSnapshot<Map<String, dynamic>>? doc,
+}) async {
+  final form = GlobalKey<FormState>();
+  final title = TextEditingController(text: doc?.data()['title'] as String?);
+  final time = TextEditingController(text: doc?.data()['time'] as String?);
+  String priority = doc?.data()['priority'] as String? ?? 'Normal';
+  String day =
+      doc?.data()['dateKey'] as String? ?? dateKey ?? _dateKey(DateTime.now());
+  bool busy = false;
+  await showDialog<void>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) => AlertDialog(
+        title: Text(doc == null ? 'Add a task' : 'Edit task'),
+        content: Form(
+          key: form,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: title,
+                decoration: const InputDecoration(labelText: 'Task'),
+                validator: (v) =>
+                    v == null || v.trim().isEmpty ? 'Enter a task.' : null,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: time,
+                decoration: const InputDecoration(
+                  labelText: 'Time (optional)',
+                  hintText: 'e.g. 9:30 AM',
+                ),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: priority,
+                decoration: const InputDecoration(labelText: 'Priority'),
+                items: ['Low', 'Normal', 'High']
+                    .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                    .toList(),
+                onChanged: (v) => setState(() => priority = v ?? 'Normal'),
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: () async {
+                  final d = DateTime.tryParse(day) ?? DateTime.now();
+                  final chosen = await showDatePicker(
+                    context: ctx,
+                    firstDate: DateTime(2020),
+                    lastDate: DateTime(2100),
+                    initialDate: d,
+                  );
+                  if (chosen != null) setState(() => day = _dateKey(chosen));
+                },
+                icon: const Icon(Icons.calendar_today),
+                label: Text(_shortDate(DateTime.parse(day))),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: busy ? null : () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: busy
+                ? null
+                : () async {
+                    if (!form.currentState!.validate()) return;
+                    setState(() => busy = true);
+                    try {
+                      final data = {
+                        'title': title.text.trim(),
+                        'time': time.text.trim(),
+                        'priority': priority,
+                        'dateKey': day,
+                        'updatedAt': FieldValue.serverTimestamp(),
+                      };
+                      if (doc == null) {
+                        data.addAll({
+                          'completed': false,
+                          'createdAt': FieldValue.serverTimestamp(),
+                        });
+                        await _tasks(FirebaseAuth.instance.currentUser!.uid)
+                            .add(data);
+                      } else {
+                        await doc.reference.update(data);
+                      }
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    } catch (e) {
+                      setState(() => busy = false);
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          SnackBar(content: Text('Could not save task: $e')),
+                        );
+                      }
+                    }
+                  },
+            child: Text(busy ? 'Saving' : 'Save'),
+          ),
+        ],
+      ),
+    ),
+  );
+}

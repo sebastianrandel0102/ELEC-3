@@ -1,0 +1,34 @@
+# SaveTrack
+
+SaveTrack is a Flutter savings goals and daily planner app. It uses Firebase Authentication and Cloud Firestore for sign-in and cloud persistence.
+
+## Firebase setup
+
+Firebase credentials are intentionally not included in this repository. To connect your project:
+
+1. Install the FlutterFire CLI and run `flutterfire configure` from this project directory. Select the registered Firebase project and Android application.
+2. Install `google-services.json` at `android/app/google-services.json` and configure the Google Services Gradle plugin as directed by FlutterFire for this Android Gradle setup.
+3. In Firebase Console, enable **Authentication > Email/Password** and create a **Cloud Firestore** database.
+4. Deploy the rules in [`firestore.rules`](firestore.rules) with `firebase deploy --only firestore:rules`.
+5. Run `flutter pub get`, then `flutter run` with an Android device or emulator.
+
+The app initializes Firebase with native default configuration and displays a setup message if initialization fails. It does not provide a demo login or in-memory substitute.
+
+## Data layout
+
+- `users/{uid}`: display name, email, account creation time, and currency preference.
+- `users/{uid}/goals/{goalId}`: title, optional note and deadline, target amount, saved amount, and timestamps.
+- `users/{uid}/goals/{goalId}/transactions/{transactionId}`: append-only deposit records. Deposit creation and the goal balance update are committed in one Firestore batch.
+- `users/{uid}/tasks/{taskId}`: title, optional time, date key, priority, completion state, and timestamps.
+
+The supplied Firestore rules restrict private document access to the signed-in user whose UID owns the path.
+
+## Current scope
+
+Implemented: email/password registration and sign-in, password reset, profile creation at registration, a live dashboard, savings goal create/edit/delete, batched deposits and transaction history, daily and weekly savings pace calculations for goals with deadlines, daily task create/edit/delete/completion, date navigation, summaries, and sign-out.
+
+Not yet implemented: goal/task filters and sorting, transaction correction/deletion, a weekly planner view, daily/weekly/monthly trend charts, profile editing, notification reminders/preferences, and automated Firestore emulator/repository tests. Firebase cannot be verified until a real project is configured.
+
+## Checks
+
+Run `dart format .`, `flutter analyze`, and `flutter test`. Attempt an Android debug build with `flutter build apk --debug`.
