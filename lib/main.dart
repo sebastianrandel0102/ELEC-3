@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
+import 'auth_service.dart';
 import 'firebase_options.dart';
 
 import 'design_system.dart';
@@ -115,13 +116,20 @@ class AuthGate extends StatelessWidget {
           ),
         );
       }
-      return snapshot.data == null ? const AuthScreen() : const HomeShell();
+      return ValueListenableBuilder<bool>(
+        valueListenable: AuthService.instance.googleSignInInProgress,
+        builder: (context, googleBusy, child) =>
+            snapshot.data == null || googleBusy
+            ? const AuthScreen()
+            : const HomeShell(),
+      );
     },
   );
 }
 
 class AuthScreen extends StatefulWidget {
-  const AuthScreen({super.key});
+  const AuthScreen({super.key, this.authService});
+  final AuthService? authService;
   @override
   State<AuthScreen> createState() => _AuthScreenState();
 }
@@ -132,9 +140,42 @@ class _AuthScreenState extends State<AuthScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _register = false, _busy = false, _showPassword = false;
+  bool _googleBusy = false;
   String? _error;
+  AuthService get _authService => widget.authService ?? AuthService.instance;
+
+  Future<void> _signInWithGoogle() async {
+    if (_busy) return;
+    FocusScope.of(context).unfocus();
+    setState(() {
+      _busy = true;
+      _googleBusy = true;
+      _error = null;
+    });
+    try {
+      await _authService.signInWithGoogle();
+      // AuthGate follows Firebase's session, after the profile is ready.
+    } on GoogleSignInFailure catch (error) {
+      if (mounted) setState(() => _error = error.message);
+    } catch (error) {
+      debugPrint('Unexpected Google login error: ${error.runtimeType}');
+      if (mounted) {
+        setState(
+          () => _error = 'Could not sign in with Google. Please try again.',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _googleBusy = false;
+        });
+      }
+    }
+  }
 
   Future<void> _submit() async {
+    if (_busy) return;
     if (!_form.currentState!.validate()) return;
     setState(() {
       _busy = true;
@@ -331,7 +372,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         const SizedBox(height: 8),
                         GradientButton(
                           onPressed: _busy ? null : _submit,
-                          child: _busy
+                          child: _busy && !_googleBusy
                               ? const SizedBox.square(
                                   dimension: 20,
                                   child: CircularProgressIndicator(
@@ -341,6 +382,72 @@ class _AuthScreenState extends State<AuthScreen> {
                                 )
                               : Text(_register ? 'Create account' : 'Sign in'),
                         ),
+                        if (!_register &&
+                            _authService.supportsGoogleSignIn) ...[
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 18),
+                            child: Row(
+                              children: [
+                                Expanded(child: Divider()),
+                                Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 14),
+                                  child: Text(
+                                    'OR',
+                                    style: TextStyle(color: muted),
+                                  ),
+                                ),
+                                Expanded(child: Divider()),
+                              ],
+                            ),
+                          ),
+                          OutlinedButton(
+                            key: const ValueKey('google-sign-in'),
+                            onPressed: _busy ? null : _signInWithGoogle,
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.white,
+                              foregroundColor: const Color(0xFF1F1F1F),
+                              disabledBackgroundColor: Colors.white,
+                              side: const BorderSide(color: Color(0xFF747775)),
+                              minimumSize: const Size.fromHeight(52),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              textStyle: const TextStyle(
+                                fontFamily: 'GoogleSans',
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (_googleBusy)
+                                  const SizedBox.square(
+                                    dimension: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      semanticsLabel: 'Signing in with Google',
+                                    ),
+                                  )
+                                else
+                                  Image.asset(
+                                    'assets/branding/google_g.png',
+                                    width: 20,
+                                    height: 20,
+                                    excludeFromSemantics: true,
+                                  ),
+                                const SizedBox(width: 12),
+                                const Flexible(
+                                  child: Text('Continue with Google'),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                         TextButton(
                           onPressed: _busy
                               ? null
@@ -1271,7 +1378,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         const SizedBox(height: 18),
         OutlinedButton.icon(
-          onPressed: () => FirebaseAuth.instance.signOut(),
+          onPressed: () => AuthService.instance.signOut(),
           icon: const Icon(Icons.logout),
           label: const Text('Sign out'),
           style: OutlinedButton.styleFrom(
