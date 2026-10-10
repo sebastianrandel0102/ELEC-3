@@ -1,15 +1,23 @@
 import 'package:flutter/material.dart';
 
-const mint = Color(0xFFB8F3DF);
-const teal = Color(0xFF145C4B);
-const canvas = Color(0xFFF0FAF6);
-const ink = Color(0xFF18352D);
-const muted = Color(0xFF576F64);
+import 'dart:math' as math;
+
+const mint = Color(0xFFA8EDD5);
+const teal = Color(0xFF0D5C4B);
+const canvas = Color(0xFFF5FBF8);
+const ink = Color(0xFF19382E);
+const muted = Color(0xFF536F62);
 
 abstract final class SaveTrackDesign {
   static const onHeroMuted = Color(0xFFE2FFF2);
-  static const emerald = Color(0xFF167D65);
-  static const fresh = Color(0xFF72E0BF);
+  static const emerald = Color(0xFF137C63);
+  static const fresh = Color(0xFF63DBB4);
+  static const premiumMint = Color(0xFF31B995);
+  static const lightMint = Color(0xFFDDF8EE);
+  static const input = Color(0xFFF8FCFA);
+  static const completed = Color(0xFFEDF7F1);
+  static const errorSurface = Color(0xFFFFF3F3);
+  static const warningSurface = Color(0xFFFFF6E5);
   static const border = Color(0xFFE2EEE8);
   static const error = Color(0xFFB83E48);
   static const warning = Color(0xFF926014);
@@ -17,25 +25,35 @@ abstract final class SaveTrackDesign {
   static const space = 16.0;
   static const section = 24.0;
   static const radius = 22.0;
-  static const maxWidth = 760.0;
+  static const maxWidth = 1080.0;
   static const motion = Duration(milliseconds: 240);
   static const signature = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [teal, Color(0xFF166F59), emerald],
+    colors: [teal, Color(0xFF116A54), emerald],
   );
   static const premium = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF103E34), teal, emerald],
+    colors: [Color(0xFF073D33), teal, emerald],
   );
   static const soft = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFFE4F7EE), Color(0xFFF8FCFA)],
+    colors: [canvas, Color(0xFFE8F8F0), lightMint],
+  );
+  // Bright mint is reserved for accents. Text-bearing gradients stay dark
+  // enough for white labels, including their lightest stop.
+  static const spectrum = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [teal, Color(0xFF148B70), premiumMint, fresh],
+  );
+  static const progressOnDark = LinearGradient(
+    colors: [mint, fresh, premiumMint],
   );
   static const amount = TextStyle(
-    fontSize: 34,
+    fontSize: 38,
     fontWeight: FontWeight.w700,
     letterSpacing: -1.1,
     fontFeatures: [FontFeature.tabularFigures()],
@@ -86,8 +104,13 @@ abstract final class SaveTrackDesign {
               fontWeight: FontWeight.w600,
               color: ink,
             ),
-            bodyMedium: const TextStyle(fontSize: 14, height: 1.45, color: ink),
-            bodySmall: const TextStyle(fontSize: 12, height: 1.4, color: muted),
+            bodyLarge: const TextStyle(fontSize: 16, height: 1.5, color: ink),
+            bodyMedium: const TextStyle(fontSize: 14, height: 1.5, color: ink),
+            bodySmall: const TextStyle(
+              fontSize: 13,
+              height: 1.45,
+              color: muted,
+            ),
             labelLarge: const TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -114,7 +137,7 @@ abstract final class SaveTrackDesign {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF8FCFA),
+        fillColor: input,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 18,
@@ -179,7 +202,7 @@ abstract final class SaveTrackDesign {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: mint,
+        indicatorColor: lightMint,
         height: 76,
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith(
@@ -208,6 +231,25 @@ abstract final class SaveTrackDesign {
           color: ink,
         ),
         constraints: const BoxConstraints(maxWidth: 480),
+      ),
+      timePickerTheme: TimePickerThemeData(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        hourMinuteColor: lightMint,
+        hourMinuteTextColor: teal,
+        dialBackgroundColor: canvas,
+        dialHandColor: teal,
+      ),
+      listTileTheme: const ListTileThemeData(
+        iconColor: teal,
+        contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      ),
+      tooltipTheme: TooltipThemeData(
+        decoration: BoxDecoration(
+          color: ink,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        textStyle: const TextStyle(color: Colors.white, fontSize: 13),
       ),
       bottomSheetTheme: const BottomSheetThemeData(
         backgroundColor: Colors.white,
@@ -268,11 +310,18 @@ class PageSurface extends StatelessWidget {
 }
 
 class MintHero extends StatelessWidget {
-  const MintHero({super.key, required this.child, this.deep = false});
+  const MintHero({
+    super.key,
+    required this.child,
+    this.deep = false,
+    this.padding = const EdgeInsets.all(24),
+  });
   final Widget child;
   final bool deep;
+  final EdgeInsets padding;
   @override
   Widget build(BuildContext context) => Container(
+    width: double.infinity,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       gradient: deep ? SaveTrackDesign.premium : SaveTrackDesign.signature,
@@ -282,23 +331,39 @@ class MintHero extends StatelessWidget {
     child: Stack(
       children: [
         Positioned(
-          right: -36,
-          top: -60,
+          right: -64,
+          top: -88,
           child: IgnorePointer(
             child: ExcludeSemantics(
               child: Container(
-                width: 180,
-                height: 180,
+                width: 280,
+                height: 280,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0x06FFFFFF), width: 24),
+                  border: Border.all(color: const Color(0x0FFFFFFF), width: 40),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          right: -12,
+          bottom: -112,
+          child: IgnorePointer(
+            child: ExcludeSemantics(
+              child: Container(
+                width: 220,
+                height: 220,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0x08FFFFFF), width: 1),
                 ),
               ),
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.all(24),
+          padding: padding,
           child: DefaultTextStyle.merge(
             style: const TextStyle(color: Colors.white),
             child: IconTheme(
@@ -321,7 +386,7 @@ class MintIcon extends StatelessWidget {
     width: size,
     height: size,
     decoration: BoxDecoration(
-      gradient: SaveTrackDesign.soft,
+      color: SaveTrackDesign.lightMint,
       borderRadius: BorderRadius.circular(14),
     ),
     child: Icon(icon, color: teal, size: 23),
@@ -360,43 +425,82 @@ class MintProgress extends StatelessWidget {
           ? Duration.zero
           : SaveTrackDesign.motion,
       curve: Curves.easeOutCubic,
-      builder: (_, progress, _) => LinearProgressIndicator(
-        value: progress,
-        minHeight: 8,
+      builder: (_, progress, _) => ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        backgroundColor: onDark
-            ? const Color(0x33FFFFFF)
-            : SaveTrackDesign.border,
-        color: onDark ? SaveTrackDesign.fresh : SaveTrackDesign.emerald,
+        child: Stack(
+          children: [
+            Container(
+              height: 8,
+              color: onDark ? const Color(0x33FFFFFF) : SaveTrackDesign.border,
+            ),
+            ShaderMask(
+              shaderCallback: (bounds) =>
+                  (onDark
+                          ? SaveTrackDesign.progressOnDark
+                          : SaveTrackDesign.spectrum)
+                      .createShader(bounds),
+              blendMode: BlendMode.srcIn,
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 8,
+                backgroundColor: Colors.transparent,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     ),
   );
 }
 
-class GradientButton extends StatelessWidget {
+class GradientButton extends StatefulWidget {
   const GradientButton({
     super.key,
     required this.onPressed,
     required this.child,
+    this.expand = true,
   });
   final VoidCallback? onPressed;
   final Widget child;
+  final bool expand;
   @override
-  Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      gradient: onPressed == null ? null : SaveTrackDesign.signature,
-      color: onPressed == null ? teal : null,
-      borderRadius: BorderRadius.circular(16),
-    ),
-    child: FilledButton(
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        backgroundColor: Colors.transparent,
-        disabledBackgroundColor: Colors.transparent,
-        disabledForegroundColor: SaveTrackDesign.onHeroMuted,
-        minimumSize: const Size.fromHeight(54),
+  State<GradientButton> createState() => _GradientButtonState();
+}
+
+class _GradientButtonState extends State<GradientButton> {
+  bool _pressed = false;
+  @override
+  Widget build(BuildContext context) => Listener(
+    onPointerDown: widget.onPressed == null
+        ? null
+        : (_) => setState(() => _pressed = true),
+    onPointerUp: (_) => setState(() => _pressed = false),
+    onPointerCancel: (_) => setState(() => _pressed = false),
+    child: AnimatedScale(
+      scale: _pressed ? .985 : 1,
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 120),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: widget.onPressed == null ? null : SaveTrackDesign.signature,
+          color: widget.onPressed == null ? muted : null,
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: FilledButton(
+          onPressed: widget.onPressed,
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.transparent,
+            disabledBackgroundColor: Colors.transparent,
+            disabledForegroundColor: SaveTrackDesign.onHeroMuted,
+            minimumSize: widget.expand
+                ? const Size.fromHeight(54)
+                : const Size(48, 52),
+          ),
+          child: widget.child,
+        ),
       ),
-      child: child,
     ),
   );
 }
@@ -412,23 +516,51 @@ class ScreenIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 24),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          eyebrow.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.8,
-            color: teal,
-          ),
+    child: SizedBox(
+      width: double.infinity,
+      child: EnterOnce(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              eyebrow,
+              style: const TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                letterSpacing: .2,
+                color: teal,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(title, style: SaveTrackDesign.heading),
+            const SizedBox(height: 6),
+            Text(detail, style: const TextStyle(color: muted, height: 1.5)),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(title, style: SaveTrackDesign.heading),
-        const SizedBox(height: 6),
-        Text(detail, style: const TextStyle(color: muted, height: 1.5)),
-      ],
+      ),
+    ),
+  );
+}
+
+/// The tween retains its endpoint across rebuilds, so live data does not
+/// replay entrance motion. Reduced-motion users see the final frame directly.
+class EnterOnce extends StatelessWidget {
+  const EnterOnce({super.key, required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => TweenAnimationBuilder<double>(
+    tween: Tween(begin: 0, end: 1),
+    duration: MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : SaveTrackDesign.motion,
+    curve: Curves.easeOutCubic,
+    child: child,
+    builder: (context, value, child) => Opacity(
+      opacity: value,
+      child: Transform.translate(
+        offset: Offset(0, (1 - value) * 8),
+        child: child,
+      ),
     ),
   );
 }
@@ -444,7 +576,7 @@ class SaveActionLabel extends StatelessWidget {
       if (busy) ...[
         const SizedBox.square(
           dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2, color: teal),
+          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
         ),
         const SizedBox(width: 8),
       ],
@@ -491,6 +623,301 @@ class StateSurface extends StatelessWidget {
       return constraints.hasBoundedHeight
           ? SingleChildScrollView(padding: padding, child: child)
           : Padding(padding: padding, child: child);
+    },
+  );
+}
+
+/// Reflows content without shrinking text or constraining card heights.
+class AdaptiveCards extends StatelessWidget {
+  const AdaptiveCards({
+    super.key,
+    required this.children,
+    this.breakpoint = 680,
+  });
+  final List<Widget> children;
+  final double breakpoint;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final columns =
+          constraints.maxWidth >= breakpoint &&
+              MediaQuery.textScalerOf(context).scale(14) <= 21
+          ? 2
+          : 1;
+      final width = (constraints.maxWidth - (columns - 1) * 16) / columns;
+      return Wrap(
+        spacing: 16,
+        runSpacing: 16,
+        children: children
+            .map((child) => SizedBox(width: width, child: child))
+            .toList(),
+      );
+    },
+  );
+}
+
+/// Lazily builds variable-height rows on phones and pairs on wider screens.
+class AdaptiveCardList extends StatelessWidget {
+  const AdaptiveCardList({
+    super.key,
+    required this.itemCount,
+    required this.itemBuilder,
+    required this.header,
+  });
+  final int itemCount;
+  final IndexedWidgetBuilder itemBuilder;
+  final Widget header;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final columns =
+          constraints.maxWidth >= 720 &&
+              MediaQuery.textScalerOf(context).scale(14) <= 21
+          ? 2
+          : 1;
+      return ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        itemCount: (itemCount / columns).ceil() + 1,
+        itemBuilder: (context, row) {
+          if (row == 0) return header;
+          final first = (row - 1) * columns;
+          if (columns == 1) return itemBuilder(context, first);
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: itemBuilder(context, first)),
+              const SizedBox(width: 16),
+              Expanded(
+                child: first + 1 < itemCount
+                    ? itemBuilder(context, first + 1)
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+class FormHeading extends StatelessWidget {
+  const FormHeading({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.detail,
+  });
+  final IconData icon;
+  final String title, detail;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      MintIcon(icon, size: 48),
+      const SizedBox(height: 16),
+      Text(title, style: Theme.of(context).textTheme.titleLarge),
+      const SizedBox(height: 6),
+      Text(
+        detail,
+        style: Theme.of(context).textTheme.bodySmall
+            ?.copyWith(color: muted, height: 1.5),
+      ),
+    ],
+  );
+}
+
+class FieldCaption extends StatelessWidget {
+  const FieldCaption(this.label, {super.key});
+  final String label;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 4, bottom: 12),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(
+        label,
+        style: const TextStyle(
+          color: muted,
+          fontWeight: FontWeight.w600,
+          fontSize: 13,
+        ),
+      ),
+    ),
+  );
+}
+
+class DetailLine extends StatelessWidget {
+  const DetailLine({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.color = muted,
+  });
+  final IconData icon;
+  final String label;
+  final Color color;
+  @override
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(top: 2),
+        child: Icon(icon, size: 16, color: color),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text(
+          label,
+          style: TextStyle(color: color, fontSize: 13, height: 1.5),
+        ),
+      ),
+    ],
+  );
+}
+
+class ProgressRing extends StatelessWidget {
+  const ProgressRing({super.key, required this.value, this.size = 72});
+  final double value, size;
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'Completion',
+    value: '${(value * 100).round()}%',
+    child: TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: value),
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 420),
+      curve: Curves.easeOutCubic,
+      builder: (context, progress, _) => SizedBox.square(
+        dimension: size,
+        child: CustomPaint(
+          painter: _RingPainter(progress),
+          child: Center(
+            child: ExcludeSemantics(
+              child: Text(
+                '${(value * 100).round()}%',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: teal,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+class _RingPainter extends CustomPainter {
+  const _RingPainter(this.value);
+  final double value;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final bounds = (Offset.zero & size).deflate(5);
+    final stroke = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 6
+      ..strokeCap = StrokeCap.round;
+    canvas.drawOval(bounds, stroke..color = SaveTrackDesign.border);
+    if (value > 0) {
+      canvas.drawArc(
+        bounds,
+        -math.pi / 2,
+        math.pi * 2 * value.clamp(0, 1),
+        false,
+        stroke..shader = SaveTrackDesign.spectrum.createShader(bounds),
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_RingPainter oldDelegate) => oldDelegate.value != value;
+}
+
+class AuthComposition extends StatelessWidget {
+  const AuthComposition({
+    super.key,
+    required this.brand,
+    required this.child,
+    this.register = false,
+  });
+  final Widget brand, child;
+  final bool register;
+  Widget _showcase({required bool compact}) => MintHero(
+    deep: true,
+    padding: EdgeInsets.all(compact ? 20 : 32),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (!compact) ...[
+          const Icon(Icons.savings_outlined, size: 44),
+          const SizedBox(height: 48),
+        ],
+        Text(
+          register
+              ? 'Big plans.\nStart right here.'
+              : 'Small steps.\nBrighter tomorrows.',
+          style: TextStyle(
+            fontSize: compact ? 24 : 38,
+            fontWeight: FontWeight.w700,
+            height: 1.15,
+            letterSpacing: -.8,
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Text(
+          'A little intention, every day.',
+          style: TextStyle(color: SaveTrackDesign.onHeroMuted),
+        ),
+        if (!compact) ...[
+          const SizedBox(height: 48),
+          const Divider(color: Color(0x33FFFFFF)),
+          const SizedBox(height: 20),
+          const DetailLine(
+            icon: Icons.flag_outlined,
+            label: 'Save for what matters to you.',
+            color: SaveTrackDesign.onHeroMuted,
+          ),
+          const SizedBox(height: 16),
+          const DetailLine(
+            icon: Icons.event_available_outlined,
+            label: 'Make room for a more focused day.',
+            color: SaveTrackDesign.onHeroMuted,
+          ),
+        ],
+      ],
+    ),
+  );
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final wide = constraints.maxWidth >= 760;
+      final form = Card(
+        child: Padding(padding: EdgeInsets.all(wide ? 32 : 24), child: child),
+      );
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          brand,
+          const SizedBox(height: 24),
+          if (wide)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: _showcase(compact: false)),
+                const SizedBox(width: 32),
+                Expanded(child: form),
+              ],
+            )
+          else ...[
+            _showcase(compact: true),
+            const SizedBox(height: 20),
+            form,
+          ],
+        ],
+      );
     },
   );
 }

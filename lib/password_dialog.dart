@@ -162,7 +162,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
                 Container(
                   padding: const EdgeInsets.all(24),
                   decoration: const BoxDecoration(
-                    gradient: SaveTrackDesign.soft,
+                    gradient: SaveTrackDesign.premium,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,16 +171,23 @@ class _PasswordDialogState extends State<PasswordDialog> {
                         _success
                             ? Icons.check_circle_outline
                             : Icons.shield_outlined,
-                        color: teal,
+                        color: mint,
                         size: 32,
                       ),
                       const SizedBox(height: 12),
                       Text(
                         title,
-                        style: Theme.of(context).textTheme.titleLarge,
+                        style: Theme.of(context).textTheme.titleLarge
+                            ?.copyWith(color: Colors.white),
                       ),
                       const SizedBox(height: 8),
-                      Text(subtitle, style: const TextStyle(color: muted)),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: SaveTrackDesign.onHeroMuted,
+                          height: 1.5,
+                        ),
+                      ),
                     ],
                   ),
                 ),
