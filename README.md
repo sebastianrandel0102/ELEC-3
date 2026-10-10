@@ -18,6 +18,8 @@ The app initializes Firebase with native default configuration and displays a se
 
 Google Sign-In is available alongside email/password login. See [Google Sign-In setup and validation](docs/google-sign-in.md) for the existing Firebase project's required OAuth configuration, platform setup, and manual acceptance checks.
 
+Forgot Password opens a mint email-recovery modal and requests a real Firebase password-reset email. Firebase's hosted handler verifies the emailed action code and handles the password update. Profile retains its separate password-change modal using Firebase reauthentication. See [recovery setup and verification](docs/password-recovery.md) and [signed-in password management](docs/password-management.md).
+
 - `users/{uid}`: display name, email, account creation time, and currency preference.
 - `users/{uid}/goals/{goalId}`: title, optional note and deadline, target amount, saved amount, and timestamps.
 - `users/{uid}/goals/{goalId}/transactions/{transactionId}`: append-only deposit records. Deposit creation and the goal balance update are committed in one Firestore batch.
@@ -27,7 +29,7 @@ The supplied Firestore rules restrict private document access to the signed-in u
 
 ## Current scope
 
-Implemented: email/password registration and sign-in, password reset, profile creation at registration, a live dashboard, savings goal create/edit/delete, batched deposits and transaction history, daily and weekly savings pace calculations for goals with deadlines, daily task create/edit/delete/completion, date navigation, summaries, and sign-out.
+Implemented: email/password registration and sign-in, Firebase email password recovery, authenticated password changes, profile creation at registration, a live dashboard, savings goal create/edit/delete, batched deposits and transaction history, daily and weekly savings pace calculations for goals with deadlines, daily task create/edit/delete/completion, date navigation, summaries, and sign-out.
 
 Not yet implemented: goal/task filters and sorting, transaction correction/deletion, a weekly planner view, daily/weekly/monthly trend charts, profile editing, notification reminders/preferences, and automated Firestore emulator/repository tests. Firebase cannot be verified until a real project is configured.
 
