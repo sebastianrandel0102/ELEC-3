@@ -975,13 +975,7 @@ class GoalCard extends StatelessWidget {
                     PopupMenuItem(
                       value: 'withdrawal',
                       enabled: saved > 0,
-                      child: const Row(
-                        children: [
-                          Icon(Icons.south_east, size: 20),
-                          SizedBox(width: 8),
-                          Flexible(child: Text('Decrease Savings')),
-                        ],
-                      ),
+                      child: const Text('Decrease Savings'),
                     ),
                     const PopupMenuItem(
                       value: 'edit',
