@@ -97,16 +97,7 @@ class AuthGate extends StatelessWidget {
     stream: FirebaseAuth.instance.authStateChanges(),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Scaffold(
-          body: PageSurface(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [BrandMark(), SizedBox(height: 24), LoadingPanel()],
-              ),
-            ),
-          ),
-        );
+        return const Scaffold(body: SessionLoading());
       }
       if (snapshot.hasError) {
         return Scaffold(
@@ -125,6 +116,61 @@ class AuthGate extends StatelessWidget {
             : const HomeShell(),
       );
     },
+  );
+}
+
+class SessionLoading extends StatelessWidget {
+  const SessionLoading({super.key});
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: const BoxDecoration(gradient: SaveTrackDesign.premium),
+    child: SafeArea(
+      child: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(32),
+          child: EnterOnce(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: SaveTrackDesign.lightMint,
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: const Icon(Icons.trending_up, size: 40, color: teal),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'SaveTrack',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 30,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -.7,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Your goals, your progress.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: SaveTrackDesign.onHeroMuted),
+                ),
+                const SizedBox(height: 32),
+                const SizedBox.square(
+                  dimension: 24,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: mint,
+                    semanticsLabel: 'Checking your session',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
   );
 }
 
@@ -253,219 +299,190 @@ class _AuthScreenState extends State<AuthScreen> {
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(24),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 430),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Form(
-                    key: _form,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const BrandMark(),
-                        const SizedBox(height: 24),
-                        const MintHero(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+              constraints: const BoxConstraints(maxWidth: 1040),
+              child: AuthComposition(
+                brand: const BrandMark(),
+                register: _register,
+                child: Form(
+                  key: _form,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        _register ? 'Create your account' : 'Welcome back',
+                        style: const TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -.6,
+                          color: ink,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      const Text(
+                        'Your goals, your progress.',
+                        style: TextStyle(color: muted),
+                      ),
+                      const SizedBox(height: 26),
+                      if (_register) ...[
+                        TextFormField(
+                          controller: _name,
+                          textCapitalization: TextCapitalization.words,
+                          decoration: const InputDecoration(
+                            labelText: 'Your name',
+                            prefixIcon: Icon(Icons.person_outline),
+                          ),
+                          validator: (v) => (v == null || v.trim().isEmpty)
+                              ? 'Enter your name.'
+                              : null,
+                        ),
+                        const SizedBox(height: 14),
+                      ],
+                      TextFormField(
+                        controller: _email,
+                        keyboardType: TextInputType.emailAddress,
+                        autocorrect: false,
+                        decoration: const InputDecoration(
+                          labelText: 'Email address',
+                          prefixIcon: Icon(Icons.mail_outline),
+                        ),
+                        validator: (v) =>
+                            (v == null ||
+                                !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                                    .hasMatch(v.trim()))
+                            ? 'Enter a valid email.'
+                            : null,
+                      ),
+                      const SizedBox(height: 14),
+                      TextFormField(
+                        controller: _password,
+                        obscureText: !_showPassword,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            tooltip: _showPassword
+                                ? 'Hide password'
+                                : 'Show password',
+                            onPressed: () =>
+                                setState(() => _showPassword = !_showPassword),
+                            icon: Icon(
+                              _showPassword
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                            ),
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.length < 6)
+                            ? 'Use at least 6 characters.'
+                            : null,
+                      ),
+                      if (!_register)
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: _busy || _recoveryOpen
+                                ? null
+                                : _resetPassword,
+                            child: const Text('Forgot password?'),
+                          ),
+                        ),
+                      if (_error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: ErrorPanel(message: _error!),
+                        ),
+                      const SizedBox(height: 8),
+                      GradientButton(
+                        onPressed: _busy ? null : _submit,
+                        child: _busy && !_googleBusy
+                            ? const SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(_register ? 'Create account' : 'Sign in'),
+                      ),
+                      if (!_register && _authService.supportsGoogleSignIn) ...[
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 18),
+                          child: Row(
                             children: [
-                              Icon(Icons.savings_outlined, size: 32),
-                              SizedBox(height: 16),
-                              Text(
-                                'Small steps.\nBrighter tomorrows.',
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -.5,
+                              Expanded(child: Divider()),
+                              Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 14),
+                                child: Text(
+                                  'OR',
+                                  style: TextStyle(color: muted),
                                 ),
                               ),
-                              SizedBox(height: 8),
-                              Text(
-                                'A little intention, every day.',
-                                style: TextStyle(
-                                  color: SaveTrackDesign.onHeroMuted,
+                              Expanded(child: Divider()),
+                            ],
+                          ),
+                        ),
+                        OutlinedButton(
+                          key: const ValueKey('google-sign-in'),
+                          onPressed: _busy ? null : _signInWithGoogle,
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF1F1F1F),
+                            disabledBackgroundColor: Colors.white,
+                            side: const BorderSide(color: Color(0xFF747775)),
+                            minimumSize: const Size.fromHeight(52),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            textStyle: const TextStyle(
+                              fontFamily: 'GoogleSans',
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              if (_googleBusy)
+                                const SizedBox.square(
+                                  dimension: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    semanticsLabel: 'Signing in with Google',
+                                  ),
+                                )
+                              else
+                                Image.asset(
+                                  'assets/branding/google_g.png',
+                                  width: 20,
+                                  height: 20,
+                                  excludeFromSemantics: true,
                                 ),
+                              const SizedBox(width: 12),
+                              const Flexible(
+                                child: Text('Continue with Google'),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 28),
-                        Text(
-                          _register ? 'Create your account' : 'Welcome back',
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            color: ink,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        const Text(
-                          'Your goals, your progress.',
-                          style: TextStyle(color: muted),
-                        ),
-                        const SizedBox(height: 26),
-                        if (_register) ...[
-                          TextFormField(
-                            controller: _name,
-                            textCapitalization: TextCapitalization.words,
-                            decoration: const InputDecoration(
-                              labelText: 'Your name',
-                              prefixIcon: Icon(Icons.person_outline),
-                            ),
-                            validator: (v) => (v == null || v.trim().isEmpty)
-                                ? 'Enter your name.'
-                                : null,
-                          ),
-                          const SizedBox(height: 14),
-                        ],
-                        TextFormField(
-                          controller: _email,
-                          keyboardType: TextInputType.emailAddress,
-                          autocorrect: false,
-                          decoration: const InputDecoration(
-                            labelText: 'Email address',
-                            prefixIcon: Icon(Icons.mail_outline),
-                          ),
-                          validator: (v) =>
-                              (v == null ||
-                                  !RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
-                                      .hasMatch(v.trim()))
-                              ? 'Enter a valid email.'
-                              : null,
-                        ),
-                        const SizedBox(height: 14),
-                        TextFormField(
-                          controller: _password,
-                          obscureText: !_showPassword,
-                          decoration: InputDecoration(
-                            labelText: 'Password',
-                            prefixIcon: const Icon(Icons.lock_outline),
-                            suffixIcon: IconButton(
-                              tooltip: _showPassword
-                                  ? 'Hide password'
-                                  : 'Show password',
-                              onPressed: () => setState(
-                                () => _showPassword = !_showPassword,
-                              ),
-                              icon: Icon(
-                                _showPassword
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                              ),
-                            ),
-                          ),
-                          validator: (v) => (v == null || v.length < 6)
-                              ? 'Use at least 6 characters.'
-                              : null,
-                        ),
-                        if (!_register)
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: _busy || _recoveryOpen
-                                  ? null
-                                  : _resetPassword,
-                              child: const Text('Forgot password?'),
-                            ),
-                          ),
-                        if (_error != null)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: ErrorPanel(message: _error!),
-                          ),
-                        const SizedBox(height: 8),
-                        GradientButton(
-                          onPressed: _busy ? null : _submit,
-                          child: _busy && !_googleBusy
-                              ? const SizedBox.square(
-                                  dimension: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Text(_register ? 'Create account' : 'Sign in'),
-                        ),
-                        if (!_register &&
-                            _authService.supportsGoogleSignIn) ...[
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 18),
-                            child: Row(
-                              children: [
-                                Expanded(child: Divider()),
-                                Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 14),
-                                  child: Text(
-                                    'OR',
-                                    style: TextStyle(color: muted),
-                                  ),
-                                ),
-                                Expanded(child: Divider()),
-                              ],
-                            ),
-                          ),
-                          OutlinedButton(
-                            key: const ValueKey('google-sign-in'),
-                            onPressed: _busy ? null : _signInWithGoogle,
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: const Color(0xFF1F1F1F),
-                              disabledBackgroundColor: Colors.white,
-                              side: const BorderSide(color: Color(0xFF747775)),
-                              minimumSize: const Size.fromHeight(52),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 14,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              textStyle: const TextStyle(
-                                fontFamily: 'GoogleSans',
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                if (_googleBusy)
-                                  const SizedBox.square(
-                                    dimension: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      semanticsLabel: 'Signing in with Google',
-                                    ),
-                                  )
-                                else
-                                  Image.asset(
-                                    'assets/branding/google_g.png',
-                                    width: 20,
-                                    height: 20,
-                                    excludeFromSemantics: true,
-                                  ),
-                                const SizedBox(width: 12),
-                                const Flexible(
-                                  child: Text('Continue with Google'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                        TextButton(
-                          onPressed: _busy
-                              ? null
-                              : () => setState(() {
-                                  _register = !_register;
-                                  _error = null;
-                                }),
-                          child: Text(
-                            _register
-                                ? 'Already have an account? Sign in'
-                                : 'New to SaveTrack? Create an account',
-                          ),
-                        ),
                       ],
-                    ),
+                      TextButton(
+                        onPressed: _busy
+                            ? null
+                            : () => setState(() {
+                                _register = !_register;
+                                _error = null;
+                              }),
+                        child: Text(
+                          _register
+                              ? 'Already have an account? Sign in'
+                              : 'New to SaveTrack? Create an account',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -556,16 +573,41 @@ class _HomeShellState extends State<HomeShell> {
               label: Text(_index == 1 ? 'New goal' : 'Add task'),
             )
           : null,
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: SaveTrackDesign.border)),
+      bottomNavigationBar: SaveTrackNavigation(
+        selectedIndex: _index,
+        onSelected: (i) => setState(() => _index = i),
+      ),
+    );
+  }
+}
+
+class SaveTrackNavigation extends StatelessWidget {
+  const SaveTrackNavigation({
+    super.key,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    top: false,
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+      child: Container(
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: SaveTrackDesign.border),
+          boxShadow: SaveTrackDesign.shadows,
         ),
         child: NavigationBar(
           animationDuration: MediaQuery.disableAnimationsOf(context)
               ? Duration.zero
               : SaveTrackDesign.motion,
-          selectedIndex: _index,
-          onDestinationSelected: (i) => setState(() => _index = i),
+          selectedIndex: selectedIndex,
+          onDestinationSelected: onSelected,
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.home_outlined),
@@ -595,8 +637,8 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 class DashboardScreen extends StatelessWidget {
@@ -605,149 +647,204 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
     final today = _dateKey(DateTime.now());
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      children: [
-        Text(
-          'Hello, ${user.displayName?.split(' ').first ?? 'there'} ',
-          style: const TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.w800,
-            color: ink,
+    return DashboardLayout(
+      header: ScreenIntro(
+        eyebrow: _dateTitle(DateTime.now()),
+        title: 'Hello, ${user.displayName?.split(' ').first ?? 'there'}',
+        detail: 'A little progress adds up.',
+      ),
+      savings: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _goals(user.uid)
+            .where('archived', isEqualTo: false)
+            .snapshots(),
+        builder: (context, snap) {
+          if (snap.hasError) {
+            return ErrorPanel(
+              message: 'Could not load your goals. ${snap.error}',
+            );
+          }
+          if (!snap.hasData) return const LoadingPanel();
+          final docs = snap.data!.docs;
+          final total = docs.fold<double>(
+            0,
+            (total, d) => total + _number(d.data()['savedAmount']),
+          );
+          final target = docs.fold<double>(
+            0,
+            (total, d) => total + _number(d.data()['targetAmount']),
+          );
+          return SavingsOverview(
+            total: total,
+            target: target,
+            count: docs.length,
+          );
+        },
+      ),
+      metrics: AdaptiveCards(
+        breakpoint: 0,
+        children: [
+          SummaryTile(
+            icon: Icons.flag_outlined,
+            label: 'Active goals',
+            stream: _goals(user.uid)
+                .where('archived', isEqualTo: false)
+                .snapshots(),
+            count: true,
           ),
-        ),
-        const SizedBox(height: 4),
-        const Text(
-          'A little progress adds up.',
-          style: TextStyle(color: muted),
-        ),
-        const SizedBox(height: 20),
-        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _goals(user.uid)
-              .where('archived', isEqualTo: false)
-              .snapshots(),
-          builder: (context, snap) {
-            if (snap.hasError) {
-              return ErrorPanel(
-                message: 'Could not load your goals. ${snap.error}',
-              );
-            }
-            if (!snap.hasData) return const LoadingPanel();
-            final docs = snap.data!.docs;
-            final total = docs.fold<double>(
-              0,
-              (total, d) => total + _number(d.data()['savedAmount']),
-            );
-            final target = docs.fold<double>(
-              0,
-              (total, d) => total + _number(d.data()['targetAmount']),
-            );
-            return MintHero(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Row(
-                    children: [
-                      Icon(Icons.account_balance_wallet_outlined, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        'YOUR SAVINGS',
-                        style: TextStyle(
-                          fontSize: 11,
-                          letterSpacing: 1.8,
-                          fontWeight: FontWeight.w600,
-                          color: SaveTrackDesign.onHeroMuted,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    _money(total),
-                    style: SaveTrackDesign.amount.copyWith(color: Colors.white),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Total saved toward your goals',
-                    style: TextStyle(
-                      color: SaveTrackDesign.onHeroMuted,
-                      fontSize: 13,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  MintProgress(
-                    value: target == 0 ? 0 : (total / target).clamp(0, 1),
-                    onDark: true,
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 8,
-                    children: [
-                      Text(
-                        '${docs.length} active ${docs.length == 1 ? 'goal' : 'goals'}',
-                        style: const TextStyle(
-                          color: SaveTrackDesign.onHeroMuted,
-                          fontSize: 13,
-                        ),
-                      ),
-                      Text(
-                        '${_money(target)} target',
-                        style: const TextStyle(
-                          color: SaveTrackDesign.onHeroMuted,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-        const SizedBox(height: 16),
-        Row(
+          SummaryTile(
+            icon: Icons.check_circle_outline,
+            label: 'Done today',
+            stream: _tasks(user.uid)
+                .where('dateKey', isEqualTo: today)
+                .snapshots(),
+            count: false,
+          ),
+        ],
+      ),
+      goals: GoalsPreview(uid: user.uid),
+      tasks: TasksList(uid: user.uid, dateKey: today, compact: true),
+      onGoals: () => _openTab(context, 1),
+      onPlanner: () => _openTab(context, 2),
+    );
+  }
+}
+
+class SavingsOverview extends StatelessWidget {
+  const SavingsOverview({
+    super.key,
+    required this.total,
+    required this.target,
+    required this.count,
+  });
+  final double total, target;
+  final int count;
+  @override
+  Widget build(BuildContext context) => MintHero(
+    deep: true,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Row(
           children: [
-            Expanded(
-              child: SummaryTile(
-                icon: Icons.flag_outlined,
-                label: 'Active goals',
-                stream: _goals(user.uid)
-                    .where('archived', isEqualTo: false)
-                    .snapshots(),
-                count: true,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SummaryTile(
-                icon: Icons.check_circle_outline,
-                label: 'Done today',
-                stream: _tasks(user.uid)
-                    .where('dateKey', isEqualTo: today)
-                    .snapshots(),
-                count: false,
+            Icon(Icons.account_balance_wallet_outlined, size: 20),
+            SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                'Your savings',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: SaveTrackDesign.onHeroMuted,
+                ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 24),
-        SectionHeader(
-          title: 'Your goals',
-          action: 'See all',
-          onTap: () => _openTab(context, 1),
+        const SizedBox(height: 20),
+        Text(
+          _money(total),
+          style: SaveTrackDesign.amount.copyWith(color: Colors.white),
         ),
-        GoalsPreview(uid: user.uid),
-        const SizedBox(height: 22),
-        SectionHeader(
-          title: "Today\u2019s plan",
-          action: 'Open planner',
-          onTap: () => _openTab(context, 2),
+        const SizedBox(height: 6),
+        const Text(
+          'Total saved toward your goals',
+          style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
         ),
-        TasksList(uid: user.uid, dateKey: today, compact: true),
+        const SizedBox(height: 28),
+        MintProgress(
+          value: target == 0 ? 0 : (total / target).clamp(0, 1),
+          onDark: true,
+        ),
+        const SizedBox(height: 16),
+        Wrap(
+          spacing: 16,
+          runSpacing: 8,
+          children: [
+            Text(
+              '$count active ${count == 1 ? 'goal' : 'goals'}',
+              style: const TextStyle(
+                color: SaveTrackDesign.onHeroMuted,
+                fontSize: 13,
+              ),
+            ),
+            Text(
+              '${_money(target)} target',
+              style: const TextStyle(
+                color: SaveTrackDesign.onHeroMuted,
+                fontSize: 13,
+              ),
+            ),
+          ],
+        ),
       ],
-    );
-  }
+    ),
+  );
+}
+
+class DashboardLayout extends StatelessWidget {
+  const DashboardLayout({
+    super.key,
+    required this.header,
+    required this.savings,
+    required this.metrics,
+    required this.goals,
+    required this.tasks,
+    required this.onGoals,
+    required this.onPlanner,
+  });
+  final Widget header, savings, metrics, goals, tasks;
+  final VoidCallback onGoals, onPlanner;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final overview = Column(
+        children: [savings, const SizedBox(height: 16), metrics],
+      );
+      final plan = Column(
+        children: [
+          SectionHeader(
+            title: "Today\u2019s plan",
+            action: 'Open planner',
+            onTap: onPlanner,
+          ),
+          tasks,
+        ],
+      );
+      final milestones = Column(
+        children: [
+          SectionHeader(title: 'Your goals', action: 'See all', onTap: onGoals),
+          goals,
+        ],
+      );
+      final wide =
+          constraints.maxWidth >= 840 &&
+          MediaQuery.textScalerOf(context).scale(14) <= 21;
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+        children: [
+          header,
+          if (wide) ...[
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: overview),
+                const SizedBox(width: 24),
+                Expanded(child: plan),
+              ],
+            ),
+            const SizedBox(height: 32),
+            milestones,
+          ] else ...[
+            overview,
+            const SizedBox(height: 28),
+            milestones,
+            const SizedBox(height: 24),
+            plan,
+          ],
+        ],
+      );
+    },
+  );
 }
 
 class GoalsScreen extends StatelessWidget {
@@ -774,16 +871,14 @@ class GoalsScreen extends StatelessWidget {
             onTap: () => showGoalForm(context),
           );
         }
-        return ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 90),
-          children: [
-            const ScreenIntro(
-              eyebrow: 'Make it happen',
-              title: 'One goal at a time.',
-              detail: 'Every contribution brings your next milestone closer.',
-            ),
-            ...docs.map((d) => GoalCard(uid: uid, doc: d)),
-          ],
+        return AdaptiveCardList(
+          itemCount: docs.length,
+          itemBuilder: (context, index) => GoalCard(uid: uid, doc: docs[index]),
+          header: const ScreenIntro(
+            eyebrow: 'Make it happen',
+            title: 'One goal at a time.',
+            detail: 'Every contribution brings your next milestone closer.',
+          ),
         );
       },
     );
@@ -876,45 +971,65 @@ class GoalCard extends StatelessWidget {
               ],
             ),
             if ((data['note'] as String? ?? '').isNotEmpty)
-              Text(
-                data['note'] as String,
-                style: const TextStyle(color: muted, fontSize: 13),
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(
+                  data['note'] as String,
+                  style: const TextStyle(color: muted, fontSize: 13),
+                ),
               ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              children: [
-                Text(
-                  '${_money(saved)} saved',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    color: teal,
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: SaveTrackDesign.input,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${_money(saved)} saved',
+                    style: SaveTrackDesign.amount.copyWith(
+                      fontSize: 22,
+                      color: teal,
+                      letterSpacing: -.4,
+                    ),
                   ),
-                ),
-                StatusPill(
-                  saved >= target && target > 0
-                      ? 'Goal reached'
-                      : '${(pct * 100).round()}% saved',
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Text(
+                    '${_money(target)} target',
+                    style: const TextStyle(color: muted, fontSize: 13),
+                  ),
+                  const SizedBox(height: 16),
+                  MintProgress(value: pct),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      StatusPill(
+                        saved >= target && target > 0
+                            ? 'Goal reached'
+                            : '${(pct * 100).round()}% saved',
+                      ),
+                      Text(
+                        '${_money((target - saved).clamp(0, double.infinity))} to go',
+                        style: const TextStyle(color: muted, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            MintProgress(value: pct),
-            const SizedBox(height: 10),
-            Text(
-              '${_money(target)} target',
-              style: const TextStyle(color: muted, fontSize: 13),
-            ),
-            Text(
-              '${_money((target - saved).clamp(0, double.infinity))} to go',
-              style: const TextStyle(color: muted, fontSize: 13),
-            ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
             if (data['deadline'] is Timestamp)
-              Text(
-                'Target date  ${_shortDate((data['deadline'] as Timestamp).toDate())}',
-                style: const TextStyle(color: muted, fontSize: 12),
+              DetailLine(
+                icon: Icons.calendar_today_outlined,
+                label:
+                    'Target date  ${_shortDate((data['deadline'] as Timestamp).toDate())}',
               ),
             if (data['deadline'] is Timestamp && saved < target)
               Builder(
@@ -931,19 +1046,17 @@ class GoalCard extends StatelessWidget {
                       .clamp(1, 365000);
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      isOverdue
+                    child: DetailLine(
+                      icon: isOverdue ? Icons.schedule : Icons.trending_up,
+                      label: isOverdue
                           ? 'Overdue  ${_money(needed)} remaining'
                           : 'Suggested pace: ${_money(needed / days)} daily, ${_money(needed * 7 / days)} weekly',
-                      style: TextStyle(
-                        color: isOverdue ? SaveTrackDesign.error : muted,
-                        fontSize: 12,
-                      ),
+                      color: isOverdue ? SaveTrackDesign.error : muted,
                     ),
                   );
                 },
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
             const Divider(height: 1),
             const SizedBox(height: 4),
             Wrap(
@@ -954,7 +1067,7 @@ class GoalCard extends StatelessWidget {
                   onPressed: () => showTransactionHistory(context, doc),
                   child: const Text('History'),
                 ),
-                TextButton.icon(
+                FilledButton.tonalIcon(
                   onPressed: () => showDepositForm(context, uid, doc),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Add savings'),
@@ -980,61 +1093,136 @@ class _PlannerScreenState extends State<PlannerScreen> {
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final key = _dateKey(_day);
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(18, 8, 18, 14),
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Row(
+    return TasksList(
+      uid: uid,
+      dateKey: key,
+      header: PlannerDateHeader(
+        title: _dateTitle(_day),
+        onPrevious: () =>
+            setState(() => _day = _day.subtract(const Duration(days: 1))),
+        onNext: () => setState(() => _day = _day.add(const Duration(days: 1))),
+        onToday: () => setState(() => _day = DateTime.now()),
+      ),
+    );
+  }
+}
+
+class PlannerDateHeader extends StatelessWidget {
+  const PlannerDateHeader({
+    super.key,
+    required this.title,
+    required this.onPrevious,
+    required this.onNext,
+    required this.onToday,
+  });
+  final String title;
+  final VoidCallback onPrevious, onNext, onToday;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const ScreenIntro(
+        eyebrow: 'Daily planner',
+        title: 'Make today count.',
+        detail: 'A clear plan. A little more focus.',
+      ),
+      Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
                 children: [
-                  IconButton(
-                    tooltip: 'Previous day',
-                    onPressed: () => setState(
-                      () => _day = _day.subtract(const Duration(days: 1)),
+                  const Expanded(
+                    child: Text(
+                      'Your schedule',
+                      style: TextStyle(color: muted, fontSize: 13),
                     ),
+                  ),
+                  TextButton.icon(
+                    onPressed: onToday,
+                    icon: const Icon(Icons.today_outlined, size: 18),
+                    label: const Text('Today'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  IconButton.filledTonal(
+                    tooltip: 'Previous day',
+                    onPressed: onPrevious,
                     icon: const Icon(Icons.chevron_left),
                   ),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      _dateTitle(_day),
+                      title,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
-                        fontSize: 16,
                       ),
                     ),
                   ),
-                  IconButton(
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
                     tooltip: 'Next day',
-                    onPressed: () => setState(
-                      () => _day = _day.add(const Duration(days: 1)),
-                    ),
+                    onPressed: onNext,
                     icon: const Icon(Icons.chevron_right),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
-        Align(
-          alignment: Alignment.centerRight,
-          child: Padding(
-            padding: const EdgeInsets.only(right: 20),
-            child: TextButton.icon(
-              onPressed: () => setState(() => _day = DateTime.now()),
-              icon: const Icon(Icons.today_outlined, size: 18),
-              label: const Text('Today'),
+      ),
+      const SizedBox(height: 20),
+    ],
+  );
+}
+
+class DailyCompletion extends StatelessWidget {
+  const DailyCompletion({super.key, required this.done, required this.total});
+  final int done, total;
+  @override
+  Widget build(BuildContext context) => Card(
+    color: SaveTrackDesign.lightMint,
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Daily progress',
+                  style: TextStyle(
+                    color: teal,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '$done of $total tasks completed',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: ink,
+                  ),
+                ),
+              ],
             ),
           ),
-        ),
-        Expanded(
-          child: TasksList(uid: uid, dateKey: key),
-        ),
-      ],
-    );
-  }
+          const SizedBox(width: 16),
+          ProgressRing(value: total == 0 ? 0 : done / total),
+        ],
+      ),
+    ),
+  );
 }
 
 class TasksList extends StatelessWidget {
@@ -1043,75 +1231,68 @@ class TasksList extends StatelessWidget {
     required this.uid,
     required this.dateKey,
     this.compact = false,
+    this.header,
   });
   final String uid, dateKey;
   final bool compact;
+  final Widget? header;
   @override
-  Widget build(BuildContext context) =>
-      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
-        builder: (context, s) {
-          if (s.hasError) {
-            return ErrorPanel(message: 'Could not load tasks. ${s.error}');
-          }
-          if (!s.hasData) return const LoadingPanel();
-          final docs = s.data!.docs;
-          if (docs.isEmpty) {
-            return compact
-                ? EmptyPanel(
-                    icon: Icons.event_available_outlined,
-                    title: 'A clear day',
-                    detail: "Add tasks when you\u2019re ready.",
-                    action: 'Add a task',
-                    onTap: () => showTaskForm(context, dateKey: dateKey),
-                  )
-                : EmptyPanel(
-                    icon: Icons.event_note_outlined,
-                    title: 'Nothing planned yet',
-                    detail: 'Add a task to make a plan for this day.',
-                    action: 'Add a task',
-                    onTap: () => showTaskForm(context, dateKey: dateKey),
-                  );
-          }
-          final list = docs.map((d) => TaskTile(uid: uid, doc: d)).toList();
-          final done = docs.where((d) => d.data()['completed'] == true).length;
-          final overview = Padding(
-            padding: const EdgeInsets.only(bottom: 20),
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'DAILY PROGRESS',
-                      style: TextStyle(
-                        color: teal,
-                        fontSize: 11,
-                        letterSpacing: 1.6,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      '$done of ${docs.length} tasks completed',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 12),
-                    MintProgress(value: done / docs.length),
-                  ],
+  Widget build(
+    BuildContext context,
+  ) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
+    builder: (context, s) {
+      Widget state(Widget child) => compact
+          ? child
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              children: [?header, child],
+            );
+      if (s.hasError) {
+        return state(ErrorPanel(message: 'Could not load tasks. ${s.error}'));
+      }
+      if (!s.hasData) return state(const LoadingPanel());
+      final docs = s.data!.docs;
+      if (docs.isEmpty) {
+        return compact
+            ? EmptyPanel(
+                icon: Icons.event_available_outlined,
+                title: 'A clear day',
+                detail: "Add tasks when you\u2019re ready.",
+                action: 'Add a task',
+                onTap: () => showTaskForm(context, dateKey: dateKey),
+              )
+            : state(
+                EmptyPanel(
+                  icon: Icons.event_note_outlined,
+                  title: 'Nothing planned yet',
+                  detail: 'Add a task to make a plan for this day.',
+                  action: 'Add a task',
+                  onTap: () => showTaskForm(context, dateKey: dateKey),
                 ),
-              ),
-            ),
-          );
-          return compact
-              ? Column(children: list)
-              : ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 90),
-                  children: [overview, ...list],
-                );
-        },
+              );
+      }
+      final done = docs.where((d) => d.data()['completed'] == true).length;
+      final overview = Column(
+        children: [
+          ?header,
+          DailyCompletion(done: done, total: docs.length),
+          const SizedBox(height: 24),
+        ],
       );
+      return compact
+          ? Column(
+              children: docs.map((d) => TaskTile(uid: uid, doc: d)).toList(),
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              itemCount: docs.length + 1,
+              itemBuilder: (context, index) => index == 0
+                  ? overview
+                  : TaskTile(uid: uid, doc: docs[index - 1]),
+            );
+    },
+  );
 }
 
 class TaskTile extends StatelessWidget {
@@ -1122,63 +1303,105 @@ class TaskTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = doc.data();
     final done = d['completed'] == true;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 9),
-      color: done ? const Color(0xFFF5FAF7) : Colors.white,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        leading: Checkbox(
-          semanticLabel: 'Complete ${d['title']}',
-          value: done,
-          activeColor: teal,
-          onChanged: (v) => doc.reference.update({
-            'completed': v == true,
-            'updatedAt': FieldValue.serverTimestamp(),
-          }),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: AnimatedContainer(
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : SaveTrackDesign.motion,
+        decoration: BoxDecoration(
+          color: done ? SaveTrackDesign.completed : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: SaveTrackDesign.border),
         ),
-        title: Text(
-          '${d['title']}',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            decoration: done ? TextDecoration.lineThrough : null,
-            color: done ? muted : ink,
-          ),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Wrap(
-            spacing: 8,
-            runSpacing: 6,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if ((d['time'] as String? ?? '').isNotEmpty)
-                Text(
-                  d['time'] as String,
-                  style: const TextStyle(color: muted, fontSize: 12),
-                ),
-              StatusPill(
-                '${d['priority'] ?? 'Normal'} priority',
-                color: d['priority'] == 'High' ? SaveTrackDesign.warning : teal,
+              Checkbox(
+                semanticLabel: 'Complete ${d['title']}',
+                value: done,
+                activeColor: teal,
+                onChanged: (v) => doc.reference.update({
+                  'completed': v == true,
+                  'updatedAt': FieldValue.serverTimestamp(),
+                }),
               ),
-              if (done) const StatusPill('Completed'),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${d['title']}',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          decoration: done ? TextDecoration.lineThrough : null,
+                          color: done ? muted : ink,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            if ((d['time'] as String? ?? '').isNotEmpty)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.schedule_outlined,
+                                    size: 14,
+                                    color: muted,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      d['time'] as String,
+                                      style: const TextStyle(
+                                        color: muted,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            StatusPill(
+                              '${d['priority'] ?? 'Normal'} priority',
+                              color: d['priority'] == 'High'
+                                  ? SaveTrackDesign.warning
+                                  : teal,
+                            ),
+                            if (done) const StatusPill('Completed'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              PopupMenuButton<String>(
+                tooltip: 'Task actions',
+                onSelected: (v) {
+                  if (v == 'edit') showTaskForm(context, doc: doc);
+                  if (v == 'delete') {
+                    confirmDelete(
+                      context,
+                      'Delete this task?',
+                      () => doc.reference.delete(),
+                    );
+                  }
+                },
+                itemBuilder: (_) => const [
+                  PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                ],
+              ),
             ],
           ),
-        ),
-        trailing: PopupMenuButton<String>(
-          tooltip: 'Task actions',
-          onSelected: (v) {
-            if (v == 'edit') showTaskForm(context, doc: doc);
-            if (v == 'delete') {
-              confirmDelete(
-                context,
-                'Delete this task?',
-                () => doc.reference.delete(),
-              );
-            }
-          },
-          itemBuilder: (_) => const [
-            PopupMenuItem(value: 'edit', child: Text('Edit')),
-            PopupMenuItem(value: 'delete', child: Text('Delete')),
-          ],
         ),
       ),
     );
@@ -1230,16 +1453,24 @@ class ReportsScreen extends StatelessWidget {
             );
           },
         ),
-        const SizedBox(height: 12),
-        ReportTaskMetric(uid: uid, dateKey: today, title: "Today\u2019s tasks"),
-        const SizedBox(height: 12),
-        ReportTaskMetric(
-          uid: uid,
-          dateKey: weekStart,
-          title: "This week\u2019s tasks",
-          week: true,
+        const SizedBox(height: 24),
+        const FieldCaption('Planning rhythm'),
+        AdaptiveCards(
+          children: [
+            ReportTaskMetric(
+              uid: uid,
+              dateKey: today,
+              title: "Today\u2019s tasks",
+            ),
+            ReportTaskMetric(
+              uid: uid,
+              dateKey: weekStart,
+              title: "This week\u2019s tasks",
+              week: true,
+            ),
+          ],
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 32),
         const Text(
           'Savings progress',
           style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
@@ -1302,6 +1533,36 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
+    return ProfileContent(
+      name: user.displayName ?? 'SaveTrack user',
+      email: user.email ?? '',
+      onPassword: () => showChangePasswordDialog(
+        context,
+        AuthService.instance.passwordChangeSession(),
+      ),
+      onSignOut: () => AuthService.instance.signOut(),
+    );
+  }
+}
+
+/// Pure account presentation; Firebase remains owned by ProfileScreen.
+class ProfileContent extends StatelessWidget {
+  const ProfileContent({
+    super.key,
+    required this.name,
+    required this.email,
+    required this.onPassword,
+    required this.onSignOut,
+  });
+  final String name, email;
+  final VoidCallback onPassword, onSignOut;
+  @override
+  Widget build(BuildContext context) {
+    final identity = name.trim().isNotEmpty
+        ? name.trim()
+        : email.trim().isNotEmpty
+        ? email.trim()
+        : 'S';
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -1312,89 +1573,79 @@ class ProfileScreen extends StatelessWidget {
         ),
         MintHero(
           deep: true,
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              CircleAvatar(
-                radius: 28,
-                backgroundColor: mint,
-                child: Text(
-                  (user.displayName ?? user.email ?? 'S')
-                      .substring(0, 1)
-                      .toUpperCase(),
-                  style: const TextStyle(
-                    color: teal,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: CircleAvatar(
+                  radius: 34,
+                  backgroundColor: mint,
+                  child: Text(
+                    identity.characters.first.toUpperCase(),
+                    style: const TextStyle(
+                      color: teal,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user.displayName ?? 'SaveTrack user',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+              const SizedBox(height: 24),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
-                    Text(
-                      user.email ?? '',
-                      style: const TextStyle(
-                        color: SaveTrackDesign.onHeroMuted,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    email,
+                    style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
+                  ),
+                ],
               ),
             ],
           ),
         ),
         const SizedBox(height: 24),
-        const Text(
-          'PREFERENCES',
-          style: TextStyle(
-            color: teal,
-            letterSpacing: 1.6,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        const SizedBox(height: 12),
+        const FieldCaption('Preferences & app'),
         const Card(
-          child: ListTile(
-            leading: Icon(Icons.currency_exchange, color: teal),
-            title: Text('Currency'),
-            subtitle: Text('Philippine Peso (PHP)'),
+          child: Column(
+            children: [
+              ListTile(
+                leading: MintIcon(Icons.currency_exchange),
+                title: Text('Currency'),
+                subtitle: Text('Philippine Peso (PHP)'),
+              ),
+              Divider(indent: 20, endIndent: 20, height: 1),
+              ListTile(
+                leading: MintIcon(Icons.info_outline),
+                title: Text('SaveTrack'),
+                subtitle: Text('Your goals, your progress.'),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 12),
-        const Card(
-          child: ListTile(
-            leading: Icon(Icons.info_outline, color: teal),
-            title: Text('SaveTrack'),
-            subtitle: Text('Your goals, your progress.'),
-          ),
-        ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 24),
+        const FieldCaption('Account security'),
         Card(
           child: ListTile(
-            leading: const Icon(Icons.lock_outline, color: teal),
+            leading: const MintIcon(Icons.lock_outline),
             title: const Text('Change Password'),
             subtitle: const Text('Keep your account secure'),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => showChangePasswordDialog(
-              context,
-              AuthService.instance.passwordChangeSession(),
-            ),
+            onTap: onPassword,
           ),
         ),
         const SizedBox(height: 18),
         OutlinedButton.icon(
-          onPressed: () => AuthService.instance.signOut(),
+          onPressed: onSignOut,
           icon: const Icon(Icons.logout),
           label: const Text('Sign out'),
           style: OutlinedButton.styleFrom(
@@ -1472,6 +1723,13 @@ class ReportMetric extends StatelessWidget {
   final bool featured;
   @override
   Widget build(BuildContext context) {
+    final amount = Text(
+      value,
+      style: SaveTrackDesign.amount.copyWith(
+        fontSize: featured ? 34 : 22,
+        color: featured ? Colors.white : ink,
+      ),
+    );
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1492,13 +1750,7 @@ class ReportMetric extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 16),
-        Text(
-          value,
-          style: SaveTrackDesign.amount.copyWith(
-            fontSize: featured ? 32 : 24,
-            color: featured ? Colors.white : ink,
-          ),
-        ),
+        amount,
         const SizedBox(height: 6),
         Text(
           caption,
@@ -1509,7 +1761,29 @@ class ReportMetric extends StatelessWidget {
         ),
         if (progress != null) ...[
           const SizedBox(height: 18),
-          MintProgress(value: progress!, onDark: featured),
+          if (featured) ...[
+            MintProgress(value: progress!, onDark: true),
+            const SizedBox(height: 12),
+            Text(
+              '${(progress! * 100).round()}% of total target',
+              style: const TextStyle(
+                color: SaveTrackDesign.onHeroMuted,
+                fontSize: 13,
+              ),
+            ),
+          ] else
+            Row(
+              children: [
+                ProgressRing(value: progress!),
+                const SizedBox(width: 16),
+                const Expanded(
+                  child: Text(
+                    'Task completion',
+                    style: TextStyle(color: muted, fontSize: 13),
+                  ),
+                ),
+              ],
+            ),
         ],
       ],
     );
@@ -1545,7 +1819,9 @@ class SectionHeader extends StatelessWidget {
             ),
           ),
         ),
-        TextButton(onPressed: onTap, child: Text(action)),
+        Flexible(
+          child: TextButton(onPressed: onTap, child: Text(action)),
+        ),
       ],
     ),
   );
@@ -1615,31 +1891,37 @@ class ErrorPanel extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF5F5),
+          color: SaveTrackDesign.errorSurface,
           border: Border.all(
             color: SaveTrackDesign.error.withValues(alpha: .2),
           ),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            const icon = Icon(
               Icons.error_outline,
               color: SaveTrackDesign.error,
               size: 22,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(
-                  color: SaveTrackDesign.error,
-                  height: 1.5,
-                ),
-              ),
-            ),
-          ],
+            );
+            final text = Text(
+              message,
+              style: const TextStyle(color: SaveTrackDesign.error, height: 1.5),
+            );
+            return constraints.maxWidth < 220
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [icon, const SizedBox(height: 8), text],
+                  )
+                : Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      icon,
+                      const SizedBox(width: 12),
+                      Expanded(child: text),
+                    ],
+                  );
+          },
         ),
       ),
     ),
@@ -1686,7 +1968,7 @@ class EmptyPanel extends StatelessWidget {
             style: const TextStyle(color: muted, height: 1.5),
           ),
           const SizedBox(height: 16),
-          OutlinedButton(onPressed: onTap, child: Text(action)),
+          GradientButton(expand: false, onPressed: onTap, child: Text(action)),
         ],
       ),
     ),
@@ -1797,9 +2079,13 @@ Future<void> showTransactionHistory(
                       ),
                     );
                   }
-                  return ListView(
+                  return ListView.separated(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    children: records.map((record) {
+                    itemCount: records.length,
+                    separatorBuilder: (_, _) =>
+                        const Divider(height: 1, indent: 56),
+                    itemBuilder: (context, index) {
+                      final record = records[index];
                       final data = record.data();
                       final timestamp = data['date'];
                       return Padding(
@@ -1837,15 +2123,13 @@ Future<void> showTransactionHistory(
                                       fontSize: 12,
                                     ),
                                   ),
-                                  const SizedBox(height: 12),
-                                  const Divider(height: 1),
                                 ],
                               ),
                             ),
                           ],
                         ),
                       );
-                    }).toList(),
+                    },
                   );
                 },
               ),
@@ -1919,14 +2203,19 @@ Future<void> showGoalForm(
             horizontal: 24,
             vertical: 24,
           ),
-          icon: const MintIcon(Icons.flag_outlined),
-          title: Text(doc == null ? 'Create a goal' : 'Edit goal'),
+          title: FormHeading(
+            icon: Icons.flag_outlined,
+            title: doc == null ? 'Create a goal' : 'Edit goal',
+            detail: 'Give your next milestone a name and a destination.',
+          ),
           content: Form(
             key: form,
             child: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const FieldCaption('Your milestone'),
                   TextFormField(
                     controller: title,
                     decoration: const InputDecoration(
@@ -1940,6 +2229,10 @@ Future<void> showGoalForm(
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: target,
+                    style: SaveTrackDesign.amount.copyWith(
+                      fontSize: 24,
+                      color: teal,
+                    ),
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
@@ -1954,7 +2247,8 @@ Future<void> showGoalForm(
                           : null;
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 24),
+                  const FieldCaption('A little personal detail'),
                   TextFormField(
                     controller: note,
                     maxLines: 2,
@@ -1963,7 +2257,7 @@ Future<void> showGoalForm(
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextButton.icon(
+                  OutlinedButton.icon(
                     onPressed: () async {
                       final d = await showDatePicker(
                         context: ctx,
@@ -1995,7 +2289,8 @@ Future<void> showGoalForm(
               onPressed: busy ? null : () => Navigator.pop(ctx),
               child: const Text('Cancel'),
             ),
-            FilledButton(
+            GradientButton(
+              expand: false,
               onPressed: busy
                   ? null
                   : () async {
@@ -2061,15 +2356,48 @@ Future<void> showDepositForm(
             horizontal: 24,
             vertical: 24,
           ),
-          icon: const MintIcon(Icons.savings_outlined),
-          title: Text('Add to ${goal.data()['title']}'),
+          title: FormHeading(
+            icon: Icons.savings_outlined,
+            title: 'Add to ${goal.data()['title']}',
+            detail: 'One contribution closer to your goal.',
+          ),
           content: Form(
             key: form,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: SaveTrackDesign.lightMint,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Current savings',
+                        style: TextStyle(color: muted, fontSize: 13),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _money(_number(goal.data()['savedAmount'])),
+                        style: SaveTrackDesign.amount.copyWith(
+                          fontSize: 22,
+                          color: teal,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
                 TextFormField(
                   controller: amount,
+                  style: SaveTrackDesign.amount.copyWith(
+                    fontSize: 26,
+                    color: teal,
+                  ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -2099,7 +2427,8 @@ Future<void> showDepositForm(
               onPressed: busy ? null : () => Navigator.pop(ctx),
               child: const Text('Cancel'),
             ),
-            FilledButton(
+            GradientButton(
+              expand: false,
               onPressed: busy
                   ? null
                   : () async {
@@ -2167,13 +2496,18 @@ Future<void> showTaskForm(
             horizontal: 24,
             vertical: 24,
           ),
-          icon: const MintIcon(Icons.edit_calendar_outlined),
-          title: Text(doc == null ? 'Add a task' : 'Edit task'),
+          title: FormHeading(
+            icon: Icons.edit_calendar_outlined,
+            title: doc == null ? 'Add a task' : 'Edit task',
+            detail: 'Make space for what matters in your day.',
+          ),
           content: Form(
             key: form,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                const FieldCaption('The plan'),
                 TextFormField(
                   controller: title,
                   decoration: const InputDecoration(
@@ -2192,7 +2526,8 @@ Future<void> showTaskForm(
                     hintText: 'e.g. 9:30 AM',
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
+                const FieldCaption('When & how important'),
                 DropdownButtonFormField<String>(
                   initialValue: priority,
                   decoration: const InputDecoration(
@@ -2205,7 +2540,7 @@ Future<void> showTaskForm(
                   onChanged: (v) => setState(() => priority = v ?? 'Normal'),
                 ),
                 const SizedBox(height: 8),
-                TextButton.icon(
+                OutlinedButton.icon(
                   onPressed: () async {
                     final d = DateTime.tryParse(day) ?? DateTime.now();
                     final chosen = await showDatePicker(
@@ -2227,7 +2562,8 @@ Future<void> showTaskForm(
               onPressed: busy ? null : () => Navigator.pop(ctx),
               child: const Text('Cancel'),
             ),
-            FilledButton(
+            GradientButton(
+              expand: false,
               onPressed: busy
                   ? null
                   : () async {

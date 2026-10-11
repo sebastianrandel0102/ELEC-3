@@ -588,4 +588,435 @@ void main() {
       .75,
     );
   });
+
+  testWidgets('all five navigation destinations retain selection callbacks', (
+    tester,
+  ) async {
+    var selected = 0;
+    final calls = <int>[];
+    await mount(
+      tester,
+      StatefulBuilder(
+        builder: (context, setState) => Scaffold(
+          body: const SizedBox.expand(),
+          bottomNavigationBar: SaveTrackNavigation(
+            selectedIndex: selected,
+            onSelected: (index) => setState(() {
+              selected = index;
+              calls.add(index);
+            }),
+          ),
+        ),
+      ),
+      size: const Size(320, 640),
+      scale: 2,
+    );
+    for (final label in ['Today', 'Goals', 'Planner', 'Reports', 'Profile']) {
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+    }
+    expect(calls, [0, 1, 2, 3, 4]);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      4,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'account layout preserves security and logout actions with long identity',
+    (tester) async {
+      var passwordCalls = 0, logoutCalls = 0;
+      await mount(
+        tester,
+        Scaffold(
+          body: PageSurface(
+            child: ProfileContent(
+              name: 'A very long account name that must remain readable on a small phone',
+              email: 'a.long.email.address@example.com',
+              onPassword: () => passwordCalls++,
+              onSignOut: () => logoutCalls++,
+            ),
+          ),
+        ),
+        size: const Size(320, 640),
+        scale: 2,
+      );
+      await tester.scrollUntilVisible(find.text('Philippine Peso (PHP)'), 300);
+      expect(find.text('Philippine Peso (PHP)'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Change Password'), 300);
+      await tester.tap(find.text('Change Password'));
+      await tester.scrollUntilVisible(find.text('Sign out'), 300);
+      await tester.tap(find.text('Sign out'));
+      expect(passwordCalls, 1);
+      expect(logoutCalls, 1);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('account initials handle empty display names', (tester) async {
+    await mount(
+      tester,
+      Scaffold(
+        body: ProfileContent(
+          name: '',
+          email: '',
+          onPassword: () {},
+          onSignOut: () {},
+        ),
+      ),
+    );
+    expect(find.text('S'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  for (final size in [
+    const Size(320, 640),
+    const Size(1280, 800),
+    const Size(640, 320),
+  ]) {
+    testWidgets(
+      'dashboard composition adapts to $size and retains tab actions',
+      (tester) async {
+        var goalCalls = 0, plannerCalls = 0;
+        final scale = size.width == 1280 ? 1.0 : 2.0;
+        await mount(
+          tester,
+          Scaffold(
+            body: PageSurface(
+              child: DashboardLayout(
+                header: const ScreenIntro(
+                  eyebrow: 'Today',
+                  title: 'Hello, Alex',
+                  detail: 'A little progress adds up.',
+                ),
+                savings: const SavingsOverview(
+                  total: 987654321,
+                  target: 999999999,
+                  count: 123,
+                ),
+                metrics: const SizedBox.shrink(),
+                goals: const SizedBox.shrink(),
+                tasks: const SizedBox.shrink(),
+                onGoals: () => goalCalls++,
+                onPlanner: () => plannerCalls++,
+              ),
+            ),
+          ),
+          size: size,
+          scale: scale,
+        );
+        expect(find.text('PHP 987654321.00'), findsOneWidget);
+        expect(
+          tester.widget<MintProgress>(find.byType(MintProgress)).value,
+          closeTo(987654321 / 999999999, .00001),
+        );
+        await tester.scrollUntilVisible(find.text('See all'), 300);
+        await tester.tap(find.text('See all'));
+        await tester.scrollUntilVisible(
+          find.text('Open planner'),
+          size.width == 1280 ? -300 : 300,
+        );
+        await tester.tap(find.text('Open planner'));
+        expect(goalCalls, 1);
+        expect(plannerCalls, 1);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
+
+  testWidgets('planner header keeps date navigation and works in landscape', (
+    tester,
+  ) async {
+    final calls = <String>[];
+    await mount(
+      tester,
+      scrollPage(
+        Column(
+          children: [
+            PlannerDateHeader(
+              title: 'Today  11/10/2026',
+              onPrevious: () => calls.add('previous'),
+              onNext: () => calls.add('next'),
+              onToday: () => calls.add('today'),
+            ),
+            const DailyCompletion(done: 3, total: 4),
+          ],
+        ),
+      ),
+      size: const Size(640, 320),
+      scale: 2,
+    );
+    for (final label in ['Previous day', 'Next day']) {
+      await tester.ensureVisible(find.byTooltip(label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip(label));
+    }
+    await tester.ensureVisible(find.text('Today'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Today'));
+    await tester.ensureVisible(find.text('3 of 4 tasks completed'));
+    expect(calls, ['previous', 'next', 'today']);
+    expect(tester.widget<ProgressRing>(find.byType(ProgressRing)).value, .75);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('goal collection reflows without changing item order', (
+    tester,
+  ) async {
+    Widget list() => Scaffold(
+      body: PageSurface(
+        child: AdaptiveCardList(
+          itemCount: 50,
+          header: const Text('Milestones'),
+          itemBuilder: (_, index) => Card(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Text('Goal $index'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await mount(tester, list(), size: const Size(1280, 800));
+    expect(
+      tester.getTopLeft(find.text('Goal 0')).dy,
+      tester.getTopLeft(find.text('Goal 1')).dy,
+    );
+    expect(
+      tester.getTopLeft(find.text('Goal 0')).dx,
+      lessThan(tester.getTopLeft(find.text('Goal 1')).dx),
+    );
+    await mount(tester, list(), size: const Size(320, 640), scale: 2);
+    expect(
+      tester.getTopLeft(find.text('Goal 0')).dy,
+      lessThan(tester.getTopLeft(find.text('Goal 1')).dy),
+    );
+    await tester.scrollUntilVisible(find.text('Goal 49'), 500);
+    expect(find.text('Goal 49'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'wide authentication keeps the complete form and registration flow',
+    (tester) async {
+      await mount(tester, const AuthScreen(), size: const Size(1280, 800));
+      await capture(tester, 'login-wide');
+      await tester.ensureVisible(
+        find.text('New to SaveTrack? Create an account'),
+      );
+      await tester.tap(find.text('New to SaveTrack? Create an account'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TextFormField), findsNWidgets(3));
+      expect(find.text('Big plans.\nStart right here.'), findsOneWidget);
+      await capture(tester, 'registration-wide');
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets('session loading and narrow error surfaces support large text', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(640, 320);
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: const bool.fromEnvironment('SAVE_UI_PREVIEWS')
+            ? SaveTrackDesign.theme.copyWith(
+                textTheme: SaveTrackDesign.theme.textTheme.apply(
+                  fontFamily: 'Roboto',
+                ),
+              )
+            : SaveTrackDesign.theme,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(2)),
+          child: RepaintBoundary(key: previewKey, child: child!),
+        ),
+        home: const Scaffold(body: SessionLoading()),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(find.text('SaveTrack'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    tester.view.physicalSize = const Size(390, 844);
+    await tester.pump();
+    await capture(tester, 'session-loading');
+    await mount(
+      tester,
+      scrollPage(
+        const Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            width: 120,
+            child: ErrorPanel(
+              message: 'Could not load this information. Please try again.',
+            ),
+          ),
+        ),
+      ),
+      size: const Size(320, 640),
+      scale: 2,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('premium screen and modal visual previews', (tester) async {
+    final goal = TestDocument({
+      'title': 'Emergency fund',
+      'savedAmount': 12500.0,
+      'targetAmount': 50000.0,
+      'note': 'A little peace of mind.',
+    });
+    final task = TestDocument({
+      'title': 'Review this week\u2019s budget',
+      'time': '9:30 AM',
+      'priority': 'High',
+      'completed': false,
+    });
+    await mount(
+      tester,
+      Scaffold(
+        body: PageSurface(
+          child: DashboardLayout(
+            header: const ScreenIntro(
+              eyebrow: 'Today  11/10/2026',
+              title: 'Hello, Alex',
+              detail: 'A little progress adds up.',
+            ),
+            savings: const SavingsOverview(
+              total: 12500,
+              target: 50000,
+              count: 1,
+            ),
+            metrics: Row(
+              children: [
+                Expanded(
+                  child: SummaryTile(
+                    icon: Icons.flag_outlined,
+                    label: 'Active goals',
+                    stream: Stream.value(TestSnapshot([goal])),
+                    count: true,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SummaryTile(
+                    icon: Icons.check_circle_outline,
+                    label: 'Done today',
+                    stream: Stream.value(TestSnapshot([task])),
+                    count: false,
+                  ),
+                ),
+              ],
+            ),
+            goals: GoalCard(uid: 'fixture', doc: goal),
+            tasks: TaskTile(uid: 'fixture', doc: task),
+            onGoals: () {},
+            onPlanner: () {},
+          ),
+        ),
+        bottomNavigationBar: SaveTrackNavigation(
+          selectedIndex: 0,
+          onSelected: (_) {},
+        ),
+      ),
+    );
+    await capture(tester, 'dashboard');
+    await mount(
+      tester,
+      scrollPage(
+        Column(
+          children: [
+            PlannerDateHeader(
+              title: 'Today  11/10/2026',
+              onPrevious: () {},
+              onNext: () {},
+              onToday: () {},
+            ),
+            const DailyCompletion(done: 0, total: 1),
+            const SizedBox(height: 24),
+            TaskTile(uid: 'fixture', doc: task),
+          ],
+        ),
+      ),
+    );
+    await capture(tester, 'planner');
+    await mount(
+      tester,
+      scrollPage(
+        const Column(
+          children: [
+            ScreenIntro(
+              eyebrow: 'Your progress',
+              title: 'See how far you\u2019ve come.',
+              detail: 'Your savings and planning, at a glance.',
+            ),
+            ReportMetric(
+              title: 'Savings balance',
+              value: 'PHP 12500.00',
+              caption: 'Across 1 goals  PHP 50000.00 total target',
+              icon: Icons.savings_outlined,
+              featured: true,
+              progress: .25,
+            ),
+            SizedBox(height: 24),
+            ReportMetric(
+              title: 'Today\u2019s tasks',
+              value: '0 / 1 completed',
+              caption: '1 remaining',
+              icon: Icons.check_circle_outline,
+              progress: 0,
+            ),
+          ],
+        ),
+      ),
+    );
+    await capture(tester, 'reports');
+    await mount(
+      tester,
+      Scaffold(
+        body: PageSurface(
+          child: ProfileContent(
+            name: 'Alex Rivera',
+            email: 'alex@example.com',
+            onPassword: () {},
+            onSignOut: () {},
+          ),
+        ),
+      ),
+    );
+    await capture(tester, 'profile');
+    for (final type in ['goal', 'deposit', 'task', 'history']) {
+      await mount(
+        tester,
+        Scaffold(
+          body: Builder(
+            builder: (context) => TextButton(
+              onPressed: () {
+                if (type == 'goal') showGoalForm(context);
+                if (type == 'deposit') {
+                  showDepositForm(context, 'fixture', goal);
+                }
+                if (type == 'task') showTaskForm(context);
+                if (type == 'history') showTransactionHistory(context, goal);
+              },
+              child: const Text('Open'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
+      await capture(tester, '$type-form');
+      expect(tester.takeException(), isNull);
+      if (type == 'history') {
+        await tester.tap(find.byTooltip('Close history'));
+      } else {
+        expect(find.byType(AlertDialog), findsOneWidget);
+        await tester.tap(find.text('Cancel'));
+      }
+      await tester.pumpAndSettle();
+    }
+  });
 }
