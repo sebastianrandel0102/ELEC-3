@@ -4,8 +4,10 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_service.dart';
+import 'decrease_savings_dialog.dart';
 import 'firebase_options.dart';
 import 'password_dialog.dart';
+import 'savings_decrease.dart';
 
 import 'design_system.dart';
 export 'design_system.dart';
@@ -953,6 +955,9 @@ class GoalCard extends StatelessWidget {
                   tooltip: 'Goal actions',
                   onSelected: (v) {
                     if (v == 'deposit') showDepositForm(context, uid, doc);
+                    if (v == 'withdrawal') {
+                      showDecreaseSavingsForm(context, uid, doc);
+                    }
                     if (v == 'edit') showGoalForm(context, doc: doc);
                     if (v == 'delete') {
                       confirmDelete(
@@ -962,10 +967,30 @@ class GoalCard extends StatelessWidget {
                       );
                     }
                   },
-                  itemBuilder: (_) => const [
-                    PopupMenuItem(value: 'deposit', child: Text('Add savings')),
-                    PopupMenuItem(value: 'edit', child: Text('Edit goal')),
-                    PopupMenuItem(value: 'delete', child: Text('Delete goal')),
+                  itemBuilder: (_) => [
+                    const PopupMenuItem(
+                      value: 'deposit',
+                      child: Text('Add savings'),
+                    ),
+                    PopupMenuItem(
+                      value: 'withdrawal',
+                      enabled: saved > 0,
+                      child: const Row(
+                        children: [
+                          Icon(Icons.south_east, size: 20),
+                          SizedBox(width: 8),
+                          Flexible(child: Text('Decrease Savings')),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'edit',
+                      child: Text('Edit goal'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Delete goal'),
+                    ),
                   ],
                 ),
               ],
@@ -2067,12 +2092,12 @@ Future<void> showTransactionHistory(
                           const MintIcon(Icons.savings_outlined, size: 56),
                           const SizedBox(height: 16),
                           const Text(
-                            'No savings deposits yet.',
+                            'No savings transactions yet.',
                             style: TextStyle(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Your contributions will appear here.',
+                            'Your savings activity will appear here.',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -2087,31 +2112,42 @@ Future<void> showTransactionHistory(
                     itemBuilder: (context, index) {
                       final record = records[index];
                       final data = record.data();
+                      final withdrawal = data['type'] == 'withdrawal';
                       final timestamp = data['date'];
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const MintIcon(Icons.south_west),
+                            MintIcon(
+                              withdrawal ? Icons.south_east : Icons.south_west,
+                            ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '+${_money(_number(data['amount']))}',
-                                    style: const TextStyle(
+                                    '${withdrawal ? '-' : '+'}${_money(_number(data['amount']))}',
+                                    style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
-                                      color: teal,
+                                      color: withdrawal
+                                          ? SaveTrackDesign.error
+                                          : teal,
                                     ),
                                   ),
                                   const SizedBox(height: 4),
+                                  if (withdrawal) ...[
+                                    const Text('Savings Decreased'),
+                                    const SizedBox(height: 4),
+                                  ],
                                   Text(
                                     (data['note'] as String? ?? '').isEmpty
-                                        ? 'Savings deposit'
-                                        : data['note'] as String,
+                                        ? (withdrawal
+                                              ? 'Savings withdrawal'
+                                              : 'Savings deposit')
+                                        : '${withdrawal ? 'Reason: ' : ''}${data['note']}',
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
@@ -2334,6 +2370,35 @@ Future<void> showGoalForm(
       ),
     ),
   );
+}
+
+Future<void> showDecreaseSavingsForm(
+  BuildContext context,
+  String uid,
+  QueryDocumentSnapshot<Map<String, dynamic>> goal,
+) async {
+  final requestId = goal.reference.collection('transactions').doc().id;
+  final result = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => DecreaseSavingsDialog(
+      initialGoal: goal.data(),
+      goalUpdates: goal.reference.snapshots(),
+      formatMoney: _money,
+      onConfirm: (amount, note) => decreaseSavings(
+        goal: goal.reference,
+        uid: uid,
+        amount: amount,
+        note: note,
+        requestId: requestId,
+      ),
+    ),
+  );
+  if (result == true && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Savings decreased successfully.')),
+    );
+  }
 }
 
 Future<void> showDepositForm(

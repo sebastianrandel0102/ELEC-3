@@ -9,10 +9,71 @@ service cloud.firestore {
       allow read, create, update, delete: if owns(uid);
 
       match /goals/{goalId} {
-        allow read, create, update, delete: if owns(uid);
+        function validBalance() {
+          return request.resource.data.savedAmount is number
+            && request.resource.data.savedAmount >= 0;
+        }
+
+        function validWithdrawalRecord(data) {
+          return data.keys().hasAll(['amount', 'note', 'date', 'type'])
+            && data.keys().hasOnly(['amount', 'note', 'date', 'type'])
+            && data.type == 'withdrawal'
+            && data.amount is number && data.amount > 0
+            && data.amount <= 90071992547409.91
+            && data.note is string
+            && data.date == request.time;
+        }
+
+        function withdrawalBalanceMatches(before, after, amount) {
+          // Existing balances are floating-point pesos, not integer centavos.
+          return amount <= before + 0.00000001
+            && after >= 0
+            && after - (before - amount) <= 0.00000001
+            && (before - amount) - after <= 0.00000001;
+        }
+
+        function validWithdrawalUpdate() {
+          let id = request.resource.data.lastWithdrawalId;
+          let path = /databases/$(database)/documents/users/$(uid)/goals/$(goalId)/transactions/$(id);
+          let record = getAfter(path).data;
+          return id is string && id.size() > 0
+            && !exists(path)
+            && request.resource.data.diff(resource.data).affectedKeys()
+                .hasOnly(['savedAmount', 'updatedAt', 'lastWithdrawalId'])
+            && request.resource.data.updatedAt == request.time
+            && validWithdrawalRecord(record)
+            && withdrawalBalanceMatches(resource.data.savedAmount,
+                request.resource.data.savedAmount, record.amount);
+        }
+
+        allow read, delete: if owns(uid);
+        allow create: if owns(uid) && validBalance();
+        allow update: if owns(uid) && validBalance()
+          && (request.resource.data.savedAmount >= resource.data.savedAmount
+            ? request.resource.data.get('lastWithdrawalId', '') == resource.data.get('lastWithdrawalId', '')
+            : validWithdrawalUpdate());
 
         match /transactions/{transactionId} {
-          allow read, create, update, delete: if owns(uid);
+          function validWithdrawalCreate() {
+            let path = /databases/$(database)/documents/users/$(uid)/goals/$(goalId);
+            let before = get(path).data;
+            let after = getAfter(path).data;
+            return validWithdrawalRecord(request.resource.data)
+              && after.lastWithdrawalId == transactionId
+              && after.updatedAt == request.time
+              && withdrawalBalanceMatches(before.savedAmount, after.savedAmount,
+                  request.resource.data.amount);
+          }
+
+          allow read, delete: if owns(uid);
+          allow create: if owns(uid)
+            && (request.resource.data.get('type', 'deposit') != 'withdrawal'
+              || validWithdrawalCreate());
+          // History has no edit UI. Keep withdrawals immutable while allowing
+          // existing deposit behavior and whole-goal history cleanup.
+          allow update: if owns(uid)
+            && resource.data.get('type', 'deposit') != 'withdrawal'
+            && request.resource.data.get('type', 'deposit') != 'withdrawal';
         }
       }
 
