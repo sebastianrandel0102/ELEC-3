@@ -5,18 +5,46 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid == uid;
     }
 
+
+    // Active fiat catalog: SIX List One, 2026-09-17. No funds/metals/crypto.
+    function validCurrency(code) { return code is string && code.matches('^(AED|AFN|ALL|AMD|AOA|ARS|AUD|AWG|AZN|BAM|BBD|BDT|BHD|BIF|BMD|BND|BOB|BRL|BSD|BTN|BWP|BYN|BZD|CAD|CDF|CHF|CLP|CNY|COP|CRC|CUP|CVE|CZK|DJF|DKK|DOP|DZD|EGP|ERN|ETB|EUR|FJD|FKP|GBP|GEL|GHS|GIP|GMD|GNF|GTQ|GYD|HKD|HNL|HTG|HUF|IDR|ILS|INR|IQD|IRR|ISK|JMD|JOD|JPY|KES|KGS|KHR|KMF|KPW|KRW|KWD|KYD|KZT|LAK|LBP|LKR|LRD|LSL|LYD|MAD|MDL|MGA|MKD|MMK|MNT|MOP|MRU|MUR|MVR|MWK|MXN|MYR|MZN|NAD|NGN|NIO|NOK|NPR|NZD|OMR|PAB|PEN|PGK|PHP|PKR|PLN|PYG|QAR|RON|RSD|RUB|RWF|SAR|SBD|SCR|SDG|SEK|SGD|SHP|SLE|SOS|SRD|SSP|STN|SVC|SYP|SZL|THB|TJS|TMT|TND|TOP|TRY|TTD|TWD|TZS|UAH|UGX|USD|UYU|UZS|VED|VES|VND|VUV|WST|XAF|XCD|XCG|XOF|XPF|YER|ZAR|ZMW|ZWG)$'); }
+    function moneyTolerance(code) { return code == 'PHP' ? 0.00500001 : code in ['BIF','CLP','DJF','GNF','ISK','JPY','KMF','KRW','PYG','RWF','UGX','VND','VUV','XAF','XOF','XPF'] ? 0.50000001 : code in ['BHD','IQD','JOD','KWD','LYD','OMR','TND'] ? 0.00050001 : 0.00500001; }
+    function validConversion(record, code) {
+      let c = record.get('conversion', {});
+      let tolerance = moneyTolerance(code);
+      let expected = c.get('inputAmount', 0) * c.get('exchangeRate', 0);
+      return !record.keys().hasAny(['conversion']) ||
+        (c is map && c.keys().hasOnly(['inputAmount','inputCurrencyCode','goalCurrencyCode','exchangeRate',
+          'rateNumerator','rateDenominator','rateTimestamp','rateProvider','rateSnapshotId'])
+        && c.inputAmount is number && c.inputAmount > 0 && c.inputAmount <= 1000000000000
+        && validCurrency(c.inputCurrencyCode) && c.inputCurrencyCode != code && c.goalCurrencyCode == code
+        && c.exchangeRate is number && c.exchangeRate > 0 && c.exchangeRate <= 1000000000000
+        && c.rateNumerator is string && c.rateNumerator.size() <= 160 && c.rateNumerator.matches('^[0-9]+$')
+        && c.rateDenominator is string && c.rateDenominator.size() <= 160 && c.rateDenominator.matches('^[0-9]+$')
+        && c.rateTimestamp is timestamp && c.rateTimestamp <= request.time + duration.value(10,'m')
+        && c.rateTimestamp >= request.time - duration.value(25,'h')
+        && c.rateProvider == 'ExchangeRate-API' && c.rateSnapshotId is string && c.rateSnapshotId.size() <= 200
+        && record.amount - expected <= tolerance
+        && expected - record.amount <= tolerance);
+    }
+    match /exchangeRates/{snapshot} { allow read, write: if false; }
+
     match /users/{uid} {
-      allow read, create, update, delete: if owns(uid);
+      allow read, delete: if owns(uid);
+      allow create, update: if owns(uid) && validCurrency(request.resource.data.get('preferredCurrencyCode', 'PHP'));
 
       match /goals/{goalId} {
         function validBalance() {
           return request.resource.data.savedAmount is number
-            && request.resource.data.savedAmount >= 0;
+            && request.resource.data.savedAmount >= 0
+            && validCurrency(request.resource.data.get('currencyCode', 'PHP'));
         }
 
         function validWithdrawalRecord(data) {
           return data.keys().hasAll(['amount', 'note', 'date', 'type'])
-            && data.keys().hasOnly(['amount', 'note', 'date', 'type'])
+            && data.keys().hasOnly(['amount', 'note', 'date', 'type', 'currencyCode', 'conversion'])
+            && data.get('currencyCode', 'PHP') == get(/databases/$(database)/documents/users/$(uid)/goals/$(goalId)).data.get('currencyCode', 'PHP')
+            && validConversion(data, data.get('currencyCode', 'PHP'))
             && data.type == 'withdrawal'
             && data.amount is number && data.amount > 0
             && data.amount <= 90071992547409.91
@@ -46,9 +74,24 @@ service cloud.firestore {
                 request.resource.data.savedAmount, record.amount);
         }
 
+        function validDepositUpdate() {
+          let id = request.resource.data.lastDepositId;
+          let path = /databases/$(database)/documents/users/$(uid)/goals/$(goalId)/transactions/$(id);
+          let record = getAfter(path).data;
+          return id is string && id.size() > 0 && !exists(path)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['savedAmount','updatedAt','lastDepositId'])
+            && request.resource.data.updatedAt == request.time && record.type == 'deposit'
+            && record.amount is number && record.amount > 0
+            && record.get('currencyCode','PHP') == resource.data.get('currencyCode','PHP')
+            && validConversion(record, record.get('currencyCode','PHP'))
+            && withdrawalBalanceMatches(request.resource.data.savedAmount, resource.data.savedAmount, record.amount);
+        }
+
         allow read, delete: if owns(uid);
         allow create: if owns(uid) && validBalance();
         allow update: if owns(uid) && validBalance()
+          && request.resource.data.get('currencyCode', 'PHP') == resource.data.get('currencyCode', 'PHP')
+          && (request.resource.data.get('lastDepositId','') == resource.data.get('lastDepositId','') || validDepositUpdate())
           && (request.resource.data.savedAmount >= resource.data.savedAmount
             ? request.resource.data.get('lastWithdrawalId', '') == resource.data.get('lastWithdrawalId', '')
             : validWithdrawalUpdate());
@@ -68,12 +111,19 @@ service cloud.firestore {
           allow read, delete: if owns(uid);
           allow create: if owns(uid)
             && (request.resource.data.get('type', 'deposit') != 'withdrawal'
-              || validWithdrawalCreate());
+              || validWithdrawalCreate())
+            && (!request.resource.data.keys().hasAny(['currencyCode'])
+              || (request.resource.data.currencyCode == getAfter(/databases/$(database)/documents/users/$(uid)/goals/$(goalId)).data.get('currencyCode','PHP')
+                && validConversion(request.resource.data, request.resource.data.currencyCode)
+                && (request.resource.data.type == 'withdrawal'
+                  || (request.resource.data.type == 'deposit'
+                    && getAfter(/databases/$(database)/documents/users/$(uid)/goals/$(goalId)).data.lastDepositId == transactionId))));
           // History has no edit UI. Keep withdrawals immutable while allowing
           // existing deposit behavior and whole-goal history cleanup.
           allow update: if owns(uid)
             && resource.data.get('type', 'deposit') != 'withdrawal'
-            && request.resource.data.get('type', 'deposit') != 'withdrawal';
+            && request.resource.data.get('type', 'deposit') != 'withdrawal'
+            && !resource.data.keys().hasAny(['conversion', 'currencyCode']);
         }
       }
 
@@ -109,6 +159,15 @@ service cloud.firestore {
         && day <= (request.time + duration.value(8, 'h')).date();
     }
     function validGoal(g) {
+      let ids = g.memberIds;
+      let owner = g.ownerId;
+      let target = g.targetCents;
+      let current = g.currentCents;
+      let deposits = g.depositCents;
+      let decreases = g.decreaseCents;
+      let status = g.status;
+      let names = g.memberNames;
+      let personal = g.personalDeposits;
       return g.keys().hasOnly(['schemaVersion', 'name', 'description', 'iconKey', 'startDate', 'deadline',
           'targetCents', 'targetAmount', 'ownerId', 'ownerName', 'memberIds', 'memberNames', 'personalDeposits',
           'memberCount', 'currentCents', 'depositCents', 'decreaseCents', 'currentAmount', 'totalDeposits',
@@ -116,17 +175,17 @@ service cloud.firestore {
         && g.schemaVersion == 2 && shortText(g.name, 100) && g.name.size() > 0 && shortText(g.description, 1000)
         && g.iconKey in ['group', 'travel', 'home', 'school', 'gift', 'emergency']
         && validDay(g.startDate) && validDay(g.deadline) && g.deadline >= g.startDate
-        && cents(g.targetCents) && g.targetCents > 0 && g.targetAmount == g.targetCents / 100.0
-        && cents(g.currentCents) && cents(g.depositCents) && cents(g.decreaseCents)
-        && g.currentCents == g.depositCents - g.decreaseCents
-        && g.currentAmount == g.currentCents / 100.0 && g.totalDeposits == g.depositCents / 100.0
-        && g.totalDecreases == g.decreaseCents / 100.0
-        && g.memberIds is list && g.memberIds.size() >= 1 && g.memberIds.size() <= 50
-        && g.memberIds.toSet().size() == g.memberIds.size() && g.ownerId in g.memberIds
-        && g.memberCount == g.memberIds.size() && g.memberNames is map && g.personalDeposits is map
-        && g.memberNames.keys().toSet() == g.memberIds.toSet()
-        && g.personalDeposits.keys().toSet() == g.memberIds.toSet()
-        && (g.status == 'archived' || g.status == (g.currentCents >= g.targetCents ? 'completed' : 'active'))
+        && cents(target) && target > 0 && g.targetAmount == target / 100.0
+        && cents(current) && cents(deposits) && cents(decreases)
+        && current == deposits - decreases
+        && g.currentAmount == current / 100.0 && g.totalDeposits == deposits / 100.0
+        && g.totalDecreases == decreases / 100.0
+        && ids is list && ids.size() >= 1 && ids.size() <= 50
+        && ids.toSet().size() == ids.size() && owner in ids
+        && g.memberCount == ids.size() && names is map && personal is map
+        && names.keys().toSet() == ids.toSet()
+        && personal.keys().toSet() == ids.toSet()
+        && (status == 'archived' || status == (current >= target ? 'completed' : 'active'))
         && g.updatedAt == request.time && validId(g.lastId) && g.lastActor == request.auth.uid;
     }
     function validMember(m, uid) {
@@ -136,7 +195,7 @@ service cloud.firestore {
         && m.totalDeposits == m.depositCents / 100.0 && m.joinedAt is timestamp && m.invitationId is string;
     }
     function validRecord(r, gid, name, start) {
-      return r.keys().hasOnly(['goalId', 'contributorId', 'displayName', 'type', 'amountCents', 'amount', 'date', 'note', 'createdAt'])
+      return r.keys().hasOnly(['goalId', 'contributorId', 'displayName', 'type', 'amountCents', 'amount', 'date', 'note', 'createdAt', 'conversion'])
         && r.goalId == gid && r.contributorId == request.auth.uid && r.displayName == name
         && r.type in ['deposit', 'withdrawal'] && cents(r.amountCents) && r.amountCents > 0
         && r.amount == r.amountCents / 100.0 && ledgerDay(r.date, start)
@@ -222,7 +281,8 @@ service cloud.firestore {
     }
     match /sharedGoals/{goalId} {
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
-      allow create: if signedIn() && validGoal(request.resource.data) && creatingGoal(goalId, request.resource.data);
+      allow create: if signedIn() && request.resource.data.lastKind == 'create'
+        && validGoal(request.resource.data) && creatingGoal(goalId, request.resource.data);
       allow update: if signedIn() && validGoal(request.resource.data)
         && request.resource.data.lastId != resource.data.lastId
         && ((request.resource.data.lastKind in ['contribute', 'decrease'] && moneyChange(goalId, resource.data, request.resource.data))
@@ -244,22 +304,30 @@ service cloud.firestore {
               && getAfter(gp(goalId)).data.lastKind == 'create')
             || (changedRoot(goalId) && getAfter(gp(goalId)).data.lastKind == 'accept'
               && getAfter(gp(goalId)).data.lastActor == memberId));
-        allow update: if signedIn() && validMember(request.resource.data, memberId) && changedRoot(goalId)
-          && ((owns(memberId) && getAfter(gp(goalId)).data.lastActor == memberId
-              && getAfter(gp(goalId)).data.lastKind == 'contribute'
-              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['depositCents', 'totalDeposits'])
-              && request.resource.data.depositCents == resource.data.depositCents
-                + getAfter(gp(goalId)).data.depositCents - get(gp(goalId)).data.depositCents)
-            || (owns(memberId) && resource.data.status == 'left' && getAfter(gp(goalId)).data.lastKind == 'accept'
-              && getAfter(gp(goalId)).data.lastActor == memberId)
-            || (getAfter(gp(goalId)).data.lastKind in ['remove', 'leave']
-              && getAfter(gp(goalId)).data.lastSubject == memberId
-              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'departedAt'])));
+        function validMemberUpdate() {
+          let after = getAfter(gp(goalId)).data;
+          let before = get(gp(goalId)).data;
+          let member = request.resource.data;
+          let previous = resource.data;
+          return signedIn() && validMember(member, memberId) && (after.lastId != before.lastId && after.updatedAt == request.time)
+          && ((owns(memberId) && after.lastActor == memberId
+              && after.lastKind == 'contribute'
+              && member.diff(previous).affectedKeys().hasOnly(['depositCents', 'totalDeposits'])
+              && member.depositCents == previous.depositCents
+                + after.depositCents - before.depositCents)
+            || (owns(memberId) && previous.status == 'left' && after.lastKind == 'accept'
+              && after.lastActor == memberId)
+            || (after.lastKind in ['remove', 'leave']
+              && after.lastSubject == memberId
+              && member.diff(previous).affectedKeys().hasOnly(['status', 'departedAt'])));
+        }
+        allow update: if validMemberUpdate();
         allow delete: if false;
       }
       match /transactions/{transactionId} {
         allow read: if memberOf(goalId);
-        allow create: if signedIn() && getAfter(gp(goalId)).data.lastId == transactionId
+        allow create: if signedIn() && validConversion(request.resource.data, 'PHP')
+          && getAfter(gp(goalId)).data.lastId == transactionId
           && getAfter(gp(goalId)).data.lastActor == request.auth.uid
           && ((!exists(gp(goalId)) && getAfter(gp(goalId)).data.lastKind == 'create'
               && getAfter(gp(goalId)).data.currentCents > 0)

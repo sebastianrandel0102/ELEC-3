@@ -4,6 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'design_system.dart';
+import 'currency_money.dart';
+import 'currency_widgets.dart';
+import 'currency_transactions.dart';
+import 'currency_settings_screen.dart';
 import 'shared_savings.dart';
 
 const sharedIcons = <String, IconData>{
@@ -74,12 +78,55 @@ void openSharedGoal(BuildContext context, String id) => Navigator.of(context)
         builder: (_) => SharedGoalDetailsScreen(goalId: id),
       ),
     );
-void createSharedGoal(BuildContext context, {Map<String, dynamic>? personal}) =>
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        builder: (_) => SharedGoalFormScreen(personal: personal),
-      ),
-    );
+void createSharedGoal(BuildContext context, {Map<String, dynamic>? personal}) {
+  Map<String, dynamic>? copied = personal;
+  if (personal != null && goalCurrency(personal) != 'PHP') {
+    try {
+      final service = CurrencyScope.of(context);
+      if (service.stale) {
+        throw const CurrencyFailure(
+          'Refresh exchange rates before copying a goal in another currency.',
+        );
+      }
+      final target = service.conversion.convert(
+        ExactDecimal.fromNum(personal['targetAmount'] as num),
+        goalCurrency(personal),
+        'PHP',
+      );
+      copied = {
+        ...personal,
+        'targetAmount': double.parse(target.fixed(2)),
+        'originalCurrencyCode': goalCurrency(personal),
+      };
+    } on CurrencyFailure catch (error) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message)));
+      return;
+    }
+  }
+  Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) => SharedGoalFormScreen(personal: copied),
+    ),
+  );
+}
+
+String sharedDisplayMoney(BuildContext context, num amount) =>
+    displayMoney(context, amount, 'PHP');
+String sharedTotalMoney(BuildContext context, Iterable<num> values) {
+  final controller = CurrencyScope.maybeOf(context);
+  if (controller != null) {
+    return controller.totalDisplay(values.map((value) => (value, 'PHP')));
+  }
+  return formatCurrency(
+    values.fold(
+      ExactDecimal.zero,
+      (accumulated, value) => accumulated + ExactDecimal.fromNum(value),
+    ),
+    'PHP',
+  );
+}
+
 void redeemSharedInvitation(BuildContext context) => Navigator.of(
   context,
 ).push(MaterialPageRoute<void>(builder: (_) => const SharedInvitationScreen()));
@@ -204,13 +251,13 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Combined group balances: ${sharedMoney(all.fold<double>(0, (total, g) => total + g.balance))}',
+                    'Combined group balances: ${sharedTotalMoney(context, all.map((g) => g.balance))}',
                   ),
                   Text(
-                    'Your recorded deposits: ${sharedMoney(all.fold<double>(0, (total, g) => total + ((g.data['personalDeposits'] as Map?)?[uid] as num? ?? 0).toDouble()))}',
+                    'Your recorded deposits: ${sharedTotalMoney(context, all.map((g) => (g.data['personalDeposits'] as Map?)?[uid] as num? ?? 0))}',
                   ),
                   const SharedNotice(
-                    'Group balances are shared tracking totals. They are separate from personal savings. Deposits remain attributed to members after a group decrease.',
+                    'Current-rate display estimates; all shared goals are stored in PHP. Group balances are shared tracking totals. They are separate from personal savings. Deposits remain attributed to members after a group decrease.',
                   ),
                 ],
               ),
@@ -343,13 +390,16 @@ class SharedGoalCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                sharedMoney(goal.balance),
+                sharedDisplayMoney(context, goal.balance),
                 style: SaveTrackDesign.amount.copyWith(
                   fontSize: 27,
                   color: teal,
                 ),
               ),
-              Text('Combined savings · ${sharedMoney(goal.target)} target'),
+              const CurrencyContextLabel(source: 'PHP'),
+              Text(
+                'Combined savings · ${sharedDisplayMoney(context, goal.target)} target',
+              ),
               const SizedBox(height: 12),
               MintProgress(value: goal.progress),
               const SizedBox(height: 12),
@@ -502,7 +552,7 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
           children: [
             if (widget.personal != null)
               SharedNotice(
-                'This creates a new shared goal with copied details and a zero starting balance. Your personal balance of ${sharedMoney(widget.personal!['savedAmount'] as num? ?? 0)} and transaction history stay private and unchanged. No existing funds or transactions are copied.',
+                'This creates a new shared goal with copied details and a zero starting balance. Your personal balance of ${originalMoney(widget.personal!['savedAmount'] as num? ?? 0, widget.personal!['originalCurrencyCode'] as String? ?? goalCurrency(widget.personal!))} and transaction history stay private and unchanged. No existing funds or transactions are copied.',
               ),
             const SharedNotice(
               'SaveTrack records self-reported savings. No money is transferred. Shared members can see contributions and notes.',
@@ -701,7 +751,7 @@ class _SharedGoalDetailsScreenState extends State<SharedGoalDetailsScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    sharedMoney(goal.balance),
+                    sharedDisplayMoney(context, goal.balance),
                     style: SaveTrackDesign.amount.copyWith(
                       color: Colors.white,
                       fontSize: 34,
@@ -715,11 +765,11 @@ class _SharedGoalDetailsScreenState extends State<SharedGoalDetailsScreen> {
                   MintProgress(value: goal.progress, onDark: true),
                   const SizedBox(height: 16),
                   Text(
-                    '${(goal.progress * 100).round()}% · ${sharedMoney(goal.target)} target',
+                    '${(goal.progress * 100).round()}% · ${sharedDisplayMoney(context, goal.target)} target',
                     style: const TextStyle(color: Colors.white),
                   ),
                   Text(
-                    '${sharedMoney(goal.remaining)} remaining · Due ${sharedDateText(goal.deadline)}',
+                    '${sharedDisplayMoney(context, goal.remaining)} remaining · Due ${sharedDateText(goal.deadline)}',
                     style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
                   ),
                 ],
@@ -865,15 +915,22 @@ class _SharedGoalDetailsScreenState extends State<SharedGoalDetailsScreen> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    Text('Total deposits: ${sharedMoney(goal.deposits)}'),
-                    Text('Total decreases: ${sharedMoney(goal.decreases)}'),
-                    Text('Current balance: ${sharedMoney(goal.balance)}'),
+                    const CurrencyContextLabel(source: 'PHP'),
+                    Text(
+                      'Total deposits: ${sharedDisplayMoney(context, goal.deposits)}',
+                    ),
+                    Text(
+                      'Total decreases: ${sharedDisplayMoney(context, goal.decreases)}',
+                    ),
+                    Text(
+                      'Current balance: ${sharedDisplayMoney(context, goal.balance)}',
+                    ),
                     Text(
                       '${goal.daysRemaining(DateTime.now()) < 0 ? 'Days overdue' : 'Days remaining'}: ${goal.daysRemaining(DateTime.now()).abs()}',
                     ),
                     if (goal.remaining > 0)
                       Text(
-                        'Suggested pace: ${sharedMoney(goal.daily(DateTime.now()))} daily · ${sharedMoney(goal.daily(DateTime.now()) * 7)} weekly',
+                        'Suggested pace: ${sharedDisplayMoney(context, goal.daily(DateTime.now()))} daily · ${sharedDisplayMoney(context, goal.daily(DateTime.now()) * 7)} weekly',
                       ),
                   ],
                 ),
@@ -914,7 +971,10 @@ class _OwnContributionState extends State<OwnContribution> {
             : !s.hasData
             ? const LinearProgressIndicator()
             : Text(
-                sharedMoney((s.data!.data()?['totalDeposits'] as num?) ?? 0),
+                sharedDisplayMoney(
+                  context,
+                  (s.data!.data()?['totalDeposits'] as num?) ?? 0,
+                ),
                 style: SaveTrackDesign.amount.copyWith(
                   fontSize: 27,
                   color: teal,
@@ -945,6 +1005,7 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
   bool busy = false;
   String? error;
   Map<String, dynamic>? pending;
+  String inputCurrency = 'PHP';
   @override
   void dispose() {
     amount.dispose();
@@ -955,12 +1016,33 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
   Future<void> submit() async {
     if (busy) return;
     if (!form.currentState!.validate()) return;
-    pending ??= {
-      'goalId': widget.goal.id,
-      'amount': amount.text.trim(),
-      'note': note.text.trim(),
-      'date': sharedDateText(date),
-    };
+    if (pending == null) {
+      try {
+        final currency = CurrencyScope.maybeOf(context);
+        final entry = LockedMoneyEntry.create(
+          text: amount.text,
+          from: inputCurrency,
+          to: 'PHP',
+          snapshot: currency?.snapshot,
+          now: currency?.clock(),
+        );
+        final metadata = entry.metadata;
+        if (metadata != null) {
+          metadata['rateTimestamp'] =
+              (metadata['rateTimestamp'] as Timestamp).millisecondsSinceEpoch;
+        }
+        pending = {
+          'goalId': widget.goal.id,
+          'amount': entry.amount.fixed(2),
+          'conversion': ?metadata,
+          'note': note.text.trim(),
+          'date': sharedDateText(date),
+        };
+      } on CurrencyFailure catch (failure) {
+        setState(() => error = failure.message);
+        return;
+      }
+    }
     setState(() {
       busy = true;
       error = null;
@@ -1019,8 +1101,12 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(liveGoal.name, style: SaveTrackDesign.heading),
-                Text('Current balance: ${sharedMoney(liveGoal.balance)}'),
-                Text('Remaining: ${sharedMoney(liveGoal.remaining)}'),
+                Text(
+                  'Current balance: ${sharedDisplayMoney(context, liveGoal.balance)}',
+                ),
+                Text(
+                  'Remaining: ${sharedDisplayMoney(context, liveGoal.remaining)}',
+                ),
                 SharedNotice(
                   'Recorded by ${FirebaseAuth.instance.currentUser?.displayName ?? 'you'}. Members can see this amount and note. ${widget.decrease ? 'This decreases the group balance and preserves individual deposit totals.' : 'This records money you have personally set aside.'}',
                 ),
@@ -1029,18 +1115,53 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final code = await chooseCurrency(
+                            context,
+                            inputCurrency,
+                          );
+                          if (code != null && mounted) {
+                            setState(() => inputCurrency = code);
+                          }
+                        },
+                        icon: const Icon(Icons.currency_exchange),
+                        label: Text(
+                          'Input currency: $inputCurrency ? goal PHP',
+                        ),
+                      ),
                       TextFormField(
                         controller: amount,
                         enabled: !busy && pending == null,
                         keyboardType: const TextInputType.numberWithOptions(
                           decimal: true,
                         ),
-                        decoration: const InputDecoration(
-                          labelText: 'Amount (PHP)',
+                        onChanged: (_) => setState(() {}),
+                        decoration: InputDecoration(
+                          labelText: 'Amount ($inputCurrency)',
                         ),
-                        validator: (v) => (parseSharedAmount(v) ?? 0) <= 0
+                        validator: (v) =>
+                            !(parseCurrencyAmount(
+                                  v ?? '',
+                                  inputCurrency,
+                                )?.positive ??
+                                false)
                             ? 'Enter a positive amount with at most two decimals.'
                             : null,
+                      ),
+                      if (parseCurrencyAmount(amount.text, inputCurrency) !=
+                          null)
+                        ConversionPreview(
+                          amount: parseCurrencyAmount(
+                            amount.text,
+                            inputCurrency,
+                          )!,
+                          from: inputCurrency,
+                          to: 'PHP',
+                        ),
+                      const Text(
+                        'The PHP goal amount is confirmed with a locked rate. Cross-currency entries require fresh rates.',
+                        style: TextStyle(fontSize: 12, color: muted),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -1270,7 +1391,7 @@ class _SharedMembersScreenState extends State<SharedMembersScreen> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              '${sharedMoney(m.deposits)} recorded deposits',
+                              '${sharedDisplayMoney(context, m.deposits)} recorded deposits',
                             ),
                             Text(
                               '${(totalDeposits == 0 ? 0 : m.deposits / totalDeposits * 100).toStringAsFixed(1)}% of all recorded deposits',
@@ -1552,7 +1673,9 @@ class _SharedInvitationScreenState extends State<SharedInvitationScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
           ),
           Text('Invited by ${invitation!['ownerName']}'),
-          Text('Target: ${sharedMoney(invitation!['targetAmount'] as num)}'),
+          Text(
+            'Target: ${sharedDisplayMoney(context, invitation!['targetAmount'] as num)}',
+          ),
           Text(
             'Expires: ${sharedDateText(DateTime.fromMillisecondsSinceEpoch(invitation!['expiresAt'] as int))}',
           ),
@@ -1604,13 +1727,24 @@ class SharedActivityTile extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              '${record.withdrawal ? '−' : '+'}${sharedMoney(record.amount)}',
+              '${record.withdrawal ? '−' : '+'}${sharedDisplayMoney(context, record.amount)}',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: record.withdrawal ? SaveTrackDesign.error : teal,
                 fontSize: 20,
               ),
             ),
+            const CurrencyContextLabel(source: 'PHP', historical: true),
+            Text(
+              'Recorded: ${originalMoney(record.amount)}',
+              style: const TextStyle(color: muted, fontSize: 12),
+            ),
+            if (record.data['conversion'] is Map)
+              TransactionConversionDetails(
+                data: Map<String, dynamic>.from(
+                  record.data['conversion'] as Map,
+                ),
+              ),
             Text(sharedDateText(record.date)),
             if (record.note.isNotEmpty) Text(record.note),
           ],
