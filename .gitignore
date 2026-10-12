@@ -46,3 +46,8 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Firebase backend dependencies and local secrets
+functions/node_modules/
+functions/.env*
+functions/.secret*

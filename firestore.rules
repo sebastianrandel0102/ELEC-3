@@ -81,5 +81,252 @@ service cloud.firestore {
         allow read, create, update, delete: if owns(uid);
       }
     }
+
+    // Shared savings uses client transactions on Spark. Every invariant is
+    // checked here against the atomic before/after state, never trusted to UI.
+    function signedIn() { return request.auth != null; }
+    function gp(gid) { return /databases/$(database)/documents/sharedGoals/$(gid); }
+    function mp(gid, uid) { return /databases/$(database)/documents/sharedGoals/$(gid)/members/$(uid); }
+    function ip(code) { return /databases/$(database)/documents/sharedInvitations/$(code); }
+    function lp(uid) { return /databases/$(database)/documents/sharedInviteLimits/$(uid); }
+    function invitationExpiry(inv) {
+      // New codes expire from server creation time; preserve older explicit expiry.
+      return inv.get('expiresAt', inv.createdAt + duration.value(7, 'd'));
+    }
+    function memberOf(gid) {
+      return signedIn() && request.auth.uid in get(gp(gid)).data.memberIds;
+    }
+    function ownerOf(gid) { return signedIn() && get(gp(gid)).data.ownerId == request.auth.uid; }
+    function validId(id) { return id is string && id.matches('^[A-Za-z0-9_-]{16,128}$'); }
+    function cents(value) { return value is int && value >= 0 && value <= 100000000000; }
+    function shortText(value, length) { return value is string && value.size() <= length; }
+    function validDay(day) {
+      return day is timestamp && day >= timestamp.date(2000, 1, 1)
+        && day < timestamp.date(2101, 1, 1) && day == day.date();
+    }
+    function ledgerDay(day, start) {
+      return validDay(day) && day >= start
+        && day <= (request.time + duration.value(8, 'h')).date();
+    }
+    function validGoal(g) {
+      return g.keys().hasOnly(['schemaVersion', 'name', 'description', 'iconKey', 'startDate', 'deadline',
+          'targetCents', 'targetAmount', 'ownerId', 'ownerName', 'memberIds', 'memberNames', 'personalDeposits',
+          'memberCount', 'currentCents', 'depositCents', 'decreaseCents', 'currentAmount', 'totalDeposits',
+          'totalDecreases', 'status', 'createdAt', 'updatedAt', 'lastKind', 'lastId', 'lastActor', 'lastSubject'])
+        && g.schemaVersion == 2 && shortText(g.name, 100) && g.name.size() > 0 && shortText(g.description, 1000)
+        && g.iconKey in ['group', 'travel', 'home', 'school', 'gift', 'emergency']
+        && validDay(g.startDate) && validDay(g.deadline) && g.deadline >= g.startDate
+        && cents(g.targetCents) && g.targetCents > 0 && g.targetAmount == g.targetCents / 100.0
+        && cents(g.currentCents) && cents(g.depositCents) && cents(g.decreaseCents)
+        && g.currentCents == g.depositCents - g.decreaseCents
+        && g.currentAmount == g.currentCents / 100.0 && g.totalDeposits == g.depositCents / 100.0
+        && g.totalDecreases == g.decreaseCents / 100.0
+        && g.memberIds is list && g.memberIds.size() >= 1 && g.memberIds.size() <= 50
+        && g.memberIds.toSet().size() == g.memberIds.size() && g.ownerId in g.memberIds
+        && g.memberCount == g.memberIds.size() && g.memberNames is map && g.personalDeposits is map
+        && g.memberNames.keys().toSet() == g.memberIds.toSet()
+        && g.personalDeposits.keys().toSet() == g.memberIds.toSet()
+        && (g.status == 'archived' || g.status == (g.currentCents >= g.targetCents ? 'completed' : 'active'))
+        && g.updatedAt == request.time && validId(g.lastId) && g.lastActor == request.auth.uid;
+    }
+    function validMember(m, uid) {
+      return m.keys().hasOnly(['userId', 'displayName', 'role', 'status', 'depositCents', 'totalDeposits', 'joinedAt', 'invitationId', 'departedAt'])
+        && m.userId == uid && shortText(m.displayName, 100) && m.role in ['owner', 'contributor']
+        && m.status in ['active', 'left', 'removed'] && cents(m.depositCents)
+        && m.totalDeposits == m.depositCents / 100.0 && m.joinedAt is timestamp && m.invitationId is string;
+    }
+    function validRecord(r, gid, name, start) {
+      return r.keys().hasOnly(['goalId', 'contributorId', 'displayName', 'type', 'amountCents', 'amount', 'date', 'note', 'createdAt'])
+        && r.goalId == gid && r.contributorId == request.auth.uid && r.displayName == name
+        && r.type in ['deposit', 'withdrawal'] && cents(r.amountCents) && r.amountCents > 0
+        && r.amount == r.amountCents / 100.0 && ledgerDay(r.date, start)
+        && shortText(r.note, 500) && r.createdAt == request.time;
+    }
+    function initialLedger(gid, g) {
+      let r = getAfter(/databases/$(database)/documents/sharedGoals/$(gid)/transactions/$(g.lastId)).data;
+      return validRecord(r, gid, g.ownerName, g.startDate) && r.type == 'deposit'
+        && r.amountCents == g.currentCents && r.date == g.startDate;
+    }
+    function creatingGoal(gid, g) {
+      let m = getAfter(mp(gid, request.auth.uid)).data;
+      return g.ownerId == request.auth.uid && shortText(g.ownerName, 100)
+        && g.memberIds == [request.auth.uid] && g.memberCount == 1
+        && g.memberNames == {request.auth.uid: g.ownerName}
+        && g.personalDeposits == {request.auth.uid: g.currentAmount}
+        && g.decreaseCents == 0 && g.status != 'archived' && g.createdAt == request.time
+        && g.lastKind == 'create' && g.lastSubject == request.auth.uid
+        && validMember(m, request.auth.uid) && m.role == 'owner' && m.status == 'active'
+        && m.displayName == g.ownerName && m.depositCents == g.depositCents && m.joinedAt == request.time
+        && m.invitationId == '' && !m.keys().hasAny(['departedAt'])
+        && (g.currentCents == 0 || initialLedger(gid, g));
+    }
+    function changedRoot(gid) {
+      return get(gp(gid)).data.lastId != getAfter(gp(gid)).data.lastId
+        && getAfter(gp(gid)).data.updatedAt == request.time;
+    }
+    function moneyChange(gid, b, a) {
+      let path = /databases/$(database)/documents/sharedGoals/$(gid)/transactions/$(a.lastId);
+      let r = getAfter(path).data;
+      let m = get(mp(gid, request.auth.uid)).data;
+      let ma = getAfter(mp(gid, request.auth.uid)).data;
+      let deposit = a.lastKind == 'contribute';
+      return request.auth.uid in b.memberIds && m.status == 'active' && b.status != 'archived'
+        && (deposit || b.ownerId == request.auth.uid) && !exists(path)
+        && validRecord(r, gid, m.displayName, b.startDate)
+        && r.type == (deposit ? 'deposit' : 'withdrawal') && a.lastSubject == request.auth.uid
+        && a.diff(b).affectedKeys().hasOnly(['currentCents', 'depositCents', 'decreaseCents', 'currentAmount',
+          'totalDeposits', 'totalDecreases', 'personalDeposits', 'status', 'lastId', 'lastKind', 'lastActor', 'lastSubject', 'updatedAt'])
+        && a.depositCents == b.depositCents + (deposit ? r.amountCents : 0)
+        && a.decreaseCents == b.decreaseCents + (deposit ? 0 : r.amountCents)
+        && a.status != 'archived'
+        && (deposit
+          ? (a.personalDeposits.diff(b.personalDeposits).affectedKeys().hasOnly([request.auth.uid])
+            && ma.depositCents == m.depositCents + r.amountCents
+            && a.personalDeposits[request.auth.uid] == ma.depositCents / 100.0)
+          : a.personalDeposits == b.personalDeposits);
+    }
+    function joining(gid, b, a) {
+      let uid = request.auth.uid;
+      let m = getAfter(mp(gid, uid)).data;
+      let had = exists(mp(gid, uid));
+      let previous = had ? get(mp(gid, uid)).data : {'status': 'new', 'depositCents': 0};
+      let inv = get(ip(m.invitationId)).data;
+      let afterInvite = getAfter(ip(m.invitationId)).data;
+      return b.status != 'archived' && !(uid in b.memberIds) && previous.status in ['new', 'left']
+        && a.lastSubject == uid && a.memberIds.toSet() == b.memberIds.toSet().union([uid].toSet())
+        && a.memberCount == b.memberCount + 1
+        && a.diff(b).affectedKeys().hasOnly(['memberIds', 'memberCount', 'memberNames', 'personalDeposits',
+          'lastId', 'lastKind', 'lastActor', 'lastSubject', 'updatedAt'])
+        && a.memberNames.diff(b.memberNames).affectedKeys().hasOnly([uid])
+        && a.personalDeposits.diff(b.personalDeposits).affectedKeys().hasOnly([uid])
+        && validMember(m, uid) && m.role == 'contributor' && m.status == 'active'
+        && m.joinedAt == request.time && !m.keys().hasAny(['departedAt'])
+        && m.depositCents == previous.depositCents && a.memberNames[uid] == m.displayName
+        && a.personalDeposits[uid] == m.totalDeposits
+        && inv.goalId == gid && inv.status == 'pending' && invitationExpiry(inv) > request.time
+        && afterInvite.status == 'accepted' && afterInvite.recipientId == uid && afterInvite.updatedAt == request.time;
+    }
+    function departing(gid, b, a) {
+      let who = a.lastSubject;
+      let before = get(mp(gid, who)).data;
+      let after = getAfter(mp(gid, who)).data;
+      return who != b.ownerId && who in b.memberIds && before.status == 'active'
+        && (a.lastKind == 'leave' ? who == request.auth.uid : b.ownerId == request.auth.uid)
+        && a.memberIds.toSet() == b.memberIds.toSet().difference([who].toSet())
+        && a.memberCount == b.memberCount - 1
+        && a.diff(b).affectedKeys().hasOnly(['memberIds', 'memberCount', 'memberNames', 'personalDeposits',
+          'lastId', 'lastKind', 'lastActor', 'lastSubject', 'updatedAt'])
+        && a.memberNames.diff(b.memberNames).affectedKeys().hasOnly([who])
+        && a.personalDeposits.diff(b.personalDeposits).affectedKeys().hasOnly([who])
+        && after.status == (a.lastKind == 'leave' ? 'left' : 'removed') && after.departedAt == request.time;
+    }
+    match /sharedGoals/{goalId} {
+      allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
+      allow create: if signedIn() && validGoal(request.resource.data) && creatingGoal(goalId, request.resource.data);
+      allow update: if signedIn() && validGoal(request.resource.data)
+        && request.resource.data.lastId != resource.data.lastId
+        && ((request.resource.data.lastKind in ['contribute', 'decrease'] && moneyChange(goalId, resource.data, request.resource.data))
+          || (request.resource.data.lastKind == 'accept' && joining(goalId, resource.data, request.resource.data))
+          || (request.resource.data.lastKind in ['leave', 'remove'] && departing(goalId, resource.data, request.resource.data))
+          || (resource.data.ownerId == request.auth.uid && request.resource.data.lastSubject == request.auth.uid
+            && ((request.resource.data.lastKind == 'edit' && resource.data.status != 'archived' && request.resource.data.status != 'archived'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'description', 'iconKey', 'deadline',
+                'targetCents', 'targetAmount', 'status', 'updatedAt', 'lastKind', 'lastId', 'lastActor', 'lastSubject']))
+              || (request.resource.data.lastKind == 'archive' && request.resource.data.status == 'archived'
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'lastKind', 'lastId', 'lastActor', 'lastSubject'])))));
+      allow delete: if false;
+      match /members/{memberId} {
+        // A user can read only their own membership before joining/rejoining.
+        allow get: if owns(memberId) || memberOf(goalId);
+        allow list: if memberOf(goalId);
+        allow create: if owns(memberId) && validMember(request.resource.data, memberId)
+          && ((!exists(gp(goalId)) && getAfter(gp(goalId)).data.ownerId == memberId
+              && getAfter(gp(goalId)).data.lastKind == 'create')
+            || (changedRoot(goalId) && getAfter(gp(goalId)).data.lastKind == 'accept'
+              && getAfter(gp(goalId)).data.lastActor == memberId));
+        allow update: if signedIn() && validMember(request.resource.data, memberId) && changedRoot(goalId)
+          && ((owns(memberId) && getAfter(gp(goalId)).data.lastActor == memberId
+              && getAfter(gp(goalId)).data.lastKind == 'contribute'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['depositCents', 'totalDeposits'])
+              && request.resource.data.depositCents == resource.data.depositCents
+                + getAfter(gp(goalId)).data.depositCents - get(gp(goalId)).data.depositCents)
+            || (owns(memberId) && resource.data.status == 'left' && getAfter(gp(goalId)).data.lastKind == 'accept'
+              && getAfter(gp(goalId)).data.lastActor == memberId)
+            || (getAfter(gp(goalId)).data.lastKind in ['remove', 'leave']
+              && getAfter(gp(goalId)).data.lastSubject == memberId
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'departedAt'])));
+        allow delete: if false;
+      }
+      match /transactions/{transactionId} {
+        allow read: if memberOf(goalId);
+        allow create: if signedIn() && getAfter(gp(goalId)).data.lastId == transactionId
+          && getAfter(gp(goalId)).data.lastActor == request.auth.uid
+          && ((!exists(gp(goalId)) && getAfter(gp(goalId)).data.lastKind == 'create'
+              && getAfter(gp(goalId)).data.currentCents > 0)
+            || (changedRoot(goalId) && getAfter(gp(goalId)).data.lastKind in ['contribute', 'decrease']));
+        allow update, delete: if false;
+      }
+    }
+    match /sharedInvitations/{code} {
+      // Only minimal preview metadata is available through a known 256-bit code.
+      // Listing is restricted to the creator; goals/ledger stay private until join.
+      allow get: if signedIn() && validId(code);
+      allow list: if signedIn() && resource.data.createdBy == request.auth.uid;
+      allow create: if signedIn() && code.matches('^[A-Za-z0-9_-]{43}$')
+        && request.resource.data.keys().hasOnly(['goalId', 'createdBy', 'name', 'ownerName', 'targetAmount', 'status', 'recipientId', 'createdAt', 'updatedAt', 'expiresAt'])
+        && ownerOf(request.resource.data.goalId) && get(gp(request.resource.data.goalId)).data.status != 'archived'
+        && request.resource.data.createdBy == request.auth.uid && request.resource.data.status == 'pending'
+        && request.resource.data.recipientId == '' && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && invitationExpiry(request.resource.data) > request.time
+        && invitationExpiry(request.resource.data) <= request.time + duration.value(7, 'd')
+        && request.resource.data.name == get(gp(request.resource.data.goalId)).data.name
+        && request.resource.data.ownerName == get(gp(request.resource.data.goalId)).data.ownerName
+        && request.resource.data.targetAmount == get(gp(request.resource.data.goalId)).data.targetAmount
+        && getAfter(lp(request.auth.uid)).data.lastCode == code
+        && getAfter(lp(request.auth.uid)).data.updatedAt == request.time;
+      allow update: if signedIn() && resource.data.status == 'pending'
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'recipientId', 'updatedAt'])
+        && ((request.resource.data.status == 'revoked' && ownerOf(resource.data.goalId)
+            && request.resource.data.recipientId == resource.data.recipientId)
+          || (invitationExpiry(resource.data) > request.time && get(gp(resource.data.goalId)).data.status != 'archived'
+            && request.resource.data.recipientId == request.auth.uid
+            && (request.resource.data.status == 'declined'
+              || (request.resource.data.status == 'accepted' && changedRoot(resource.data.goalId)
+                && getAfter(gp(resource.data.goalId)).data.lastKind == 'accept'
+                && getAfter(gp(resource.data.goalId)).data.lastActor == request.auth.uid
+                && getAfter(mp(resource.data.goalId, request.auth.uid)).data.invitationId == code))));
+      allow delete: if false;
+    }
+    match /sharedInviteLimits/{uid} {
+      function validLimit(a) {
+        let had = exists(lp(uid));
+        let b = had ? get(lp(uid)).data : {'windowStart': request.time, 'count': 0};
+        let reset = !had || request.time >= b.windowStart + duration.value(1, 'h');
+        return a.keys().hasOnly(['count', 'windowStart', 'updatedAt', 'lastCode'])
+          && a.count is int && a.count >= 1 && a.count <= 20
+          && a.windowStart == (reset ? request.time : b.windowStart)
+          && a.count == (reset ? 1 : b.count + 1) && a.updatedAt == request.time
+          && a.lastCode is string && a.lastCode.matches('^[A-Za-z0-9_-]{43}$')
+          && !exists(ip(a.lastCode))
+          && getAfter(ip(a.lastCode)).data.createdBy == uid
+          && getAfter(ip(a.lastCode)).data.createdAt == request.time;
+      }
+      allow get: if owns(uid);
+      allow create, update: if owns(uid) && validLimit(request.resource.data);
+      allow list, delete: if false;
+    }
+    match /sharedOperations/{uid}/requests/{requestId} {
+      allow get: if owns(uid);
+      allow create: if owns(uid) && validId(requestId)
+        && request.resource.data.keys().hasOnly(['fingerprint', 'result', 'createdAt'])
+        && shortText(request.resource.data.fingerprint, 4096) && request.resource.data.result is map
+        && request.resource.data.createdAt == request.time;
+      allow list, update, delete: if false;
+    }
+    match /sharedInvitationSecrets/{hash} { allow read, write: if false; }
+    match /sharedRateLimits/{uid} { allow read, write: if false; }
+
   }
 }
