@@ -1,5 +1,15 @@
 # SaveTrack Google Sign-In
 
+## Android APK configuration fix (October 12, 2026)
+
+The phone's "Google sign-in is not configured yet" error was caused by the empty `oauth_client` list in `android/app/google-services.json`. Firebase's public `accounts:createAuthUri` endpoint for this project's Android API key returned the enabled Google provider and its registered web client, `864730227148-5othh46crfepo1p2e1dtoq0l1aea8anf.apps.googleusercontent.com`. That verified client is now present as `client_type: 3`. The existing Google Services Gradle plugin generates `default_web_client_id` for the native Google SDK; no Dart override is necessary.
+
+`test/android_google_configuration_test.dart` checks the actual Android JSON, Firebase options, package name, web OAuth entry, and Gradle plugin, so a missing native configuration is caught even when the mocked authentication tests pass.
+
+Both debug and release currently use this workstation's **current** debug signing certificate. Its fingerprints differ from those recorded during the October 10 implementation. Register the current fingerprints below in [Firebase Android app settings](https://console.firebase.google.com/project/project-4dcb3/settings/general/android:com.example.myproject), then install the rebuilt APK. Registering a certificate requires access to Firebase Console; the public provider endpoint does not reveal which certificates are registered. No Android phone is connected for a real account-picker/sign-in check.
+
+Validation on October 12: `flutter analyze` passed without issues, `flutter test` passed all **151** tests, and `flutter build apk --release` produced `build/app/outputs/flutter-apk/app-release.apk`. `aapt2 dump resources` verified the registered client ID inside the finished APK's `default_web_client_id` resource; `apksigner verify --print-certs` verified its signature and the SHA-1/SHA-256 below. These checks confirm packaging and service behavior, but do not replace a live Google account test on the phone.
+
 Google Sign-In is an additional method on the existing login form. Email/password registration, sign-in, the mint theme, Firebase initialization, and the existing HomeShell navigation remain in place. For the current Forgot Password flow, see [Firebase email recovery](password-recovery.md); the October 10 Google validation report below describes the earlier implementation. Google Sign-In is unchanged by the email-recovery fix.
 
 ## Implementation
@@ -18,14 +28,14 @@ Validation used Flutter **3.47.7** and Dart **3.13.5**, matching the existing Da
 
 ## Required Firebase / Google Cloud setup
 
-The checked-in configuration identifies Firebase project **project-4dcb3** (project number **864730227148**) and Android package **com.example.myproject**, app ID **1:864730227148:android:1e8d2655ca328ed0d2fd69**. These match the Android Gradle and Dart configuration. The current Android JSON has an **empty `oauth_client` array**, so native Google authentication needs console configuration. Provider enablement and registered fingerprints cannot be verified from these local files.
+The checked-in configuration identifies Firebase project **project-4dcb3** (project number **864730227148**) and Android package **com.example.myproject**, app ID **1:864730227148:android:1e8d2655ca328ed0d2fd69**. These match the Android Gradle and Dart configuration. The Android JSON now includes the project's verified web OAuth client. The Google provider was confirmed enabled on October 12, 2026; registered Android signing fingerprints still require console verification.
 
 1. Open [Firebase Console](https://console.firebase.google.com/project/project-4dcb3/authentication/providers) for **project-4dcb3**. In **Authentication → Sign-in method**, enable **Google**, select the project's support email, and save. Keep **Email/Password** enabled.
 2. In **Project settings → General → Your apps**, select the existing Android app **com.example.myproject**. Add both SHA-1 and SHA-256 for each certificate that actually signs installed builds. This workstation's debug certificate, read with keytool, is:
 
    ```text
-   SHA-1:   61:36:B9:E8:81:77:3B:75:C6:D7:4A:E4:FB:0C:B8:D0:23:1B:AE:E3
-   SHA-256: AF:50:4D:92:B6:BD:4A:30:12:6C:0F:7B:08:05:FB:FC:41:17:E9:98:93:6E:75:F2:F1:4B:67:B8:F0:07:68:F4
+   SHA-1:   3C:52:D6:FE:20:DE:49:18:AE:F9:82:5C:DA:72:23:3E:27:B3:42:CB
+   SHA-256: 6E:51:EB:B5:DC:6F:A5:63:D6:CA:9B:C1:83:96:0F:E4:87:95:8C:2A:5E:90:88:51:D6:57:43:D8:D3:A8:0C:98
    ```
 
    Other developers must register their own debug fingerprints. The existing release build currently uses the debug signing configuration; no signing settings were changed. When release signing is configured, register that certificate too. For Play distribution, register the **Play app-signing certificate**, not just the upload certificate.

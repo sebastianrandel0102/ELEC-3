@@ -31,8 +31,10 @@ The supplied Firestore rules restrict private document access to the signed-in u
 
 Implemented: email/password registration and sign-in, Firebase email password recovery, authenticated password changes, profile creation at registration, a live dashboard, savings goal create/edit/delete, batched deposits and transaction history, daily and weekly savings pace calculations for goals with deadlines, daily task create/edit/delete/completion, date navigation, summaries, and sign-out.
 
-Not yet implemented: goal/task filters and sorting, transaction correction/deletion, a weekly planner view, daily/weekly/monthly trend charts, profile editing, notification reminders/preferences, and automated Firestore emulator/repository tests. Firebase cannot be verified until a real project is configured.
+Not yet implemented: personal goal/task filters and sorting, transaction correction/deletion, a weekly planner view, daily/weekly/monthly trend charts, profile editing, and notification reminders/preferences. Shared transaction and Firestore security regression tests run locally in an isolated emulator. Live Firebase behavior still requires configuration and manual account testing.
 
 ## Checks
+
+Save Together adds shared goals, secure single-use invitations, attributed contributions, owner controls and live shared reports. It uses Spark-compatible Firestore transactions and security rules; no Cloud Functions or billing upgrade is required. See [implementation, Firebase deployment, verification and two-account testing](docs/save-together.md). Existing personal financial records remain private and unchanged; sharing a personal goal creates a separate shared goal at zero.
 
 Run `dart format .`, `flutter analyze`, and `flutter test`. Attempt an Android debug build with `flutter build apk --debug`.

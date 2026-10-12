@@ -8,6 +8,8 @@ import 'decrease_savings_dialog.dart';
 import 'firebase_options.dart';
 import 'password_dialog.dart';
 import 'savings_decrease.dart';
+import 'shared_savings_screens.dart';
+import 'shared_savings_repository.dart';
 
 import 'design_system.dart';
 export 'design_system.dart';
@@ -115,7 +117,10 @@ class AuthGate extends StatelessWidget {
         builder: (context, googleBusy, child) =>
             snapshot.data == null || googleBusy
             ? const AuthScreen()
-            : const HomeShell(),
+            : SharedSavingsHost(
+                key: ValueKey(snapshot.data!.uid),
+                child: const HomeShell(),
+              ),
       );
     },
   );
@@ -569,8 +574,9 @@ class _HomeShellState extends State<HomeShell> {
           ? FloatingActionButton.extended(
               backgroundColor: teal,
               foregroundColor: Colors.white,
-              onPressed: () =>
-                  _index == 1 ? showGoalForm(context) : showTaskForm(context),
+              onPressed: () => _index == 1
+                  ? showGoalTypeChoice(context)
+                  : showTaskForm(context),
               icon: const Icon(Icons.add),
               label: Text(_index == 1 ? 'New goal' : 'Add task'),
             )
@@ -703,7 +709,12 @@ class DashboardScreen extends StatelessWidget {
           ),
         ],
       ),
-      goals: GoalsPreview(uid: user.uid),
+      goals: Column(
+        children: [
+          GoalsPreview(uid: user.uid),
+          const SharedGoalsPanel(compact: true),
+        ],
+      ),
       tasks: TasksList(uid: user.uid, dateKey: today, compact: true),
       onGoals: () => _openTab(context, 1),
       onPlanner: () => _openTab(context, 2),
@@ -852,6 +863,29 @@ class DashboardLayout extends StatelessWidget {
 class GoalsScreen extends StatelessWidget {
   const GoalsScreen({super.key});
   @override
+  Widget build(BuildContext context) => const DefaultTabController(
+    length: 2,
+    child: Column(
+      children: [
+        TabBar(
+          tabs: [
+            Tab(text: 'Personal', icon: Icon(Icons.savings_outlined)),
+            Tab(text: 'Shared', icon: Icon(Icons.groups_outlined)),
+          ],
+        ),
+        Expanded(
+          child: TabBarView(
+            children: [PersonalGoalsScreen(), SharedGoalsPanel()],
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class PersonalGoalsScreen extends StatelessWidget {
+  const PersonalGoalsScreen({super.key});
+  @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
@@ -959,6 +993,9 @@ class GoalCard extends StatelessWidget {
                       showDecreaseSavingsForm(context, uid, doc);
                     }
                     if (v == 'edit') showGoalForm(context, doc: doc);
+                    if (v == 'shared') {
+                      createSharedGoal(context, personal: data);
+                    }
                     if (v == 'delete') {
                       confirmDelete(
                         context,
@@ -980,6 +1017,16 @@ class GoalCard extends StatelessWidget {
                     const PopupMenuItem(
                       value: 'edit',
                       child: Text('Edit goal'),
+                    ),
+                    const PopupMenuItem(
+                      value: 'shared',
+                      child: Row(
+                        children: [
+                          Icon(Icons.groups_outlined),
+                          SizedBox(width: 10),
+                          Flexible(child: Text('Save Together')),
+                        ],
+                      ),
                     ),
                     const PopupMenuItem(
                       value: 'delete',
@@ -1472,6 +1519,8 @@ class ReportsScreen extends StatelessWidget {
             );
           },
         ),
+        const SizedBox(height: 24),
+        const SharedGoalsPanel(report: true),
         const SizedBox(height: 24),
         const FieldCaption('Planning rhythm'),
         AdaptiveCards(
@@ -2207,6 +2256,41 @@ Future<void> confirmDelete(
     }
   }
 }
+
+Future<void> showGoalTypeChoice(BuildContext context) =>
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheet) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.savings_outlined),
+                title: const Text('Personal goal'),
+                subtitle: const Text('Keep your savings private.'),
+                onTap: () {
+                  Navigator.pop(sheet);
+                  showGoalForm(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.groups_outlined),
+                title: const Text('Save Together'),
+                subtitle: const Text(
+                  'Create a shared goal and invite members.',
+                ),
+                onTap: () {
+                  Navigator.pop(sheet);
+                  createSharedGoal(context);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
 
 Future<void> showGoalForm(
   BuildContext context, {
