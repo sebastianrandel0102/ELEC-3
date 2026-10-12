@@ -19,6 +19,13 @@ class TestReference extends Fake
   final updates = <Map<String, dynamic>>[];
   final records = <TestDocument>[];
   @override
+  String get id => 'fixture_request';
+  @override
+  Stream<DocumentSnapshot<Map<String, dynamic>>> snapshots({
+    bool includeMetadataChanges = false,
+    ListenSource source = ListenSource.defaultSource,
+  }) => const Stream.empty();
+  @override
   Future<void> update(Map<Object, Object?> data) async {
     updates.add(Map<String, dynamic>.from(data));
   }
@@ -43,6 +50,9 @@ class TestCollection extends Fake
     implements CollectionReference<Map<String, dynamic>> {
   TestCollection(this.records);
   final List<TestDocument> records;
+  @override
+  DocumentReference<Map<String, dynamic>> doc([String? path]) =>
+      TestReference();
   @override
   Query<Map<String, dynamic>> orderBy(
     Object field, {
@@ -281,9 +291,9 @@ void main() {
         size: const Size(320, 640),
         scale: scale,
       );
-      expect(find.text('PHP 1234567.89 saved'), findsOneWidget);
-      expect(find.text('PHP 9876543.21 target'), findsOneWidget);
-      expect(find.text('PHP 8641975.32 to go'), findsOneWidget);
+      expect(find.text('PHP ₱1,234,567.89 saved'), findsOneWidget);
+      expect(find.text('PHP ₱9,876,543.21 target'), findsOneWidget);
+      expect(find.text('PHP ₱8,641,975.32 to go'), findsOneWidget);
       expect(
         tester.widget<MintProgress>(find.byType(MintProgress)).value,
         closeTo(1234567.89 / 9876543.21, .00001),
@@ -324,8 +334,8 @@ void main() {
       ),
     );
     expect(find.text('Goal reached'), findsOneWidget);
-    expect(find.text('PHP 0.00 to go'), findsOneWidget);
-    expect(find.text('Overdue  PHP 400.00 remaining'), findsOneWidget);
+    expect(find.text('PHP ₱0.00 to go'), findsOneWidget);
+    expect(find.text('Overdue  PHP ₱400.00 remaining'), findsOneWidget);
     await capture(tester, 'goals');
     expect(tester.takeException(), isNull);
   });
@@ -363,8 +373,8 @@ void main() {
           children: [
             ReportMetric(
               title: 'Savings balance',
-              value: 'PHP 987654321.00',
-              caption: 'Across 12 goals  PHP 999999999.00 total target',
+              value: 'PHP ₱987,654,321.00',
+              caption: 'Across 12 goals  PHP ₱999,999,999.00 total target',
               icon: Icons.savings_outlined,
               featured: true,
               progress: .8,
@@ -383,7 +393,7 @@ void main() {
       size: const Size(320, 640),
       scale: 2,
     );
-    expect(find.text('PHP 987654321.00'), findsOneWidget);
+    expect(find.text('PHP ₱987,654,321.00'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -501,12 +511,12 @@ void main() {
     );
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
-    expect(find.text('+PHP 12345678.90'), findsOneWidget);
+    expect(find.text('+PHP ₱12,345,678.90'), findsOneWidget);
     expect(find.text('10/10/2026'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.tap(find.byTooltip('Close history'));
     await tester.pumpAndSettle();
-    expect(find.text('+PHP 12345678.90'), findsNothing);
+    expect(find.text('+PHP ₱12,345,678.90'), findsNothing);
   });
 
   testWidgets('destructive confirmation only calls action after Delete', (
@@ -642,8 +652,8 @@ void main() {
         size: const Size(320, 640),
         scale: 2,
       );
-      await tester.scrollUntilVisible(find.text('Philippine Peso (PHP)'), 300);
-      expect(find.text('Philippine Peso (PHP)'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('Currency Settings'), 300);
+      expect(find.text('Currency Settings'), findsOneWidget);
       await tester.scrollUntilVisible(find.text('Change Password'), 300);
       await tester.tap(find.text('Change Password'));
       await tester.scrollUntilVisible(find.text('Sign out'), 300);
@@ -706,7 +716,7 @@ void main() {
           size: size,
           scale: scale,
         );
-        expect(find.text('PHP 987654321.00'), findsOneWidget);
+        expect(find.text('PHP ₱987,654,321.00'), findsOneWidget);
         expect(
           tester.widget<MintProgress>(find.byType(MintProgress)).value,
           closeTo(987654321 / 999999999, .00001),
@@ -954,8 +964,8 @@ void main() {
             ),
             ReportMetric(
               title: 'Savings balance',
-              value: 'PHP 12500.00',
-              caption: 'Across 1 goals  PHP 50000.00 total target',
+              value: 'PHP ₱12,500.00',
+              caption: 'Across 1 goals  PHP ₱50,000.00 total target',
               icon: Icons.savings_outlined,
               featured: true,
               progress: .25,

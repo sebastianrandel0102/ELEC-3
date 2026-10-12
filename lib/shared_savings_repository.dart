@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'shared_savings_models.dart';
+import 'currency_money.dart';
 import 'shared_savings_store.dart';
 
 class SharedSavingsFailure implements Exception {
@@ -14,6 +15,7 @@ class SharedSavingsFailure implements Exception {
 
 String sharedSavingsError(Object error) {
   if (error is SharedSavingsFailure) return error.message;
+  if (error is CurrencyFailure) return error.message;
   if (error is FirebaseException) {
     return switch (error.code) {
       'unauthenticated' => 'Sign in again to use Save Together.',

@@ -151,7 +151,7 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('Shared'), findsOneWidget);
-      expect(find.text('PHP 12,000.00'), findsOneWidget);
+      expect(find.text('PHP ₱12,000.00'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

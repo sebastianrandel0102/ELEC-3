@@ -22,7 +22,7 @@ Forgot Password opens a mint email-recovery modal and requests a real Firebase p
 
 - `users/{uid}`: display name, email, account creation time, and currency preference.
 - `users/{uid}/goals/{goalId}`: title, optional note and deadline, target amount, saved amount, and timestamps.
-- `users/{uid}/goals/{goalId}/transactions/{transactionId}`: append-only deposit records. Deposit creation and the goal balance update are committed in one Firestore batch.
+- `users/{uid}/goals/{goalId}/transactions/{transactionId}`: deposit and withdrawal history. Currency-aware entries commit atomically with the balance and preserve confirmed conversion metadata.
 - `users/{uid}/tasks/{taskId}`: title, optional time, date key, priority, completion state, and timestamps.
 
 The supplied Firestore rules restrict private document access to the signed-in user whose UID owns the path.
@@ -40,3 +40,5 @@ Daily Planner includes local, time-aware **Smart Suggestions**, with a next-task
 Save Together adds shared goals, secure single-use invitations, attributed contributions, owner controls and live shared reports. It uses Spark-compatible Firestore transactions and security rules; no Cloud Functions or billing upgrade is required. See [implementation, Firebase deployment, verification and two-account testing](docs/save-together.md). Existing personal financial records remain private and unchanged; sharing a personal goal creates a separate shared goal at zero.
 
 Run `dart format .`, `flutter analyze`, and `flutter test`. Attempt an Android debug build with `flutter build apk --debug`.
+
+Global currencies are available from **Profile → Currency Settings**. PHP remains the default. Display preferences never revalue stored goals; new personal goals can choose a supported denomination. Daily public exchange rates, offline caching, exact decimal conversion, cross-currency tracking entries, and shared/report estimates are documented in [the implementation and verification report](docs/currency-system.md). Deploy the updated Firestore rules before using the new financial recording flow. No currency API key, Cloud Functions deployment, or billing upgrade is required.

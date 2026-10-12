@@ -11,12 +11,15 @@ regression.PORT = 8087
 regression.HOST = f"http://127.0.0.1:{regression.PORT}"
 
 from shared_spark_rules_test import SparkRulesTests
+from currency_rules_test import CurrencyRulesTests
 
 PersonalRulesTests = regression.WithdrawalRulesTests
 
-class AllEmulatorTests(PersonalRulesTests, SparkRulesTests):
+class AllEmulatorTests(PersonalRulesTests, SparkRulesTests, CurrencyRulesTests):
     def setUp(self):
-        if self._testMethodName in SparkRulesTests.__dict__:
+        if self._testMethodName in CurrencyRulesTests.__dict__:
+            CurrencyRulesTests.setUp(self)
+        elif self._testMethodName in SparkRulesTests.__dict__:
             SparkRulesTests.setUp(self)
         else:
             PersonalRulesTests.setUp(self)

@@ -6,6 +6,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_service.dart';
+import 'currency_money.dart';
+import 'currency_service.dart';
+import 'currency_widgets.dart';
+import 'currency_settings_screen.dart';
+import 'currency_savings_dialog.dart';
+import 'currency_transactions.dart';
 import 'decrease_savings_dialog.dart';
 import 'firebase_options.dart';
 import 'password_dialog.dart';
@@ -43,6 +49,9 @@ class SaveTrackApp extends StatelessWidget {
     title: 'SaveTrack',
     debugShowCheckedModeBanner: false,
     theme: SaveTrackDesign.theme,
+    builder: startupError == null
+        ? (context, child) => CurrencyHost(child: child!)
+        : null,
     home: startupError != null
         ? SetupScreen(error: startupError!)
         : const AuthGate(),
@@ -677,18 +686,27 @@ class DashboardScreen extends StatelessWidget {
           }
           if (!snap.hasData) return const LoadingPanel();
           final docs = snap.data!.docs;
-          final total = docs.fold<double>(
-            0,
-            (total, d) => total + _number(d.data()['savedAmount']),
-          );
-          final target = docs.fold<double>(
-            0,
-            (total, d) => total + _number(d.data()['targetAmount']),
-          );
+          final currency = CurrencyScope.maybeOf(context);
+          final balances = docs
+              .map(
+                (d) =>
+                    (_number(d.data()['savedAmount']), goalCurrency(d.data())),
+              )
+              .toList();
+          final targets = docs
+              .map(
+                (d) =>
+                    (_number(d.data()['targetAmount']), goalCurrency(d.data())),
+              )
+              .toList();
+          final summary = currencySummary(currency, balances, targets);
           return SavingsOverview(
-            total: total,
-            target: target,
+            total: summary.$1,
+            target: summary.$2,
             count: docs.length,
+            totalLabel: currency?.totalDisplay(balances),
+            targetLabel: currency?.totalDisplay(targets),
+            showProgress: summary.$3,
           );
         },
       ),
@@ -732,7 +750,12 @@ class SavingsOverview extends StatelessWidget {
     required this.total,
     required this.target,
     required this.count,
+    this.totalLabel,
+    this.targetLabel,
+    this.showProgress = true,
   });
+  final String? totalLabel, targetLabel;
+  final bool showProgress;
   final double total, target;
   final int count;
   @override
@@ -759,7 +782,7 @@ class SavingsOverview extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          _money(total),
+          totalLabel ?? _money(total),
           style: SaveTrackDesign.amount.copyWith(color: Colors.white),
         ),
         const SizedBox(height: 6),
@@ -768,10 +791,11 @@ class SavingsOverview extends StatelessWidget {
           style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
         ),
         const SizedBox(height: 28),
-        MintProgress(
-          value: target == 0 ? 0 : (total / target).clamp(0, 1),
-          onDark: true,
-        ),
+        if (showProgress)
+          MintProgress(
+            value: target == 0 ? 0 : (total / target).clamp(0, 1),
+            onDark: true,
+          ),
         const SizedBox(height: 16),
         Wrap(
           spacing: 16,
@@ -785,7 +809,7 @@ class SavingsOverview extends StatelessWidget {
               ),
             ),
             Text(
-              '${_money(target)} target',
+              '${targetLabel ?? _money(target)} target',
               style: const TextStyle(
                 color: SaveTrackDesign.onHeroMuted,
                 fontSize: 13,
@@ -965,6 +989,8 @@ class GoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = doc.data();
+    final code = goalCurrency(data);
+    String money(num value) => displayMoney(context, value, code);
     final saved = _number(data['savedAmount']),
         target = _number(data['targetAmount']);
     final double pct = target == 0 ? 0 : (saved / target).clamp(0.0, 1.0);
@@ -1024,13 +1050,7 @@ class GoalCard extends StatelessWidget {
                     ),
                     const PopupMenuItem(
                       value: 'shared',
-                      child: Row(
-                        children: [
-                          Icon(Icons.groups_outlined),
-                          SizedBox(width: 10),
-                          Flexible(child: Text('Save Together')),
-                        ],
-                      ),
+                      child: Text('Save Together'),
                     ),
                     const PopupMenuItem(
                       value: 'delete',
@@ -1060,7 +1080,7 @@ class GoalCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '${_money(saved)} saved',
+                    '${money(saved)} saved',
                     style: SaveTrackDesign.amount.copyWith(
                       fontSize: 22,
                       color: teal,
@@ -1069,9 +1089,10 @@ class GoalCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    '${_money(target)} target',
+                    '${money(target)} target',
                     style: const TextStyle(color: muted, fontSize: 13),
                   ),
+                  CurrencyContextLabel(source: code),
                   const SizedBox(height: 16),
                   MintProgress(value: pct),
                   const SizedBox(height: 12),
@@ -1086,7 +1107,7 @@ class GoalCard extends StatelessWidget {
                             : '${(pct * 100).round()}% saved',
                       ),
                       Text(
-                        '${_money((target - saved).clamp(0, double.infinity))} to go',
+                        '${money((target - saved).clamp(0, double.infinity))} to go',
                         style: const TextStyle(color: muted, fontSize: 13),
                       ),
                     ],
@@ -1119,8 +1140,8 @@ class GoalCard extends StatelessWidget {
                     child: DetailLine(
                       icon: isOverdue ? Icons.schedule : Icons.trending_up,
                       label: isOverdue
-                          ? 'Overdue  ${_money(needed)} remaining'
-                          : 'Suggested pace: ${_money(needed / days)} daily, ${_money(needed * 7 / days)} weekly',
+                          ? 'Overdue  ${money(needed)} remaining'
+                          : 'Suggested pace: ${money(needed / days)} daily, ${money(needed * 7 / days)} weekly',
                       color: isOverdue ? SaveTrackDesign.error : muted,
                     ),
                   );
@@ -1670,21 +1691,35 @@ class ReportsScreen extends StatelessWidget {
             }
             if (!s.hasData) return const LoadingPanel();
             final ds = s.data!.docs;
-            final total = ds.fold<double>(
-              0,
-              (p, d) => p + _number(d.data()['savedAmount']),
-            );
-            final target = ds.fold<double>(
-              0,
-              (p, d) => p + _number(d.data()['targetAmount']),
-            );
+            final currency = CurrencyScope.maybeOf(context);
+            final balances = ds
+                .map(
+                  (d) => (
+                    _number(d.data()['savedAmount']),
+                    goalCurrency(d.data()),
+                  ),
+                )
+                .toList();
+            final targets = ds
+                .map(
+                  (d) => (
+                    _number(d.data()['targetAmount']),
+                    goalCurrency(d.data()),
+                  ),
+                )
+                .toList();
+            final summary = currencySummary(currency, balances, targets);
             return ReportMetric(
               title: 'Savings balance',
               featured: true,
-              progress: target == 0 ? 0 : (total / target).clamp(0, 1),
-              value: _money(total),
+              progress: summary.$3
+                  ? (summary.$2 == 0
+                        ? 0
+                        : (summary.$1 / summary.$2).clamp(0, 1))
+                  : null,
+              value: currency?.totalDisplay(balances) ?? _money(summary.$1),
               caption:
-                  'Across ${ds.length} goals  ${_money(target)} total target',
+                  'Across ${ds.length} personal goals ? ${currency?.totalDisplay(targets) ?? _money(summary.$2)} total target. Current-rate estimates; stored amounts remain authoritative.',
               icon: Icons.savings_outlined,
             );
           },
@@ -1853,16 +1888,25 @@ class ProfileContent extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         const FieldCaption('Preferences & app'),
-        const Card(
+        Card(
           child: Column(
             children: [
               ListTile(
-                leading: MintIcon(Icons.currency_exchange),
-                title: Text('Currency'),
-                subtitle: Text('Philippine Peso (PHP)'),
+                key: const ValueKey('open-currency-settings'),
+                leading: const MintIcon(Icons.currency_exchange),
+                title: const Text('Currency Settings'),
+                subtitle: Text(
+                  'Choose your preferred currency and view your savings in currencies worldwide.\nCurrent: ${CurrencyScope.maybeOf(context)?.preferred ?? 'PHP'}',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const CurrencySettingsScreen(),
+                  ),
+                ),
               ),
-              Divider(indent: 20, endIndent: 20, height: 1),
-              ListTile(
+              const Divider(indent: 20, endIndent: 20, height: 1),
+              const ListTile(
                 leading: MintIcon(Icons.info_outline),
                 title: Text('SaveTrack'),
                 subtitle: Text('Your goals, your progress.'),
@@ -2218,7 +2262,27 @@ CollectionReference<Map<String, dynamic>> _goals(String uid) =>
 CollectionReference<Map<String, dynamic>> _tasks(String uid) =>
     FirebaseFirestore.instance.collection('users').doc(uid).collection('tasks');
 double _number(dynamic v) => v is num ? v.toDouble() : 0;
-String _money(num v) => 'PHP ${v.toStringAsFixed(2)}';
+String _money(num v) => originalMoney(v);
+
+(double, double, bool) currencySummary(
+  CurrencyController? service,
+  List<(num, String)> balances,
+  List<(num, String)> targets,
+) {
+  try {
+    final converter =
+        service?.conversion ?? const CurrencyConversionService(null);
+    final code = service?.preferred ?? 'PHP';
+    return (
+      converter.total(balances, code).toDouble(),
+      converter.total(targets, code).toDouble(),
+      true,
+    );
+  } on CurrencyFailure {
+    return (0, 0, false);
+  }
+}
+
 String _dateKey(DateTime d) =>
     '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 String _shortDate(DateTime d) => '${d.day}/${d.month}/${d.year}';
@@ -2341,7 +2405,7 @@ Future<void> showTransactionHistory(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '${withdrawal ? '-' : '+'}${_money(_number(data['amount']))}',
+                                    '${withdrawal ? '-' : '+'}${displayMoney(context, _number(data['amount']), data['currencyCode'] as String? ?? goalCurrency(goal.data()))}',
                                     style: TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w700,
@@ -2351,6 +2415,29 @@ Future<void> showTransactionHistory(
                                     ),
                                   ),
                                   const SizedBox(height: 4),
+                                  CurrencyContextLabel(
+                                    source:
+                                        data['currencyCode'] as String? ??
+                                        goalCurrency(goal.data()),
+                                    historical: true,
+                                  ),
+                                  Text(
+                                    originalMoney(
+                                      _number(data['amount']),
+                                      data['currencyCode'] as String? ??
+                                          goalCurrency(goal.data()),
+                                    ),
+                                    style: const TextStyle(
+                                      color: muted,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                  if (data['conversion'] is Map)
+                                    TransactionConversionDetails(
+                                      data: Map<String, dynamic>.from(
+                                        data['conversion'] as Map,
+                                      ),
+                                    ),
                                   if (withdrawal) ...[
                                     const Text('Savings Decreased'),
                                     const SizedBox(height: 4),
@@ -2467,12 +2554,14 @@ Future<void> showGoalForm(
   QueryDocumentSnapshot<Map<String, dynamic>>? doc,
 }) async {
   final form = GlobalKey<FormState>();
+  String code = doc == null ? 'PHP' : goalCurrency(doc.data());
   final title = TextEditingController(text: doc?.data()['title'] as String?);
   final note = TextEditingController(text: doc?.data()['note'] as String?);
   final target = TextEditingController(
     text: doc == null
         ? ''
-        : _number(doc.data()['targetAmount']).toStringAsFixed(2),
+        : _number(doc.data()['targetAmount'])
+              .toStringAsFixed(CurrencyCatalog.byCode[code]?.digits ?? 2),
   );
   DateTime? deadline = (doc?.data()['deadline'] as Timestamp?)?.toDate();
   bool busy = false;
@@ -2499,6 +2588,17 @@ Future<void> showGoalForm(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  GoalCurrencyField(
+                    code: code,
+                    enabled: doc == null && !busy,
+                    onChanged: (value) => setState(() => code = value),
+                  ),
+                  if (doc != null)
+                    Text(
+                      'Stored denomination: $code ? fixed after creation',
+                      style: const TextStyle(color: muted, fontSize: 12),
+                    ),
+                  const SizedBox(height: 12),
                   const FieldCaption('Your milestone'),
                   TextFormField(
                     controller: title,
@@ -2520,13 +2620,13 @@ Future<void> showGoalForm(
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
                     ),
-                    decoration: const InputDecoration(
-                      labelText: 'Target amount (PHP)',
-                      prefixText: 'PHP ',
+                    decoration: InputDecoration(
+                      labelText: 'Target amount ($code)',
+                      prefixText: '$code ',
                     ),
                     validator: (v) {
-                      final n = double.tryParse(v ?? '');
-                      return n == null || n <= 0
+                      final n = parseCurrencyAmount(v ?? '', code);
+                      return n == null || !n.positive
                           ? 'Enter an amount greater than zero.'
                           : null;
                     },
@@ -2584,7 +2684,10 @@ Future<void> showGoalForm(
                         final data = {
                           'title': title.text.trim(),
                           'note': note.text.trim(),
-                          'targetAmount': double.parse(target.text),
+                          'targetAmount': parseCurrencyAmount(
+                            target.text,
+                            code,
+                          )!.toDouble(),
                           'deadline': deadline == null
                               ? null
                               : Timestamp.fromDate(deadline!),
@@ -2592,6 +2695,7 @@ Future<void> showGoalForm(
                         };
                         if (doc == null) {
                           data.addAll({
+                            'currencyCode': code,
                             'savedAmount': 0.0,
                             'archived': false,
                             'createdAt': FieldValue.serverTimestamp(),
@@ -2625,6 +2729,11 @@ Future<void> showDecreaseSavingsForm(
   String uid,
   QueryDocumentSnapshot<Map<String, dynamic>> goal,
 ) async {
+  if (CurrencyScope.maybeOf(context) != null ||
+      goalCurrency(goal.data()) != 'PHP') {
+    await showCurrencySavingsForm(context, uid, goal, withdrawal: true);
+    return;
+  }
   final requestId = goal.reference.collection('transactions').doc().id;
   final result = await showDialog<bool>(
     context: context,
@@ -2653,137 +2762,43 @@ Future<void> showDepositForm(
   BuildContext context,
   String uid,
   QueryDocumentSnapshot<Map<String, dynamic>> goal,
-) async {
-  final form = GlobalKey<FormState>();
-  final amount = TextEditingController();
-  final note = TextEditingController();
-  bool busy = false;
-  await showDialog<void>(
+) => showCurrencySavingsForm(context, uid, goal);
+
+Future<void> showCurrencySavingsForm(
+  BuildContext context,
+  String uid,
+  QueryDocumentSnapshot<Map<String, dynamic>> goal, {
+  bool withdrawal = false,
+}) async {
+  final requestId = goal.reference.collection('transactions').doc().id;
+  final result = await showDialog<bool>(
     context: context,
-    builder: (ctx) => FormControllerScope(
-      controllers: [amount, note],
-      child: StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          scrollable: true,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 24,
-          ),
-          title: FormHeading(
-            icon: Icons.savings_outlined,
-            title: 'Add to ${goal.data()['title']}',
-            detail: 'One contribution closer to your goal.',
-          ),
-          content: Form(
-            key: form,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: SaveTrackDesign.lightMint,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Current savings',
-                        style: TextStyle(color: muted, fontSize: 13),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _money(_number(goal.data()['savedAmount'])),
-                        style: SaveTrackDesign.amount.copyWith(
-                          fontSize: 22,
-                          color: teal,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-                TextFormField(
-                  controller: amount,
-                  style: SaveTrackDesign.amount.copyWith(
-                    fontSize: 26,
-                    color: teal,
-                  ),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: const InputDecoration(
-                    labelText: 'Amount saved',
-                    prefixText: 'PHP ',
-                  ),
-                  validator: (v) {
-                    final n = double.tryParse(v ?? '');
-                    return n == null || n <= 0
-                        ? 'Enter an amount greater than zero.'
-                        : null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: note,
-                  decoration: const InputDecoration(
-                    labelText: 'Note (optional)',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: busy ? null : () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            GradientButton(
-              expand: false,
-              onPressed: busy
-                  ? null
-                  : () async {
-                      if (!form.currentState!.validate()) return;
-                      setState(() => busy = true);
-                      final value = double.parse(amount.text);
-                      final db = FirebaseFirestore.instance;
-                      final batch = db.batch();
-                      batch.set(
-                        goal.reference.collection('transactions').doc(),
-                        {
-                          'amount': value,
-                          'note': note.text.trim(),
-                          'date': FieldValue.serverTimestamp(),
-                          'type': 'deposit',
-                        },
-                      );
-                      batch.update(goal.reference, {
-                        'savedAmount': FieldValue.increment(value),
-                        'updatedAt': FieldValue.serverTimestamp(),
-                      });
-                      try {
-                        await batch.commit();
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      } catch (e) {
-                        setState(() => busy = false);
-                        if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            SnackBar(
-                              content: Text('Could not add savings: $e'),
-                            ),
-                          );
-                        }
-                      }
-                    },
-              child: SaveActionLabel(busy: busy, label: 'Add savings'),
-            ),
-          ],
-        ),
+    barrierDismissible: false,
+    builder: (_) => CurrencySavingsDialog(
+      initialGoal: goal.data(),
+      goalUpdates: goal.reference.snapshots(),
+      withdrawal: withdrawal,
+      onConfirm: (entry, note) => recordCurrencySavings(
+        goal: goal.reference,
+        uid: uid,
+        entry: entry,
+        note: note,
+        requestId: requestId,
+        withdrawal: withdrawal,
       ),
     ),
   );
+  if (result == true && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          withdrawal
+              ? 'Savings decreased successfully.'
+              : 'Savings added successfully.',
+        ),
+      ),
+    );
+  }
 }
 
 Future<void> showTaskForm(

@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'shared_savings_models.dart';
+import 'currency_transactions.dart';
 
 /// Spark-compatible transactions. Firestore rules independently validate every
 /// write; these client checks provide useful errors, not an authorization boundary.
@@ -363,6 +364,17 @@ class SharedSavingsStore {
       }
       if (action == 'contribute' || action == 'decrease') {
         final amount = cents(data['amount']), deposit = action == 'contribute';
+        Map<String, dynamic>? conversion;
+        if (data['conversion'] != null) {
+          if (data['conversion'] is! Map) fail('Invalid confirmed conversion.');
+          conversion = Map<String, dynamic>.from(data['conversion'] as Map);
+          if (conversion['rateTimestamp'] is int) {
+            conversion['rateTimestamp'] = Timestamp.fromMillisecondsSinceEpoch(
+              conversion['rateTimestamp'] as int,
+            );
+          }
+          validateConversionMetadata(conversion, amount / 100, 'PHP');
+        }
         final current =
             (goal['currentCents'] as int) + (deposit ? amount : -amount);
         final deposits = (goal['depositCents'] as int) + (deposit ? amount : 0);
@@ -381,6 +393,7 @@ class SharedSavingsStore {
           'contributorId': uid,
           'displayName': member!['displayName'],
           'type': deposit ? 'deposit' : 'withdrawal',
+          'conversion': ?conversion,
           'amountCents': amount,
           'amount': amount / 100,
           'date': day,

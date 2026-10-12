@@ -555,11 +555,11 @@ void main() {
       );
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
-      expect(find.text('-PHP 500.00'), findsOneWidget);
+      expect(find.text('-PHP ₱500.00'), findsOneWidget);
       expect(find.text('Savings Decreased'), findsOneWidget);
       expect(find.text('Reason: Emergency'), findsOneWidget);
-      expect(find.text('+PHP 1000.00'), findsOneWidget);
-      expect(find.text('+PHP 2000.00'), findsOneWidget);
+      expect(find.text('+PHP ₱1,000.00'), findsOneWidget);
+      expect(find.text('+PHP ₱2,000.00'), findsOneWidget);
       expect(find.byIcon(Icons.south_east), findsOneWidget);
       expect(find.byIcon(Icons.south_west), findsNWidgets(2));
       expect(tester.takeException(), isNull);
@@ -623,8 +623,8 @@ void main() {
     await tester.tap(find.text('Decrease Savings'));
     await tester.pumpAndSettle();
     expect(find.text('Goal: Selected fund'), findsOneWidget);
-    expect(find.text('Current Savings: PHP 2500.00'), findsOneWidget);
-    expect(find.text('Target Amount: PHP 8000.00'), findsOneWidget);
+    expect(find.text('Current Savings: PHP ₱2,500.00'), findsOneWidget);
+    expect(find.text('Target Amount: PHP ₱8,000.00'), findsOneWidget);
     expect(find.text('Goal: Other fund'), findsNothing);
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
@@ -656,13 +656,13 @@ void main() {
         );
         expect(find.text('Goal reached'), findsNothing);
         expect(find.text('40% saved'), findsOneWidget);
-        expect(find.text('PHP 6000.00 to go'), findsOneWidget);
+        expect(find.text('PHP ₱6,000.00 to go'), findsOneWidget);
         expect(
           tester.widget<MintProgress>(find.byType(MintProgress)).value,
           .4,
         );
         expect(
-          find.text('Overdue  PHP 6000.00 remaining'),
+          find.text('Overdue  PHP ₱6,000.00 remaining'),
           overdue ? findsOneWidget : findsNothing,
         );
       }

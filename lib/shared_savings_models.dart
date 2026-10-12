@@ -28,6 +28,8 @@ class SharedSavingsGoal {
   SharedSavingsGoal(this.id, this.data);
   final String id;
   final Map<String, dynamic> data;
+  // Schema v2 stores integer centavos; this denomination is fixed.
+  String get currencyCode => 'PHP';
   String get name => data['name'] as String? ?? 'Shared goal';
   String get description => data['description'] as String? ?? '';
   String get ownerId => data['ownerId'] as String;
