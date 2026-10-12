@@ -23,6 +23,7 @@ plugins {
     // START: FlutterFire Configuration
     id("com.google.gms.google-services") version("4.4.4") apply false
     // END: FlutterFire Configuration
+    // Keep the compiler above Flutter's minimum; AGP applies built-in Kotlin.
     id("org.jetbrains.kotlin.android") version "2.4.0" apply false
 }
 
