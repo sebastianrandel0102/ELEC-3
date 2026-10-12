@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,6 +12,8 @@ import 'password_dialog.dart';
 import 'savings_decrease.dart';
 import 'shared_savings_screens.dart';
 import 'shared_savings_repository.dart';
+import 'smart_suggestions.dart';
+import 'smart_task_recommendation_service.dart';
 
 import 'design_system.dart';
 export 'design_system.dart';
@@ -534,7 +538,7 @@ class _HomeShellState extends State<HomeShell> {
     final pages = [
       const DashboardScreen(),
       const GoalsScreen(),
-      const PlannerScreen(),
+      PlannerScreen(active: _index == 2),
       const ReportsScreen(),
       const ProfileScreen(),
     ];
@@ -1148,13 +1152,87 @@ class GoalCard extends StatelessWidget {
 }
 
 class PlannerScreen extends StatefulWidget {
-  const PlannerScreen({super.key});
+  const PlannerScreen({super.key, this.active = true});
+  final bool active;
   @override
   State<PlannerScreen> createState() => _PlannerScreenState();
 }
 
-class _PlannerScreenState extends State<PlannerScreen> {
+class _PlannerScreenState extends State<PlannerScreen>
+    with WidgetsBindingObserver {
   DateTime _day = DateTime.now();
+  bool _followToday = true;
+  Timer? _midnightTimer;
+  bool _foreground = true;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _foreground =
+        WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    _scheduleMidnight();
+  }
+
+  void _scheduleMidnight() {
+    _midnightTimer?.cancel();
+    if (!widget.active || !_foreground || !_followToday) return;
+    final now = DateTime.now();
+    final midnight = DateTime(now.year, now.month, now.day + 1);
+    final untilMidnight = midnight.difference(now);
+    final checkAfter = untilMidnight < const Duration(minutes: 1)
+        ? untilMidnight
+        : const Duration(minutes: 1);
+    // Check the calendar each minute too, in case the device timezone changes
+    // while this screen remains foregrounded. Rebuild only when the day changes.
+    _midnightTimer = Timer(checkAfter, () {
+      if (!mounted) return;
+      if (_dateKey(_day) != _dateKey(DateTime.now())) {
+        setState(() => _day = DateTime.now());
+      }
+      _scheduleMidnight();
+    });
+  }
+
+  void _refreshToday() {
+    if (_followToday && _dateKey(_day) != _dateKey(DateTime.now())) {
+      setState(() => _day = DateTime.now());
+    }
+    _scheduleMidnight();
+  }
+
+  void _selectDay(DateTime day) {
+    setState(() {
+      _day = day;
+      _followToday = _dateKey(day) == _dateKey(DateTime.now());
+    });
+    _scheduleMidnight();
+  }
+
+  @override
+  void didUpdateWidget(covariant PlannerScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.active != widget.active) _refreshToday();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    if (_foreground && widget.active) {
+      _refreshToday();
+    } else {
+      _scheduleMidnight();
+    }
+  }
+
+  @override
+  void dispose() {
+    _midnightTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -1162,12 +1240,13 @@ class _PlannerScreenState extends State<PlannerScreen> {
     return TasksList(
       uid: uid,
       dateKey: key,
+      suggestionsActive: widget.active,
       header: PlannerDateHeader(
         title: _dateTitle(_day),
         onPrevious: () =>
-            setState(() => _day = _day.subtract(const Duration(days: 1))),
-        onNext: () => setState(() => _day = _day.add(const Duration(days: 1))),
-        onToday: () => setState(() => _day = DateTime.now()),
+            _selectDay(DateTime(_day.year, _day.month, _day.day - 1)),
+        onNext: () => _selectDay(DateTime(_day.year, _day.month, _day.day + 1)),
+        onToday: () => _selectDay(DateTime.now()),
       ),
     );
   }
@@ -1291,75 +1370,154 @@ class DailyCompletion extends StatelessWidget {
   );
 }
 
-class TasksList extends StatelessWidget {
+class TasksList extends StatefulWidget {
   const TasksList({
     super.key,
     required this.uid,
     required this.dateKey,
     this.compact = false,
     this.header,
+    this.suggestionsActive = true,
+    this.taskStream,
+    this.recommendationService,
   });
   final String uid, dateKey;
   final bool compact;
   final Widget? header;
+  final bool suggestionsActive;
+  final Stream<QuerySnapshot<Map<String, dynamic>>>? taskStream;
+  final SmartTaskRecommendationService? recommendationService;
+  @override
+  State<TasksList> createState() => _TasksListState();
+}
+
+class _TasksListState extends State<TasksList> {
+  late Stream<QuerySnapshot<Map<String, dynamic>>> _stream;
+
+  @override
+  void initState() {
+    super.initState();
+    _setStream();
+  }
+
+  void _setStream() {
+    _stream =
+        widget.taskStream ??
+        _tasks(widget.uid)
+            .where('dateKey', isEqualTo: widget.dateKey)
+            .snapshots();
+  }
+
+  @override
+  void didUpdateWidget(covariant TasksList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.uid != widget.uid ||
+        oldWidget.dateKey != widget.dateKey ||
+        oldWidget.taskStream != widget.taskStream) {
+      _setStream();
+    }
+  }
+
   @override
   Widget build(
     BuildContext context,
   ) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-    stream: _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
+    key: ValueKey('${widget.uid}/${widget.dateKey}'),
+    stream: _stream,
     builder: (context, s) {
-      Widget state(Widget child) => compact
+      Widget state(Widget child) => widget.compact
           ? child
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-              children: [?header, child],
+              children: [?widget.header, child],
             );
       if (s.hasError) {
         return state(ErrorPanel(message: 'Could not load tasks. ${s.error}'));
       }
       if (!s.hasData) return state(const LoadingPanel());
       final docs = s.data!.docs;
-      if (docs.isEmpty) {
-        return compact
-            ? EmptyPanel(
-                icon: Icons.event_available_outlined,
-                title: 'A clear day',
-                detail: "Add tasks when you\u2019re ready.",
-                action: 'Add a task',
-                onTap: () => showTaskForm(context, dateKey: dateKey),
-              )
-            : state(
-                EmptyPanel(
-                  icon: Icons.event_note_outlined,
-                  title: 'Nothing planned yet',
-                  detail: 'Add a task to make a plan for this day.',
-                  action: 'Add a task',
-                  onTap: () => showTaskForm(context, dateKey: dateKey),
-                ),
-              );
+      if (widget.compact && docs.isEmpty) {
+        return EmptyPanel(
+          icon: Icons.event_available_outlined,
+          title: 'A clear day',
+          detail: "Add tasks when you\u2019re ready.",
+          action: 'Add a task',
+          onTap: () => showTaskForm(context, dateKey: widget.dateKey),
+        );
+      }
+      if (widget.compact) {
+        return Column(
+          children: docs.map((d) => TaskTile(uid: widget.uid, doc: d)).toList(),
+        );
       }
       final done = docs.where((d) => d.data()['completed'] == true).length;
+      final selectedDate = SmartTaskRecommendationService.parseDateKey(
+        widget.dateKey,
+      );
+      final byId = {for (final doc in docs) doc.id: doc};
       final overview = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ?header,
-          DailyCompletion(done: done, total: docs.length),
+          ?widget.header,
+          if (docs.isNotEmpty) ...[
+            DailyCompletion(done: done, total: docs.length),
+            const SizedBox(height: 24),
+          ],
+          if (selectedDate != null)
+            SmartSuggestions(
+              tasks: docs.map((doc) {
+                final data = doc.data();
+                return PlannerTask.fromData(
+                  doc.id,
+                  data,
+                  createdAt: data['createdAt'] is Timestamp
+                      ? (data['createdAt'] as Timestamp).toDate()
+                      : null,
+                );
+              }).toList(),
+              selectedDate: selectedDate,
+              active: widget.suggestionsActive,
+              service: widget.recommendationService,
+              onAddTask: () => showTaskForm(context, dateKey: widget.dateKey),
+              onOpenTask: (id) {
+                final doc = byId[id];
+                if (doc != null) showTaskForm(context, doc: doc);
+              },
+              onCompleteTask: (id) async {
+                final doc = byId[id];
+                if (doc != null) await setPlannerTaskCompleted(doc, true);
+              },
+            ),
           const SizedBox(height: 24),
+          if (docs.isNotEmpty) ...[
+            Text('Your Tasks', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 12),
+          ],
         ],
       );
-      return compact
-          ? Column(
-              children: docs.map((d) => TaskTile(uid: uid, doc: d)).toList(),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-              itemCount: docs.length + 1,
-              itemBuilder: (context, index) => index == 0
-                  ? overview
-                  : TaskTile(uid: uid, doc: docs[index - 1]),
-            );
+      return ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        itemCount: docs.length + 1,
+        itemBuilder: (context, index) => index == 0
+            ? overview
+            : TaskTile(
+                key: ValueKey('planner-task-${docs[index - 1].id}'),
+                uid: widget.uid,
+                doc: docs[index - 1],
+              ),
+      );
     },
   );
 }
+
+/// The original task update, shared by the list and recommendation controls.
+Future<void> setPlannerTaskCompleted(
+  QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  bool completed,
+) => doc.reference.update({
+  'completed': completed,
+  'updatedAt': FieldValue.serverTimestamp(),
+});
 
 class TaskTile extends StatelessWidget {
   const TaskTile({super.key, required this.uid, required this.doc});
@@ -1369,6 +1527,7 @@ class TaskTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final d = doc.data();
     final done = d['completed'] == true;
+    final time = d['time']?.toString() ?? '';
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: AnimatedContainer(
@@ -1389,10 +1548,21 @@ class TaskTile extends StatelessWidget {
                 semanticLabel: 'Complete ${d['title']}',
                 value: done,
                 activeColor: teal,
-                onChanged: (v) => doc.reference.update({
-                  'completed': v == true,
-                  'updatedAt': FieldValue.serverTimestamp(),
-                }),
+                onChanged: (v) async {
+                  try {
+                    await setPlannerTaskCompleted(doc, v == true);
+                  } catch (_) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Could not update this task. Please try again.',
+                          ),
+                        ),
+                      );
+                    }
+                  }
+                },
               ),
               Expanded(
                 child: Padding(
@@ -1414,7 +1584,7 @@ class TaskTile extends StatelessWidget {
                           spacing: 8,
                           runSpacing: 6,
                           children: [
-                            if ((d['time'] as String? ?? '').isNotEmpty)
+                            if (time.isNotEmpty)
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -1426,7 +1596,7 @@ class TaskTile extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      d['time'] as String,
+                                      time,
                                       style: const TextStyle(
                                         color: muted,
                                         fontSize: 13,
@@ -2622,9 +2792,11 @@ Future<void> showTaskForm(
   QueryDocumentSnapshot<Map<String, dynamic>>? doc,
 }) async {
   final form = GlobalKey<FormState>();
-  final title = TextEditingController(text: doc?.data()['title'] as String?);
-  final time = TextEditingController(text: doc?.data()['time'] as String?);
-  String priority = doc?.data()['priority'] as String? ?? 'Normal';
+  final title = TextEditingController(text: doc?.data()['title']?.toString());
+  final time = TextEditingController(text: doc?.data()['time']?.toString());
+  String priority = doc?.data()['priority']?.toString() ?? 'Normal';
+  final priorities = ['Low', 'Normal', 'High'];
+  if (!priorities.contains(priority)) priorities.add(priority);
   String day =
       doc?.data()['dateKey'] as String? ?? dateKey ?? _dateKey(DateTime.now());
   bool busy = false;
@@ -2672,13 +2844,19 @@ Future<void> showTaskForm(
                 const SizedBox(height: 24),
                 const FieldCaption('When & how important'),
                 DropdownButtonFormField<String>(
+                  isExpanded: true,
                   initialValue: priority,
                   decoration: const InputDecoration(
                     labelText: 'Priority',
                     prefixIcon: Icon(Icons.low_priority),
                   ),
-                  items: ['Low', 'Normal', 'High']
-                      .map((p) => DropdownMenuItem(value: p, child: Text(p)))
+                  items: priorities
+                      .map(
+                        (p) => DropdownMenuItem(
+                          value: p,
+                          child: Text(p, overflow: TextOverflow.ellipsis),
+                        ),
+                      )
                       .toList(),
                   onChanged: (v) => setState(() => priority = v ?? 'Normal'),
                 ),

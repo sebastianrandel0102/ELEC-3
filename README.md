@@ -35,6 +35,8 @@ Not yet implemented: personal goal/task filters and sorting, transaction correct
 
 ## Checks
 
+Daily Planner includes local, time-aware **Smart Suggestions**, with a next-task card, recommended follow-ups, explainable ranking, explicit-window conflict warnings, and automatic clock/data updates. It uses existing task records and actions. See [Smart Suggestions rules, supported time formats and validation](docs/smart-suggestions.md).
+
 Save Together adds shared goals, secure single-use invitations, attributed contributions, owner controls and live shared reports. It uses Spark-compatible Firestore transactions and security rules; no Cloud Functions or billing upgrade is required. See [implementation, Firebase deployment, verification and two-account testing](docs/save-together.md). Existing personal financial records remain private and unchanged; sharing a personal goal creates a separate shared goal at zero.
 
 Run `dart format .`, `flutter analyze`, and `flutter test`. Attempt an Android debug build with `flutter build apk --debug`.
