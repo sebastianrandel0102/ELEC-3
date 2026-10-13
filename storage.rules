@@ -1,0 +1,23 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function owns(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    // Avatars are private to their account. The app reads authenticated bytes,
+    // never publishes tokenized download URLs or shares these with goal members.
+    match /users/{uid}/profile/avatar/{file} {
+      allow read: if owns(uid);
+      allow create: if resource == null && owns(uid)
+        && file.matches('^[A-Za-z0-9]{20}[.]jpg$')
+        && request.resource.size > 0
+        && request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+      // Versioned objects are immutable. Replacement creates a new object.
+      allow update: if false;
+      allow delete: if owns(uid) && file.matches('^[A-Za-z0-9]{20}[.]jpg$');
+    }
+    // No existing Storage rules/integration were present in this repository.
+    match /{other=**} { allow read, write: if false; }
+  }
+}

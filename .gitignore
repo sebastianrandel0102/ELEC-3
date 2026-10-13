@@ -43,11 +43,14 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/android/.kotlin/
 
 # Widget Preview related
 .widget_preview/
 
 # Firebase backend dependencies and local secrets
 functions/node_modules/
+test/profile_photo_emulator/node_modules/
+test/profile_photo_emulator/*debug.log
 functions/.env*
 functions/.secret*

@@ -676,7 +676,7 @@ void main() {
         ),
       ),
     );
-    expect(find.text('S'), findsOneWidget);
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
