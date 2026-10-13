@@ -1,0 +1,3 @@
+<!-- Google Sign-In looks up its generated client ID by name at runtime. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_stat_reminder,@string/default_web_client_id" />

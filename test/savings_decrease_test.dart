@@ -59,6 +59,8 @@ class ActionGoal extends Fake
   @override
   final SavingsReference reference;
   @override
+  String get id => reference.id;
+  @override
   Map<String, dynamic> data() => reference.firestore.documents[reference.path]!;
 }
 

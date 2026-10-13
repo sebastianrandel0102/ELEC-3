@@ -5,6 +5,20 @@ allprojects {
     }
 }
 
+// Some Flutter plugins declare older AGP versions (flutter_timezone uses 7.3.0).
+// Use the app's tooling so their classpaths cannot introduce an old SDK XML parser.
+val androidGradlePluginVersion = com.android.Version.ANDROID_GRADLE_PLUGIN_VERSION
+subprojects {
+    buildscript.configurations.configureEach {
+        resolutionStrategy.eachDependency {
+            if (requested.group == "com.android.tools.build" && requested.name == "gradle") {
+                useVersion(androidGradlePluginVersion)
+                because("Flutter plugins must use the application's Android SDK tooling")
+            }
+        }
+    }
+}
+
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")

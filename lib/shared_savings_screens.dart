@@ -9,6 +9,7 @@ import 'currency_widgets.dart';
 import 'currency_transactions.dart';
 import 'currency_settings_screen.dart';
 import 'shared_savings.dart';
+import 'reminder_widgets.dart';
 
 const sharedIcons = <String, IconData>{
   'group': Icons.groups_outlined,
@@ -754,6 +755,16 @@ class _SharedGoalDetailsScreenState extends State<SharedGoalDetailsScreen> {
                 'Showing cached information. Reconnect to verify access and record changes.',
               ),
             SharedGoalHero(goal: goal),
+            ReminderButton(
+              shared: true,
+              target: ReminderTarget.fromData(
+                ReminderTargetType.sharedGoal,
+                goal.id,
+                goal.data,
+                deadline: goal.deadline,
+                authorized: (goal.data['memberIds'] as List).contains(uid),
+              ),
+            ),
             const SizedBox(height: 20),
             if (goal.description.isNotEmpty) Text(goal.description),
             const SharedNotice(

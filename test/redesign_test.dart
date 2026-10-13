@@ -43,6 +43,8 @@ class TestDocument extends Fake
   final Map<String, dynamic> values;
   final testReference = TestReference();
   @override
+  String get id => 'preview_record';
+  @override
   Map<String, dynamic> data() => values;
   @override
   DocumentReference<Map<String, dynamic>> get reference => testReference;
