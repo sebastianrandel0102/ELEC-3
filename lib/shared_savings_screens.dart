@@ -211,10 +211,7 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
       return SharedNotice(controller.error!, error: true);
     }
     if (controller.loading) {
-      return const Padding(
-        padding: EdgeInsets.all(24),
-        child: Center(child: CircularProgressIndicator()),
-      );
+      return const AuroraLoadingSurface();
     }
     final all = controller.goals;
     final uid = FirebaseAuth.instance.currentUser!.uid;
@@ -237,27 +234,34 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
             ),
           ),
         if (widget.report)
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${all.length} goals joined · ${all.where((g) => g.ownerId == uid).length} owned',
+          AuroraChartSurface(
+            title: 'Shared savings',
+            icon: Icons.groups_outlined,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${all.length} goals joined · ${all.where((g) => g.ownerId == uid).length} owned',
+                  style: const TextStyle(color: muted, fontSize: 13),
+                ),
+                const SizedBox(height: 20),
+                const FieldCaption('Combined group balances'),
+                AmountText(
+                  sharedTotalMoney(context, all.map((g) => g.balance)),
+                  style: SaveTrackDesign.amount.copyWith(
+                    fontSize: 26,
+                    color: teal,
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'Combined group balances: ${sharedTotalMoney(context, all.map((g) => g.balance))}',
-                  ),
-                  Text(
-                    'Your recorded deposits: ${sharedTotalMoney(context, all.map((g) => (g.data['personalDeposits'] as Map?)?[uid] as num? ?? 0))}',
-                  ),
-                  const SharedNotice(
-                    'Current-rate display estimates; all shared goals are stored in PHP. Group balances are shared tracking totals. They are separate from personal savings. Deposits remain attributed to members after a group decrease.',
-                  ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Your recorded deposits: ${sharedTotalMoney(context, all.map((g) => (g.data['personalDeposits'] as Map?)?[uid] as num? ?? 0))}',
+                  style: const TextStyle(color: muted, fontSize: 13),
+                ),
+                const SharedNotice(
+                  'Current-rate display estimates; all shared goals are stored in PHP. Group balances are shared tracking totals. They are separate from personal savings. Deposits remain attributed to members after a group decrease.',
+                ),
+              ],
             ),
           ),
         if (!widget.compact && !widget.report) ...[
@@ -327,9 +331,14 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
               ),
             ),
           ),
-        ...goals
-            .take(widget.compact ? 2 : goals.length)
-            .map((g) => SharedGoalCard(goal: g, uid: uid)),
+        AdaptiveCards(
+          children: goals
+              .take(widget.compact ? 2 : goals.length)
+              .map(
+                (g) => SharedGoalCard(key: ValueKey(g.id), goal: g, uid: uid),
+              )
+              .toList(),
+        ),
       ],
     );
     return widget.compact || widget.report
@@ -370,7 +379,11 @@ class SharedGoalCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Icon(Icons.chevron_right),
+                  const Icon(
+                    Icons.arrow_forward_rounded,
+                    size: 20,
+                    color: teal,
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
@@ -388,8 +401,9 @@ class SharedGoalCard extends StatelessWidget {
               const SizedBox(height: 16),
               AmountText(
                 sharedDisplayMoney(context, goal.balance),
+                compactCurrency: true,
                 style: SaveTrackDesign.amount.copyWith(
-                  fontSize: 30,
+                  fontSize: 28,
                   color: teal,
                 ),
               ),
@@ -949,9 +963,10 @@ class SharedGoalHero extends StatelessWidget {
         AmountText(
           sharedDisplayMoney(context, goal.balance),
           onDark: true,
+          compactCurrency: true,
           style: SaveTrackDesign.amount.copyWith(
             color: Colors.white,
-            fontSize: 34,
+            fontSize: 42,
           ),
         ),
         const Text(
@@ -963,11 +978,25 @@ class SharedGoalHero extends StatelessWidget {
         const SizedBox(height: 16),
         Text(
           '${(goal.progress * 100).round()}% · ${sharedDisplayMoney(context, goal.target)} target',
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-        Text(
-          '${sharedDisplayMoney(context, goal.remaining)} remaining · Due ${sharedDateText(goal.deadline)}',
-          style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
+        const SizedBox(height: 20),
+        Divider(color: mint.withValues(alpha: .2), height: 1),
+        const SizedBox(height: 16),
+        DetailLine(
+          icon: Icons.account_balance_wallet_outlined,
+          label: '${sharedDisplayMoney(context, goal.remaining)} remaining',
+          color: SaveTrackDesign.onHeroMuted,
+        ),
+        const SizedBox(height: 8),
+        DetailLine(
+          icon: Icons.event_outlined,
+          label: 'Due ${sharedDateText(goal.deadline)}',
+          color: SaveTrackDesign.onHeroMuted,
         ),
       ],
     ),

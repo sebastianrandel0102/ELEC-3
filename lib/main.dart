@@ -553,7 +553,7 @@ class _HomeShellState extends State<HomeShell> {
       appBar: AppBar(
         toolbarHeight: MediaQuery.textScalerOf(context).scale(20) > 28
             ? MediaQuery.textScalerOf(context).scale(20) * 3 + 24
-            : 72,
+            : 64,
         title: Row(
           children: [
             const BrandDot(),
@@ -574,7 +574,10 @@ class _HomeShellState extends State<HomeShell> {
             IconButton(
               tooltip: 'Profile',
               onPressed: () => setState(() => _index = 4),
-              icon: const Icon(Icons.account_circle_outlined),
+              icon: ProfileAvatar(
+                name: FirebaseAuth.instance.currentUser?.displayName ?? '',
+                size: 36,
+              ),
             ),
         ],
       ),
@@ -621,43 +624,93 @@ class SaveTrackNavigation extends StatelessWidget {
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(26),
-              border: Border.all(color: SaveTrackDesign.border),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: SaveTrackDesign.elevatedBorder),
               boxShadow: SaveTrackDesign.shadows,
             ),
-            child: NavigationBar(
-              animationDuration: MediaQuery.disableAnimationsOf(context)
-                  ? Duration.zero
-                  : SaveTrackDesign.motion,
-              selectedIndex: selectedIndex,
-              onDestinationSelected: onSelected,
-              destinations: const [
-                NavigationDestination(
-                  icon: Icon(Icons.home_outlined),
-                  selectedIcon: Icon(Icons.home),
-                  label: 'Today',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.savings_outlined),
-                  selectedIcon: Icon(Icons.savings),
-                  label: 'Goals',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.checklist_outlined),
-                  selectedIcon: Icon(Icons.checklist),
-                  label: 'Planner',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.insights_outlined),
-                  selectedIcon: Icon(Icons.insights),
-                  label: 'Reports',
-                ),
-                NavigationDestination(
-                  icon: Icon(Icons.person_outline),
-                  selectedIcon: Icon(Icons.person),
-                  label: 'Profile',
-                ),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                var widestLabel = 0.0;
+                for (final label in [
+                  'Today',
+                  'Goals',
+                  'Planner',
+                  'Reports',
+                  'Profile',
+                ]) {
+                  final measure = TextPainter(
+                    text: TextSpan(
+                      text: label,
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    textDirection: Directionality.of(context),
+                    textScaler: MediaQuery.textScalerOf(context),
+                  )..layout();
+                  if (measure.width > widestLabel) widestLabel = measure.width;
+                  measure.dispose();
+                }
+                final needed = (widestLabel + 4) * 5;
+                final navigation = NavigationBar(
+                  height: MediaQuery.textScalerOf(context).scale(12) > 18
+                      ? 60 + MediaQuery.textScalerOf(context).scale(12)
+                      : 72,
+                  animationDuration: SaveTrackDesign.duration(
+                    context,
+                    SaveTrackDesign.selectionMotion,
+                  ),
+                  selectedIndex: selectedIndex,
+                  onDestinationSelected: onSelected,
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Today',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.savings_outlined),
+                      selectedIcon: Icon(Icons.savings),
+                      label: 'Goals',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.checklist_outlined),
+                      selectedIcon: Icon(Icons.checklist),
+                      label: 'Planner',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.insights_outlined),
+                      selectedIcon: Icon(Icons.insights),
+                      label: 'Reports',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: 'Profile',
+                    ),
+                  ],
+                );
+                if (needed <= constraints.maxWidth) return navigation;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: SizedBox(width: needed, child: navigation),
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
+                      child: Text(
+                        'Swipe for all tabs',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12, color: muted),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -672,78 +725,95 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser!;
     final today = _dateKey(DateTime.now());
-    return DashboardLayout(
-      header: ScreenIntro(
-        eyebrow: _dateTitle(DateTime.now()),
-        title: 'Hello, ${user.displayName?.split(' ').first ?? 'there'}',
-        detail: 'A little progress adds up.',
-      ),
-      savings: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _goals(user.uid)
-            .where('archived', isEqualTo: false)
-            .snapshots(),
-        builder: (context, snap) {
-          if (snap.hasError) {
-            return ErrorPanel(
-              message: 'Could not load your goals. ${snap.error}',
-            );
-          }
-          if (!snap.hasData) return const LoadingPanel();
-          final docs = snap.data!.docs;
-          final currency = CurrencyScope.maybeOf(context);
-          final balances = docs
-              .map(
-                (d) =>
-                    (_number(d.data()['savedAmount']), goalCurrency(d.data())),
-              )
-              .toList();
-          final targets = docs
-              .map(
-                (d) =>
-                    (_number(d.data()['targetAmount']), goalCurrency(d.data())),
-              )
-              .toList();
-          final summary = currencySummary(currency, balances, targets);
-          return SavingsOverview(
-            total: summary.$1,
-            target: summary.$2,
-            count: docs.length,
-            totalLabel: currency?.totalDisplay(balances),
-            targetLabel: currency?.totalDisplay(targets),
-            showProgress: summary.$3,
-          );
-        },
-      ),
-      metrics: AdaptiveCards(
-        breakpoint: 0,
-        children: [
-          SummaryTile(
-            icon: Icons.flag_outlined,
-            label: 'Active goals',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final lazyTasks =
+            constraints.maxWidth < 840 ||
+            MediaQuery.textScalerOf(context).scale(14) > 21;
+        return DashboardLayout(
+          tasksAreSlivers: lazyTasks,
+          header: ScreenIntro(
+            eyebrow: _dateTitle(DateTime.now()),
+            title: 'Hello, ${user.displayName?.split(' ').first ?? 'there'}',
+            detail: 'A little progress adds up.',
+          ),
+          savings: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
             stream: _goals(user.uid)
                 .where('archived', isEqualTo: false)
                 .snapshots(),
-            count: true,
+            builder: (context, snap) {
+              if (snap.hasError) {
+                return ErrorPanel(
+                  message: 'Could not load your goals. ${snap.error}',
+                );
+              }
+              if (!snap.hasData) return const LoadingPanel(featured: true);
+              final docs = snap.data!.docs;
+              final currency = CurrencyScope.maybeOf(context);
+              final balances = docs
+                  .map(
+                    (d) => (
+                      _number(d.data()['savedAmount']),
+                      goalCurrency(d.data()),
+                    ),
+                  )
+                  .toList();
+              final targets = docs
+                  .map(
+                    (d) => (
+                      _number(d.data()['targetAmount']),
+                      goalCurrency(d.data()),
+                    ),
+                  )
+                  .toList();
+              final summary = currencySummary(currency, balances, targets);
+              return SavingsOverview(
+                total: summary.$1,
+                target: summary.$2,
+                count: docs.length,
+                totalLabel: currency?.totalDisplay(balances),
+                targetLabel: currency?.totalDisplay(targets),
+                showProgress: summary.$3,
+              );
+            },
           ),
-          SummaryTile(
-            icon: Icons.check_circle_outline,
-            label: 'Done today',
-            stream: _tasks(user.uid)
-                .where('dateKey', isEqualTo: today)
-                .snapshots(),
-            count: false,
+          metrics: AdaptiveCards(
+            breakpoint: 0,
+            children: [
+              SummaryTile(
+                icon: Icons.flag_outlined,
+                label: 'Active goals',
+                stream: _goals(user.uid)
+                    .where('archived', isEqualTo: false)
+                    .snapshots(),
+                count: true,
+              ),
+              SummaryTile(
+                icon: Icons.check_circle_outline,
+                label: 'Done today',
+                stream: _tasks(user.uid)
+                    .where('dateKey', isEqualTo: today)
+                    .snapshots(),
+                count: false,
+              ),
+            ],
           ),
-        ],
-      ),
-      goals: Column(
-        children: [
-          GoalsPreview(uid: user.uid),
-          const SharedGoalsPanel(compact: true),
-        ],
-      ),
-      tasks: TasksList(uid: user.uid, dateKey: today, compact: true),
-      onGoals: () => _openTab(context, 1),
-      onPlanner: () => _openTab(context, 2),
+          goals: Column(
+            children: [
+              GoalsPreview(uid: user.uid),
+              const SharedGoalsPanel(compact: true),
+            ],
+          ),
+          tasks: TasksList(
+            uid: user.uid,
+            dateKey: today,
+            compact: true,
+            asSliver: lazyTasks,
+          ),
+          onGoals: () => _openTab(context, 1),
+          onPlanner: () => _openTab(context, 2),
+        );
+      },
     );
   }
 }
@@ -763,78 +833,79 @@ class SavingsOverview extends StatelessWidget {
   final double total, target;
   final int count;
   @override
-  Widget build(BuildContext context) => MintHero(
-    deep: true,
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          children: [
-            Icon(Icons.account_balance_wallet_outlined, size: 20),
-            SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'Your savings',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: SaveTrackDesign.onHeroMuted,
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-        AmountText(
-          totalLabel ?? _money(total),
-          onDark: true,
-          style: SaveTrackDesign.amount.copyWith(
-            color: Colors.white,
-            fontSize: 34,
-          ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          'Total saved toward your goals',
-          style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
-        ),
-        const SizedBox(height: 28),
-        if (showProgress)
-          MintProgress(
-            value: target == 0 ? 0 : (total / target).clamp(0, 1),
-            onDark: true,
-          ),
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .06),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: mint.withValues(alpha: .14)),
-          ),
-          child: Wrap(
-            spacing: 16,
-            runSpacing: 8,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => MintHero(
+      padding: EdgeInsets.all(constraints.maxWidth < 330 ? 20 : 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
             children: [
-              Text(
-                '$count active ${count == 1 ? 'goal' : 'goals'}',
-                style: const TextStyle(
-                  color: SaveTrackDesign.onHeroMuted,
-                  fontSize: 13,
+              Expanded(
+                child: Text(
+                  'Your savings',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: SaveTrackDesign.onHeroMuted,
+                  ),
                 ),
               ),
-              Text(
-                '${targetLabel ?? _money(target)} target',
-                style: const TextStyle(
-                  color: SaveTrackDesign.onHeroMuted,
-                  fontSize: 13,
-                ),
-              ),
+              SizedBox(width: 12),
+              Icon(Icons.account_balance_wallet_outlined, size: 24),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+          AmountText(
+            totalLabel ?? _money(total),
+            onDark: true,
+            compactCurrency: true,
+            style: SaveTrackDesign.amount.copyWith(
+              color: Colors.white,
+              fontSize: constraints.maxWidth < 340 ? 36 : 42,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Total saved toward your goals',
+            style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
+          ),
+          const SizedBox(height: 24),
+          if (showProgress)
+            MintProgress(
+              value: target == 0 ? 0 : (total / target).clamp(0, 1),
+              onDark: true,
+            ),
+          const SizedBox(height: 16),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 16),
+            decoration: BoxDecoration(
+              border: Border(
+                top: BorderSide(color: mint.withValues(alpha: .2)),
+              ),
+            ),
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                DetailLine(
+                  icon: Icons.flag_outlined,
+                  label: '$count active ${count == 1 ? 'goal' : 'goals'}',
+                  color: SaveTrackDesign.onHeroMuted,
+                ),
+                Text(
+                  '${targetLabel ?? _money(target)} target',
+                  style: const TextStyle(
+                    color: SaveTrackDesign.onHeroMuted,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -849,25 +920,23 @@ class DashboardLayout extends StatelessWidget {
     required this.tasks,
     required this.onGoals,
     required this.onPlanner,
+    this.tasksAreSlivers = false,
   });
   final Widget header, savings, metrics, goals, tasks;
   final VoidCallback onGoals, onPlanner;
+  final bool tasksAreSlivers;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final overview = Column(
         children: [savings, const SizedBox(height: 16), metrics],
       );
-      final plan = Column(
-        children: [
-          SectionHeader(
-            title: "Today\u2019s plan",
-            action: 'Open planner',
-            onTap: onPlanner,
-          ),
-          tasks,
-        ],
+      final planHeader = SectionHeader(
+        title: "Today\u2019s plan",
+        action: 'Open planner',
+        onTap: onPlanner,
       );
+      final plan = Column(children: [planHeader, tasks]);
       final milestones = Column(
         children: [
           SectionHeader(title: 'Your goals', action: 'See all', onTap: onGoals),
@@ -877,8 +946,37 @@ class DashboardLayout extends StatelessWidget {
       final wide =
           constraints.maxWidth >= 840 &&
           MediaQuery.textScalerOf(context).scale(14) <= 21;
+      if (!wide) {
+        final inset = SaveTrackDesign.pageInset(constraints.maxWidth);
+        return CustomScrollView(
+          key: const PageStorageKey('dashboard-scroll'),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(inset, 12, inset, 0),
+              sliver: SliverList.list(
+                children: [
+                  header,
+                  overview,
+                  const SizedBox(height: 24),
+                  milestones,
+                  const SizedBox(height: 28),
+                  planHeader,
+                ],
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: inset),
+              sliver: tasksAreSlivers
+                  ? tasks
+                  : SliverToBoxAdapter(child: tasks),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 40)),
+          ],
+        );
+      }
       return ListView(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 40),
+        key: const PageStorageKey('dashboard-scroll'),
+        padding: SaveTrackDesign.pagePadding(constraints.maxWidth),
         children: [
           header,
           if (wide) ...[
@@ -894,9 +992,9 @@ class DashboardLayout extends StatelessWidget {
             milestones,
           ] else ...[
             overview,
-            const SizedBox(height: 28),
-            milestones,
             const SizedBox(height: 24),
+            milestones,
+            const SizedBox(height: 28),
             plan,
           ],
         ],
@@ -954,11 +1052,15 @@ class PersonalGoalsScreen extends StatelessWidget {
         }
         return AdaptiveCardList(
           itemCount: docs.length,
-          itemBuilder: (context, index) => GoalCard(uid: uid, doc: docs[index]),
+          itemBuilder: (context, index) => GoalCard(
+            key: ValueKey(docs[index].id),
+            uid: uid,
+            doc: docs[index],
+          ),
           header: const ScreenIntro(
-            eyebrow: 'Make it happen',
-            title: 'One goal at a time.',
-            detail: 'Every contribution brings your next milestone closer.',
+            eyebrow: 'Personal savings',
+            title: 'Save for what matters.',
+            detail: 'Your milestones, one contribution at a time.',
           ),
         );
       },
@@ -990,9 +1092,9 @@ class GoalsPreview extends StatelessWidget {
               onTap: () => showGoalForm(context),
             );
           }
-          return Column(
+          return AdaptiveCards(
             children: s.data!.docs
-                .map((d) => GoalCard(uid: uid, doc: d))
+                .map((d) => GoalCard(key: ValueKey(d.id), uid: uid, doc: d))
                 .toList(),
           );
         },
@@ -1011,26 +1113,30 @@ class GoalCard extends StatelessWidget {
     final saved = _number(data['savedAmount']),
         target = _number(data['targetAmount']);
     final double pct = target == 0 ? 0 : (saved / target).clamp(0.0, 1.0);
+    final enlarged = MediaQuery.textScalerOf(context).scale(14) > 21;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const MintIcon(Icons.flag_outlined),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Text(
-                    '${data['title']}',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: ink,
-                    ),
-                  ),
+                  child: enlarged
+                      ? const SizedBox.shrink()
+                      : Text(
+                          '${data['title']}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: ink,
+                          ),
+                        ),
                 ),
                 PopupMenuButton<String>(
                   tooltip: 'Goal actions',
@@ -1077,6 +1183,18 @@ class GoalCard extends StatelessWidget {
                 ),
               ],
             ),
+            if (enlarged)
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Text(
+                  '${data['title']}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: ink,
+                  ),
+                ),
+              ),
             if ((data['note'] as String? ?? '').isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -1086,46 +1204,45 @@ class GoalCard extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 20),
-            TonalPanel(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  AmountText(
-                    '${money(saved)} saved',
-                    style: SaveTrackDesign.amount.copyWith(
-                      fontSize: 26,
-                      color: teal,
-                      letterSpacing: -.4,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AmountText(
+                  '${money(saved)} saved',
+                  compactCurrency: true,
+                  supportingSuffix: ' saved',
+                  style: SaveTrackDesign.amount.copyWith(
+                    fontSize: 28,
+                    color: teal,
+                    letterSpacing: -.4,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  '${money(target)} target',
+                  style: const TextStyle(color: muted, fontSize: 13),
+                ),
+                CurrencyContextLabel(source: code),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    StatusPill(
+                      saved >= target && target > 0
+                          ? 'Goal reached'
+                          : '${(pct * 100).round()}% saved',
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${money(target)} target',
-                    style: const TextStyle(color: muted, fontSize: 13),
-                  ),
-                  CurrencyContextLabel(source: code),
-                  const SizedBox(height: 16),
-                  MintProgress(value: pct),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      StatusPill(
-                        saved >= target && target > 0
-                            ? 'Goal reached'
-                            : '${(pct * 100).round()}% saved',
-                      ),
-                      Text(
-                        '${money((target - saved).clamp(0, double.infinity))} to go',
-                        style: const TextStyle(color: muted, fontSize: 13),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    Text(
+                      '${money((target - saved).clamp(0, double.infinity))} to go',
+                      style: const TextStyle(color: muted, fontSize: 13),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                MintProgress(value: pct),
+              ],
             ),
             const SizedBox(height: 16),
             if (data['deadline'] is Timestamp)
@@ -1170,10 +1287,17 @@ class GoalCard extends StatelessWidget {
                   onPressed: () => showTransactionHistory(context, doc),
                   child: const Text('History'),
                 ),
-                FilledButton.tonalIcon(
+                GradientButton(
+                  expand: false,
                   onPressed: () => showDepositForm(context, uid, doc),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add savings'),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.add, size: 18),
+                      SizedBox(width: 8),
+                      Flexible(child: Text('Add savings')),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -1304,56 +1428,94 @@ class PlannerDateHeader extends StatelessWidget {
         title: 'Make today count.',
         detail: 'A clear plan. A little more focus.',
       ),
-      TonalPanel(
-        child: Padding(
-          padding: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Expanded(
-                    child: Text(
-                      'Your schedule',
-                      style: TextStyle(color: muted, fontSize: 13),
-                    ),
-                  ),
-                  TextButton.icon(
-                    onPressed: onToday,
-                    icon: const Icon(Icons.today_outlined, size: 18),
-                    label: const Text('Today'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  IconButton.filledTonal(
-                    tooltip: 'Previous day',
-                    onPressed: onPrevious,
-                    icon: const Icon(Icons.chevron_left),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filledTonal(
-                    tooltip: 'Next day',
-                    onPressed: onNext,
-                    icon: const Icon(Icons.chevron_right),
-                  ),
-                ],
-              ),
-            ],
+      Row(
+        children: [
+          const Expanded(
+            child: Text(
+              'Your schedule',
+              style: TextStyle(color: muted, fontSize: 13),
+            ),
           ),
+          TextButton.icon(
+            onPressed: onToday,
+            icon: const Icon(Icons.today_outlined, size: 18),
+            label: const Text('Today'),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: SaveTrackDesign.border),
+        ),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final previous = IconButton(
+              tooltip: 'Previous day',
+              onPressed: onPrevious,
+              icon: const Icon(Icons.chevron_left),
+            );
+            final next = IconButton(
+              tooltip: 'Next day',
+              onPressed: onNext,
+              icon: const Icon(Icons.chevron_right),
+            );
+            final date = AnimatedContainer(
+              duration: SaveTrackDesign.duration(
+                context,
+                SaveTrackDesign.selectionMotion,
+              ),
+              curve: SaveTrackDesign.motionCurve,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+              decoration: BoxDecoration(
+                color: SaveTrackDesign.lightMint,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: AnimatedSwitcher(
+                duration: SaveTrackDesign.duration(
+                  context,
+                  SaveTrackDesign.selectionMotion,
+                ),
+                child: Text(
+                  title,
+                  key: ValueKey(title),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: teal,
+                  ),
+                ),
+              ),
+            );
+            if (constraints.maxWidth < 380 &&
+                MediaQuery.textScalerOf(context).scale(16) > 24) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: date,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [previous, next],
+                  ),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                previous,
+                Expanded(child: date),
+                next,
+              ],
+            );
+          },
         ),
       ),
       const SizedBox(height: 20),
@@ -1366,40 +1528,50 @@ class DailyCompletion extends StatelessWidget {
   final int done, total;
   @override
   Widget build(BuildContext context) => Card(
-    color: Colors.white,
     child: Padding(
       padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Daily progress',
-                  style: TextStyle(
-                    color: teal,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final ring = ProgressRing(
+            value: total == 0 ? 0 : done / total,
+            size: 64,
+          );
+          final label = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Daily progress',
+                style: TextStyle(
+                  color: ink,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  '$done of $total tasks completed',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                    color: ink,
-                  ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '$done of $total tasks completed',
+                style: const TextStyle(
+                  color: muted,
+                  fontSize: 14,
+                  height: 1.45,
                 ),
-                const SizedBox(height: 12),
-                MintProgress(value: total == 0 ? 0 : done / total),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          ProgressRing(value: total == 0 ? 0 : done / total),
-        ],
+              ),
+            ],
+          );
+          return constraints.maxWidth >= 240 &&
+                  MediaQuery.textScalerOf(context).scale(14) <= 21
+              ? Row(
+                  children: [
+                    ring,
+                    const SizedBox(width: 20),
+                    Expanded(child: label),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [ring, const SizedBox(height: 16), label],
+                );
+        },
       ),
     ),
   );
@@ -1415,9 +1587,11 @@ class TasksList extends StatefulWidget {
     this.suggestionsActive = true,
     this.taskStream,
     this.recommendationService,
+    this.asSliver = false,
   });
   final String uid, dateKey;
   final bool compact;
+  final bool asSliver;
   final Widget? header;
   final bool suggestionsActive;
   final Stream<QuerySnapshot<Map<String, dynamic>>>? taskStream;
@@ -1460,7 +1634,9 @@ class _TasksListState extends State<TasksList> {
     key: ValueKey('${widget.uid}/${widget.dateKey}'),
     stream: _stream,
     builder: (context, s) {
-      Widget state(Widget child) => widget.compact
+      Widget state(Widget child) => widget.asSliver
+          ? SliverToBoxAdapter(child: child)
+          : widget.compact
           ? child
           : ListView(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
@@ -1472,17 +1648,37 @@ class _TasksListState extends State<TasksList> {
       if (!s.hasData) return state(const LoadingPanel());
       final docs = s.data!.docs;
       if (widget.compact && docs.isEmpty) {
-        return EmptyPanel(
-          icon: Icons.event_available_outlined,
-          title: 'A clear day',
-          detail: "Add tasks when you\u2019re ready.",
-          action: 'Add a task',
-          onTap: () => showTaskForm(context, dateKey: widget.dateKey),
+        return state(
+          EmptyPanel(
+            icon: Icons.event_available_outlined,
+            title: 'A clear day',
+            detail: "Add tasks when you\u2019re ready.",
+            action: 'Add a task',
+            onTap: () => showTaskForm(context, dateKey: widget.dateKey),
+          ),
         );
       }
       if (widget.compact) {
+        if (widget.asSliver) {
+          return SliverList.builder(
+            itemCount: docs.length,
+            itemBuilder: (context, index) => TaskTile(
+              key: ValueKey('dashboard-task-${docs[index].id}'),
+              uid: widget.uid,
+              doc: docs[index],
+            ),
+          );
+        }
         return Column(
-          children: docs.map((d) => TaskTile(uid: widget.uid, doc: d)).toList(),
+          children: docs
+              .map(
+                (d) => TaskTile(
+                  key: ValueKey('dashboard-task-${d.id}'),
+                  uid: widget.uid,
+                  doc: d,
+                ),
+              )
+              .toList(),
         );
       }
       final done = docs.where((d) => d.data()['completed'] == true).length;
@@ -1566,16 +1762,19 @@ class TaskTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: AnimatedContainer(
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : SaveTrackDesign.motion,
+        duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
+        curve: SaveTrackDesign.motionCurve,
         decoration: BoxDecoration(
           color: done ? SaveTrackDesign.completed : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: SaveTrackDesign.border),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: done
+                ? SaveTrackDesign.elevatedBorder
+                : SaveTrackDesign.border,
+          ),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1605,13 +1804,19 @@ class TaskTile extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '${d['title']}',
-                        style: TextStyle(
+                      AnimatedDefaultTextStyle(
+                        duration: SaveTrackDesign.duration(
+                          context,
+                          SaveTrackDesign.motion,
+                        ),
+                        curve: SaveTrackDesign.motionCurve,
+                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                           decoration: done ? TextDecoration.lineThrough : null,
                           color: done ? muted : ink,
                         ),
+                        child: Text('${d['title']}'),
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
@@ -1689,84 +1894,131 @@ class ReportsScreen extends StatelessWidget {
       Duration(days: DateTime.now().weekday - 1),
     );
     final weekStart = _dateKey(start);
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        const ScreenIntro(
-          eyebrow: 'Your progress',
-          title: 'See how far you\u2019ve come.',
-          detail: 'Your savings and planning, at a glance.',
-        ),
-        StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: _goals(uid).snapshots(),
-          builder: (context, s) {
-            if (s.hasError) {
-              return ErrorPanel(message: 'Could not load savings. ${s.error}');
-            }
-            if (!s.hasData) return const LoadingPanel();
-            final ds = s.data!.docs;
-            final currency = CurrencyScope.maybeOf(context);
-            final balances = ds
-                .map(
-                  (d) => (
-                    _number(d.data()['savedAmount']),
-                    goalCurrency(d.data()),
-                  ),
-                )
-                .toList();
-            final targets = ds
-                .map(
-                  (d) => (
-                    _number(d.data()['targetAmount']),
-                    goalCurrency(d.data()),
-                  ),
-                )
-                .toList();
-            final summary = currencySummary(currency, balances, targets);
-            return ReportMetric(
-              title: 'Savings balance',
-              featured: true,
-              progress: summary.$3
-                  ? (summary.$2 == 0
-                        ? 0
-                        : (summary.$1 / summary.$2).clamp(0, 1))
-                  : null,
-              value: currency?.totalDisplay(balances) ?? _money(summary.$1),
-              caption:
-                  'Across ${ds.length} personal goals ? ${currency?.totalDisplay(targets) ?? _money(summary.$2)} total target. Current-rate estimates; stored amounts remain authoritative.',
-              icon: Icons.savings_outlined,
-            );
-          },
-        ),
-        const SizedBox(height: 24),
-        const SharedGoalsPanel(report: true),
-        const SizedBox(height: 24),
-        const FieldCaption('Planning rhythm'),
-        AdaptiveCards(
-          children: [
-            ReportTaskMetric(
-              uid: uid,
-              dateKey: today,
-              title: "Today\u2019s tasks",
-            ),
-            ReportTaskMetric(
-              uid: uid,
-              dateKey: weekStart,
-              title: "This week\u2019s tasks",
-              week: true,
-            ),
-          ],
-        ),
-        const SizedBox(height: 32),
-        const Text(
-          'Savings progress',
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
-        ),
-        const SizedBox(height: 10),
-        GoalsPreview(uid: uid),
-      ],
+    return ReportsLayout(
+      savings: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: _goals(uid).snapshots(),
+        builder: (context, s) {
+          if (s.hasError) {
+            return ErrorPanel(message: 'Could not load savings. ${s.error}');
+          }
+          if (!s.hasData) return const LoadingPanel(featured: true);
+          final ds = s.data!.docs;
+          final currency = CurrencyScope.maybeOf(context);
+          final balances = ds
+              .map(
+                (d) =>
+                    (_number(d.data()['savedAmount']), goalCurrency(d.data())),
+              )
+              .toList();
+          final targets = ds
+              .map(
+                (d) =>
+                    (_number(d.data()['targetAmount']), goalCurrency(d.data())),
+              )
+              .toList();
+          final summary = currencySummary(currency, balances, targets);
+          return ReportMetric(
+            title: 'Savings balance',
+            featured: true,
+            progress: summary.$3
+                ? (summary.$2 == 0 ? 0 : (summary.$1 / summary.$2).clamp(0, 1))
+                : null,
+            value: currency?.totalDisplay(balances) ?? _money(summary.$1),
+            caption:
+                'Across ${ds.length} personal goals \u00b7 ${currency?.totalDisplay(targets) ?? _money(summary.$2)} total target. Current-rate estimates; stored amounts remain authoritative.',
+            icon: Icons.savings_outlined,
+          );
+        },
+      ),
+      shared: const SharedGoalsPanel(report: true),
+      daily: ReportTaskMetric(
+        uid: uid,
+        dateKey: today,
+        title: "Today\u2019s tasks",
+      ),
+      weekly: ReportTaskMetric(
+        uid: uid,
+        dateKey: weekStart,
+        title: "This week\u2019s tasks",
+        week: true,
+      ),
+      goals: GoalsPreview(uid: uid),
     );
   }
+}
+
+/// Composition only: streams, report windows and calculations stay in the screen.
+class ReportsLayout extends StatelessWidget {
+  const ReportsLayout({
+    super.key,
+    required this.savings,
+    required this.shared,
+    required this.daily,
+    required this.weekly,
+    required this.goals,
+  });
+  final Widget savings, shared, daily, weekly, goals;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final expanded =
+          constraints.maxWidth >= 840 &&
+          MediaQuery.textScalerOf(context).scale(14) <= 21;
+      final finances = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [savings, const SizedBox(height: 24), shared],
+      );
+      final planning = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Planning rhythm',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+          if (expanded) ...[
+            daily,
+            const SizedBox(height: 16),
+            weekly,
+          ] else
+            AdaptiveCards(breakpoint: 600, children: [daily, weekly]),
+        ],
+      );
+      return ListView(
+        key: const PageStorageKey('reports-scroll'),
+        padding: SaveTrackDesign.pagePadding(constraints.maxWidth),
+        children: [
+          const ScreenIntro(
+            eyebrow: 'Reports & analytics',
+            title: 'Progress, in perspective.',
+            detail: 'A clear view of your savings and planning.',
+          ),
+          if (expanded)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: finances),
+                const SizedBox(width: 24),
+                Expanded(child: planning),
+              ],
+            )
+          else ...[
+            finances,
+            const SizedBox(height: 32),
+            planning,
+          ],
+          const SizedBox(height: 32),
+          Text(
+            'Savings progress',
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+          const SizedBox(height: 16),
+          goals,
+        ],
+      );
+    },
+  );
 }
 
 class ReportTaskMetric extends StatelessWidget {
@@ -1799,7 +2051,7 @@ class ReportTaskMetric extends StatelessWidget {
               message: 'Could not load task report. ${s.error}',
             );
           }
-          if (!s.hasData) return const LoadingPanel();
+          if (!s.hasData) return const LoadingPanel(minHeight: 236);
           final all = s.data!.docs;
           final done = all.where((d) => d.data()['completed'] == true).length;
           return ReportMetric(
@@ -2008,39 +2260,25 @@ class SummaryTile extends StatelessWidget {
   final Stream<QuerySnapshot<Map<String, dynamic>>> stream;
   final bool count;
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: stream,
-        builder: (context, s) {
-          if (s.hasError) {
-            return ErrorPanel(message: 'Could not load $label. ${s.error}');
-          }
-          if (!s.hasData) return const LoadingPanel();
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              MintIcon(icon, size: 36),
-              const SizedBox(height: 12),
-              Text(
-                s.hasData
-                    ? (count
-                          ? '${s.data!.docs.length}'
-                          : '${s.data!.docs.where((d) => d.data()['completed'] == true).length}/${s.data!.docs.length}')
-                    : '',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: ink,
-                ),
-              ),
-              Text(label, style: const TextStyle(color: muted, fontSize: 13)),
-            ],
-          );
-        },
-      ),
-    ),
+  Widget build(
+    BuildContext context,
+  ) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: stream,
+    builder: (context, s) {
+      if (s.hasError) {
+        return ErrorPanel(message: 'Could not load $label. ${s.error}');
+      }
+      if (!s.hasData) return const LoadingPanel();
+      return AuroraMetricCard(
+        icon: icon,
+        value: s.hasData
+            ? (count
+                  ? '${s.data!.docs.length}'
+                  : '${s.data!.docs.where((d) => d.data()['completed'] == true).length}/${s.data!.docs.length}')
+            : '',
+        label: label,
+      );
+    },
   );
 }
 
@@ -2060,75 +2298,121 @@ class ReportMetric extends StatelessWidget {
   final bool featured;
   @override
   Widget build(BuildContext context) {
-    final amountStyle = SaveTrackDesign.amount.copyWith(
-      fontSize: featured ? 34 : 22,
-      color: featured ? Colors.white : ink,
-    );
-    final amount = featured
-        ? AmountText(value, onDark: true, style: amountStyle)
-        : Text(value, style: amountStyle);
-    final content = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            featured ? Icon(icon, size: 22) : MintIcon(icon),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  color: featured ? SaveTrackDesign.onHeroMuted : muted,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+    if (!featured) {
+      return AuroraChartSurface(
+        title: title,
+        icon: icon,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final numbers = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  value,
+                  style: SaveTrackDesign.amount.copyWith(
+                    fontSize: 22,
+                    color: ink,
+                    letterSpacing: -.5,
+                  ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  caption,
+                  style: const TextStyle(color: muted, fontSize: 13),
+                ),
+                if (progress != null) ...[
+                  const SizedBox(height: 16),
+                  const DetailLine(
+                    icon: Icons.check_circle_outline,
+                    label: 'Task completion',
+                  ),
+                ],
+              ],
+            );
+            if (progress == null) return numbers;
+            final ring = ProgressRing(value: progress!, size: 88);
+            return constraints.maxWidth >= 300 &&
+                    MediaQuery.textScalerOf(context).scale(14) <= 21
+                ? Row(
+                    children: [
+                      ring,
+                      const SizedBox(width: 24),
+                      Expanded(child: numbers),
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [ring, const SizedBox(height: 20), numbers],
+                  );
+          },
+        ),
+      );
+    }
+    return MintHero(
+      deep: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: SaveTrackDesign.onHeroMuted,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Icon(icon, size: 24),
+            ],
+          ),
+          const SizedBox(height: 16),
+          AmountText(
+            value,
+            onDark: true,
+            compactCurrency: true,
+            style: SaveTrackDesign.amount.copyWith(
+              fontSize: 40,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            caption,
+            style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
+          ),
+          if (progress != null) ...[
+            const SizedBox(height: 18),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: SaveTrackDesign.heroSurface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: mint.withValues(alpha: .16)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${(progress! * 100).round()}% of total target',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  MintProgress(value: progress!, onDark: true),
+                ],
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-        amount,
-        const SizedBox(height: 6),
-        Text(
-          caption,
-          style: TextStyle(
-            color: featured ? SaveTrackDesign.onHeroMuted : muted,
-            fontSize: 13,
-          ),
-        ),
-        if (progress != null) ...[
-          const SizedBox(height: 18),
-          if (featured) ...[
-            MintProgress(value: progress!, onDark: true),
-            const SizedBox(height: 12),
-            Text(
-              '${(progress! * 100).round()}% of total target',
-              style: const TextStyle(
-                color: SaveTrackDesign.onHeroMuted,
-                fontSize: 13,
-              ),
-            ),
-          ] else
-            Row(
-              children: [
-                ProgressRing(value: progress!),
-                const SizedBox(width: 16),
-                const Expanded(
-                  child: Text(
-                    'Task completion',
-                    style: TextStyle(color: muted, fontSize: 13),
-                  ),
-                ),
-              ],
-            ),
         ],
-      ],
+      ),
     );
-    return featured
-        ? MintHero(deep: true, child: content)
-        : Card(
-            child: Padding(padding: const EdgeInsets.all(20), child: content),
-          );
   }
 }
 
@@ -2143,7 +2427,7 @@ class SectionHeader extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 10),
+    padding: const EdgeInsets.only(bottom: 12),
     child: Row(
       children: [
         Expanded(
@@ -2151,7 +2435,7 @@ class SectionHeader extends StatelessWidget {
             title,
             style: const TextStyle(
               fontWeight: FontWeight.w700,
-              fontSize: 17,
+              fontSize: 21,
               color: ink,
             ),
           ),
@@ -2193,19 +2477,13 @@ class BrandDot extends StatelessWidget {
 }
 
 class LoadingPanel extends StatelessWidget {
-  const LoadingPanel({super.key});
+  const LoadingPanel({super.key, this.featured = false, this.minHeight = 0});
+  final bool featured;
+  final double minHeight;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.all(28),
-    child: Center(
-      child: Semantics(
-        label: 'Loading',
-        child: SizedBox.square(
-          dimension: 26,
-          child: CircularProgressIndicator(strokeWidth: 2.5),
-        ),
-      ),
-    ),
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: AuroraLoadingSurface(featured: featured, minHeight: minHeight),
   );
 }
 

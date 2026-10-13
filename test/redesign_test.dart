@@ -136,6 +136,7 @@ void main() {
     for (final background in [
       ...SaveTrackDesign.signature.colors,
       ...SaveTrackDesign.premium.colors,
+      Color.alphaBlend(SaveTrackDesign.heroHighlight, SaveTrackDesign.heroEnd),
     ]) {
       expect(contrast(Colors.white, background), greaterThanOrEqualTo(4.5));
       expect(
@@ -626,6 +627,8 @@ void main() {
       scale: 2,
     );
     for (final label in ['Today', 'Goals', 'Planner', 'Reports', 'Profile']) {
+      await tester.ensureVisible(find.text(label));
+      await tester.pumpAndSettle();
       await tester.tap(find.text(label));
       await tester.pumpAndSettle();
     }

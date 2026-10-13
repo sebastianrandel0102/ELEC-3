@@ -308,7 +308,7 @@ class SmartSuggestionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MintHero(
     key: ValueKey('smart-primary-${recommendation.taskId}'),
-    padding: const EdgeInsets.all(24),
+    padding: const EdgeInsets.all(20),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -330,12 +330,12 @@ class SmartSuggestionCard extends StatelessWidget {
           'Based on your priorities and schedule.',
           style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 12),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Text(
           recommendation.task.title,
           style: const TextStyle(
             color: Colors.white,
-            fontSize: 24,
+            fontSize: 21,
             fontWeight: FontWeight.w700,
             height: 1.2,
             letterSpacing: -.4,
@@ -382,7 +382,7 @@ class SmartSuggestionCard extends StatelessWidget {
             color: mint,
           ),
         ],
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         Wrap(
           spacing: 10,
           runSpacing: 10,
@@ -425,7 +425,7 @@ class _HeroChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: const Color(0x26FFFFFF),
+      color: SaveTrackDesign.heroSurface,
       borderRadius: BorderRadius.circular(10),
     ),
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
