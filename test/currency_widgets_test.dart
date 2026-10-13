@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import 'ui_preview_fonts.dart';
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -34,7 +37,7 @@ Future<void> mountCurrency(
         theme: const bool.fromEnvironment('SAVE_UI_PREVIEWS')
             ? SaveTrackDesign.theme.copyWith(
                 textTheme: SaveTrackDesign.theme.textTheme.apply(
-                  fontFamily: 'Roboto',
+                  fontFamily: 'Manrope',
                 ),
               )
             : SaveTrackDesign.theme,
@@ -69,6 +72,7 @@ Future<void> reveal(
 
 void main() {
   setUpAll(() async {
+    await loadManropeForPreviews();
     if (!const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;
     final config = jsonDecode(
       await File('.dart_tool/package_config.json').readAsString(),
@@ -375,6 +379,9 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(find.text('New Savings Balance: PHP ₱850.00'), findsOneWidget);
+      FocusManager.instance.primaryFocus?.unfocus();
+      await tester.pumpAndSettle();
+      await ui.capture(tester, 'decrease-savings');
       await tester.ensureVisible(find.text('Confirm Decrease'));
       await tester.tap(find.text('Confirm Decrease'));
       await tester.pumpAndSettle();
@@ -437,6 +444,9 @@ void main() {
     await tester.ensureVisible(find.text('New Savings Balance: PHP ₱1,500.00'));
     expect(find.text('PHP ₱500.00'), findsOneWidget);
     expect(tester.takeException(), isNull);
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await ui.capture(tester, 'cross-currency-deposit');
     await tester.ensureVisible(find.text('Cancel'));
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();

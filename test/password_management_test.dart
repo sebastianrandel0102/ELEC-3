@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import 'ui_preview_fonts.dart';
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -161,6 +164,7 @@ void main() {
   int googleVerifications = 0;
 
   setUpAll(() async {
+    await loadManropeForPreviews();
     if (!const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;
     final config = jsonDecode(
       await File('.dart_tool/package_config.json').readAsString(),
@@ -457,7 +461,7 @@ void main() {
         theme: const bool.fromEnvironment('SAVE_UI_PREVIEWS')
             ? SaveTrackDesign.theme.copyWith(
                 textTheme: SaveTrackDesign.theme.textTheme.apply(
-                  fontFamily: 'Roboto',
+                  fontFamily: 'Manrope',
                 ),
               )
             : SaveTrackDesign.theme,

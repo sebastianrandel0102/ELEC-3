@@ -135,6 +135,10 @@ class _DecreaseSavingsDialogState extends State<DecreaseSavingsDialog> {
                 TextFormField(
                   key: const ValueKey('decrease-amount'),
                   controller: _amount,
+                  style: SaveTrackDesign.amount.copyWith(
+                    fontSize: 28,
+                    color: teal,
+                  ),
                   enabled: !locked && available,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,

@@ -1,4 +1,7 @@
 import 'dart:async';
+
+import 'ui_preview_fonts.dart';
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -173,7 +176,7 @@ Future<void> pumpEditor(
       theme: const bool.fromEnvironment('SAVE_UI_PREVIEWS')
           ? SaveTrackDesign.theme.copyWith(
               textTheme: SaveTrackDesign.theme.textTheme.apply(
-                fontFamily: 'Roboto',
+                fontFamily: 'Manrope',
               ),
             )
           : SaveTrackDesign.theme,
@@ -251,6 +254,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Uint8List avatar;
   setUpAll(() async {
+    await loadManropeForPreviews();
     if (const bool.fromEnvironment('SAVE_UI_PREVIEWS')) {
       final config = jsonDecode(
         await File('.dart_tool/package_config.json').readAsString(),
@@ -872,6 +876,11 @@ void main() {
           find.byKey(const ValueKey('change-profile-picture')),
           180,
         );
+        await Scrollable.ensureVisible(
+          tester.element(find.byKey(const ValueKey('change-profile-picture'))),
+          alignment: .5,
+        );
+        await tester.pumpAndSettle();
         await tester.tap(find.byKey(const ValueKey('change-profile-picture')));
         await tester.pumpAndSettle();
         expect(find.text('Choose from Gallery'), findsOneWidget);

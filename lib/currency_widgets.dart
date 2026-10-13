@@ -396,23 +396,32 @@ class _CurrencyPickerState extends State<CurrencyPicker> {
                             c.code == 'PHP' ||
                             service?.supports(c.code) == true ||
                             (widget.allowSame && c.code == widget.selected);
-                    return ListTile(
-                      key: ValueKey('pick-${c.code}'),
-                      title: Text('${c.code} · ${c.name}'),
-                      subtitle: Text(
-                        enabled
-                            ? c.regions.join(', ')
-                            : 'No applicable rate available',
+                    return Material(
+                      color: Colors.transparent,
+                      child: ListTile(
+                        key: ValueKey('pick-${c.code}'),
+                        selected: c.code == widget.selected,
+                        selectedTileColor: SaveTrackDesign.mist,
+                        title: Text('${c.code} · ${c.name}'),
+                        subtitle: Text(
+                          enabled
+                              ? c.regions.join(', ')
+                              : 'No applicable rate available',
+                        ),
+                        leading: CircleAvatar(
+                          backgroundColor: SaveTrackDesign.lightMint,
+                          foregroundColor: teal,
+                          child: Text(
+                            c.symbol,
+                            style: const TextStyle(fontSize: 13),
+                          ),
+                        ),
+                        trailing: c.code == widget.selected
+                            ? const Icon(Icons.check_circle, color: teal)
+                            : null,
+                        enabled: enabled,
+                        onTap: () => Navigator.pop(context, c.code),
                       ),
-                      leading: SizedBox(
-                        width: 42,
-                        child: Text(c.symbol, textAlign: TextAlign.center),
-                      ),
-                      trailing: c.code == widget.selected
-                          ? const Icon(Icons.check_circle, color: teal)
-                          : null,
-                      enabled: enabled,
-                      onTap: () => Navigator.pop(context, c.code),
                     );
                   },
                 ),

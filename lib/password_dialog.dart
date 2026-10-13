@@ -159,11 +159,10 @@ class _PasswordDialogState extends State<PasswordDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Container(
+                MintHero(
+                  deep: true,
+                  edgeToEdge: true,
                   padding: const EdgeInsets.all(24),
-                  decoration: const BoxDecoration(
-                    gradient: SaveTrackDesign.premium,
-                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

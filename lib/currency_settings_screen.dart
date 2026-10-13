@@ -201,44 +201,56 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                           available =
                               currency.code == 'PHP' ||
                               service.supports(currency.code);
-                      return ListTile(
-                        key: ValueKey('currency-${currency.code}'),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                        leading: CircleAvatar(
-                          backgroundColor: SaveTrackDesign.lightMint,
-                          child: Text(
-                            currency.symbol,
-                            style: const TextStyle(fontSize: 13),
+                      return Material(
+                        color: Colors.transparent,
+                        child: ListTile(
+                          key: ValueKey('currency-${currency.code}'),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
+                          selected: selected == currency.code,
+                          selectedTileColor: SaveTrackDesign.lightMint,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          leading: CircleAvatar(
+                            backgroundColor: Colors.white,
+                            foregroundColor: teal,
+                            child: Text(
+                              currency.symbol,
+                              style: const TextStyle(fontSize: 13),
+                            ),
+                          ),
+                          title: Text('${currency.code} · ${currency.name}'),
+                          subtitle: Text(
+                            available
+                                ? (currency.regions.length <= 2
+                                      ? currency.regions.join(', ')
+                                      : '${currency.regions.length} countries and regions')
+                                : service.availability(currency.code) ==
+                                      CurrencyAvailability.unsupported
+                                ? 'Not supported by the provider'
+                                : 'Quote temporarily unavailable',
+                          ),
+                          trailing: AnimatedSwitcher(
+                            duration: MediaQuery.disableAnimationsOf(context)
+                                ? Duration.zero
+                                : SaveTrackDesign.motion,
+                            child: selected == currency.code
+                                ? Icon(
+                                    Icons.check_circle,
+                                    key: ValueKey(currency.code),
+                                    color: teal,
+                                  )
+                                : const Icon(
+                                    Icons.circle_outlined,
+                                    size: 22,
+                                    color: muted,
+                                  ),
+                          ),
+                          onTap: () => setState(() => selected = currency.code),
                         ),
-                        title: Text('${currency.code} · ${currency.name}'),
-                        subtitle: Text(
-                          available
-                              ? (currency.regions.length <= 2
-                                    ? currency.regions.join(', ')
-                                    : '${currency.regions.length} countries and regions')
-                              : service.availability(currency.code) ==
-                                    CurrencyAvailability.unsupported
-                              ? 'Not supported by the provider'
-                              : 'Quote temporarily unavailable',
-                        ),
-                        trailing: AnimatedSwitcher(
-                          duration: MediaQuery.disableAnimationsOf(context)
-                              ? Duration.zero
-                              : SaveTrackDesign.motion,
-                          child: selected == currency.code
-                              ? Icon(
-                                  Icons.check_circle,
-                                  key: ValueKey(currency.code),
-                                  color: teal,
-                                )
-                              : const Icon(
-                                  Icons.circle_outlined,
-                                  size: 18,
-                                  color: muted,
-                                ),
-                        ),
-                        onTap: () => setState(() => selected = currency.code),
                       );
                     },
                   ),

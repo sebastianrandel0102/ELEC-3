@@ -138,10 +138,7 @@ class SharedNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 12),
-    child: Text(
-      message,
-      style: TextStyle(color: error ? SaveTrackDesign.error : muted),
-    ),
+    child: AuroraNotice(message, error: error),
   );
 }
 
@@ -362,7 +359,7 @@ class SharedGoalCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(sharedIcons[goal.iconKey], color: teal),
+                  MintIcon(sharedIcons[goal.iconKey] ?? Icons.groups_outlined),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -389,22 +386,24 @@ class SharedGoalCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Text(
+              AmountText(
                 sharedDisplayMoney(context, goal.balance),
                 style: SaveTrackDesign.amount.copyWith(
-                  fontSize: 27,
+                  fontSize: 30,
                   color: teal,
                 ),
               ),
               const CurrencyContextLabel(source: 'PHP'),
               Text(
                 'Combined savings · ${sharedDisplayMoney(context, goal.target)} target',
+                style: const TextStyle(color: muted, fontSize: 13),
               ),
               const SizedBox(height: 12),
               MintProgress(value: goal.progress),
               const SizedBox(height: 12),
               Text(
                 '${(goal.progress * 100).round()}% · Due ${sharedDateText(goal.deadline)}',
+                style: const TextStyle(color: muted, fontSize: 13),
               ),
               if ((goal.data['memberNames'] as Map?)?.isNotEmpty ?? false)
                 Padding(
@@ -550,6 +549,14 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            FormHeading(
+              icon: Icons.groups_outlined,
+              title: widget.goal == null
+                  ? 'Build something together.'
+                  : 'Refine your shared goal.',
+              detail: 'A clear milestone for the people who matter.',
+            ),
+            const SizedBox(height: 20),
             if (widget.personal != null)
               SharedNotice(
                 'This creates a new shared goal with copied details and a zero starting balance. Your personal balance of ${originalMoney(widget.personal!['savedAmount'] as num? ?? 0, widget.personal!['originalCurrencyCode'] as String? ?? goalCurrency(widget.personal!))} and transaction history stay private and unchanged. No existing funds or transactions are copied.',
@@ -562,17 +569,25 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const FieldCaption('Your milestone'),
                   TextFormField(
                     controller: name,
                     enabled: !busy && pending == null,
                     maxLength: 100,
-                    decoration: const InputDecoration(labelText: 'Goal name'),
+                    decoration: const InputDecoration(
+                      labelText: 'Goal name',
+                      prefixIcon: Icon(Icons.flag_outlined),
+                    ),
                     validator: (v) => v == null || v.trim().isEmpty
                         ? 'Enter a goal name.'
                         : null,
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
+                    style: SaveTrackDesign.amount.copyWith(
+                      fontSize: 26,
+                      color: teal,
+                    ),
                     controller: target,
                     enabled: !busy && pending == null,
                     keyboardType: const TextInputType.numberWithOptions(
@@ -611,6 +626,7 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
                       labelText: 'Description (optional)',
                     ),
                   ),
+                  const FieldCaption('Timing & identity'),
                   if (widget.goal == null)
                     OutlinedButton.icon(
                       onPressed: () => pick(true),
@@ -723,58 +739,7 @@ class _SharedGoalDetailsScreenState extends State<SharedGoalDetailsScreen> {
               const SharedNotice(
                 'Showing cached information. Reconnect to verify access and record changes.',
               ),
-            MintHero(
-              deep: true,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 8,
-                    children: [
-                      Icon(sharedIcons[goal.iconKey], color: mint),
-                      const Text('Shared goal', style: TextStyle(color: mint)),
-                      Text(
-                        goal.statusAt(DateTime.now()),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    goal.name,
-                    style: const TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    sharedDisplayMoney(context, goal.balance),
-                    style: SaveTrackDesign.amount.copyWith(
-                      color: Colors.white,
-                      fontSize: 34,
-                    ),
-                  ),
-                  const Text(
-                    'Combined recorded savings',
-                    style: TextStyle(color: SaveTrackDesign.onHeroMuted),
-                  ),
-                  const SizedBox(height: 20),
-                  MintProgress(value: goal.progress, onDark: true),
-                  const SizedBox(height: 16),
-                  Text(
-                    '${(goal.progress * 100).round()}% · ${sharedDisplayMoney(context, goal.target)} target',
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  Text(
-                    '${sharedDisplayMoney(context, goal.remaining)} remaining · Due ${sharedDateText(goal.deadline)}',
-                    style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
-                  ),
-                ],
-              ),
-            ),
+            SharedGoalHero(goal: goal),
             const SizedBox(height: 20),
             if (goal.description.isNotEmpty) Text(goal.description),
             const SharedNotice(
@@ -949,6 +914,66 @@ class _SharedGoalDetailsScreenState extends State<SharedGoalDetailsScreen> {
   );
 }
 
+/// Shared goal presentation, fed by the original guarded live snapshot.
+class SharedGoalHero extends StatelessWidget {
+  const SharedGoalHero({super.key, required this.goal});
+  final SharedSavingsGoal goal;
+  @override
+  Widget build(BuildContext context) => MintHero(
+    deep: true,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 8,
+          children: [
+            Icon(sharedIcons[goal.iconKey], color: mint),
+            const Text('Shared goal', style: TextStyle(color: mint)),
+            Text(
+              goal.statusAt(DateTime.now()),
+              style: const TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Text(
+          goal.name,
+          style: const TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 16),
+        AmountText(
+          sharedDisplayMoney(context, goal.balance),
+          onDark: true,
+          style: SaveTrackDesign.amount.copyWith(
+            color: Colors.white,
+            fontSize: 34,
+          ),
+        ),
+        const Text(
+          'Combined recorded savings',
+          style: TextStyle(color: SaveTrackDesign.onHeroMuted),
+        ),
+        const SizedBox(height: 20),
+        MintProgress(value: goal.progress, onDark: true),
+        const SizedBox(height: 16),
+        Text(
+          '${(goal.progress * 100).round()}% · ${sharedDisplayMoney(context, goal.target)} target',
+          style: const TextStyle(color: Colors.white),
+        ),
+        Text(
+          '${sharedDisplayMoney(context, goal.remaining)} remaining · Due ${sharedDateText(goal.deadline)}',
+          style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
+        ),
+      ],
+    ),
+  );
+}
+
 class OwnContribution extends StatefulWidget {
   const OwnContribution({super.key, required this.goalId});
   final String goalId;
@@ -1100,9 +1125,22 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(liveGoal.name, style: SaveTrackDesign.heading),
+                FormHeading(
+                  icon: widget.decrease
+                      ? Icons.south_east
+                      : Icons.savings_outlined,
+                  title: liveGoal.name,
+                  detail: widget.decrease
+                      ? 'Update your shared savings record.'
+                      : 'Every contribution moves you forward.',
+                ),
+                const SizedBox(height: 20),
                 Text(
                   'Current balance: ${sharedDisplayMoney(context, liveGoal.balance)}',
+                  style: SaveTrackDesign.amount.copyWith(
+                    fontSize: 26,
+                    color: teal,
+                  ),
                 ),
                 Text(
                   'Remaining: ${sharedDisplayMoney(context, liveGoal.remaining)}',
@@ -1130,7 +1168,12 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
                           'Input currency: $inputCurrency ? goal PHP',
                         ),
                       ),
+                      const SizedBox(height: 16),
                       TextFormField(
+                        style: SaveTrackDesign.amount.copyWith(
+                          fontSize: 28,
+                          color: teal,
+                        ),
                         controller: amount,
                         enabled: !busy && pending == null,
                         keyboardType: const TextInputType.numberWithOptions(
@@ -1256,7 +1299,11 @@ class _SharedActionDialogState extends State<SharedActionDialog> {
   @override
   Widget build(BuildContext context) => AlertDialog(
     scrollable: true,
-    title: Text(widget.title),
+    title: FormHeading(
+      icon: Icons.shield_outlined,
+      title: widget.title,
+      detail: 'Review this change before continuing.',
+    ),
     content: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -1351,6 +1398,11 @@ class _SharedMembersScreenState extends State<SharedMembersScreen> {
             return ListView(
               padding: const EdgeInsets.all(20),
               children: [
+                ScreenIntro(
+                  eyebrow: 'THE PEOPLE BEHIND THE PROGRESS',
+                  title: '${members.length} members. One goal.',
+                  detail: current.name,
+                ),
                 const SharedNotice(
                   'Showing active participants. Deposit shares use all recorded group deposits, including former members. Leaving or removal preserves history and the group balance.',
                 ),
@@ -1392,6 +1444,10 @@ class _SharedMembersScreenState extends State<SharedMembersScreen> {
                             const SizedBox(height: 12),
                             Text(
                               '${sharedDisplayMoney(context, m.deposits)} recorded deposits',
+                              style: SaveTrackDesign.amount.copyWith(
+                                fontSize: 22,
+                                color: teal,
+                              ),
                             ),
                             Text(
                               '${(totalDeposits == 0 ? 0 : m.deposits / totalDeposits * 100).toStringAsFixed(1)}% of all recorded deposits',
@@ -1479,7 +1535,11 @@ class _SharedInvitesScreenState extends State<SharedInvitesScreen> {
     child: ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        Text(widget.goal.name, style: SaveTrackDesign.heading),
+        ScreenIntro(
+          eyebrow: 'GROW YOUR CIRCLE',
+          title: widget.goal.name,
+          detail: 'Better together. Invite someone to your milestone.',
+        ),
         Text('${widget.goal.memberCount} participants'),
         const SharedNotice(
           'Create a single-use code, valid for seven days. Share it privately with a registered SaveTrack user. Anyone with this code can view the invitation and accept or decline it.',
@@ -1508,7 +1568,18 @@ class _SharedInvitesScreenState extends State<SharedInvitesScreen> {
                     style: TextStyle(fontWeight: FontWeight.w700),
                   ),
                   const SizedBox(height: 12),
-                  SelectableText(token!),
+                  TonalPanel(
+                    child: SelectableText(
+                      token!,
+                      style: const TextStyle(
+                        fontFamily: 'Manrope',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                        color: teal,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
                   const SharedNotice(
                     'Ask the recipient to sign in, open Savings → Shared → Enter invitation, then paste this code.',
                   ),
@@ -1554,7 +1625,11 @@ class _SharedInvitesScreenState extends State<SharedInvitesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Invitation · $status'),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: StatusPill('Invitation · $status'),
+                        ),
+                        const SizedBox(height: 8),
                         Text('Expires ${sharedDateText(i.expiresAt)}'),
                         if (status == 'pending')
                           TextButton(
@@ -1645,7 +1720,11 @@ class _SharedInvitationScreenState extends State<SharedInvitationScreen> {
     child: ListView(
       padding: const EdgeInsets.all(20),
       children: [
-        const Icon(Icons.groups_outlined, size: 56, color: teal),
+        const FormHeading(
+          icon: Icons.groups_outlined,
+          title: 'A goal worth sharing.',
+          detail: 'Join your circle and make progress together.',
+        ),
         const SizedBox(height: 20),
         if (invitation == null) ...[
           const SharedNotice(
@@ -1655,7 +1734,10 @@ class _SharedInvitationScreenState extends State<SharedInvitationScreen> {
             controller: code,
             autocorrect: false,
             enableSuggestions: false,
-            decoration: const InputDecoration(labelText: 'Invitation code'),
+            decoration: const InputDecoration(
+              labelText: 'Invitation code',
+              prefixIcon: Icon(Icons.key_outlined),
+            ),
           ),
           const SizedBox(height: 16),
           FilledButton(
@@ -1726,12 +1808,12 @@ class SharedActivityTile extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(
+            AmountText(
               '${record.withdrawal ? '−' : '+'}${sharedDisplayMoney(context, record.amount)}',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
                 color: record.withdrawal ? SaveTrackDesign.error : teal,
-                fontSize: 20,
+                fontSize: 24,
               ),
             ),
             const CurrencyContextLabel(source: 'PHP', historical: true),
@@ -1745,8 +1827,16 @@ class SharedActivityTile extends StatelessWidget {
                   record.data['conversion'] as Map,
                 ),
               ),
-            Text(sharedDateText(record.date)),
-            if (record.note.isNotEmpty) Text(record.note),
+            const SizedBox(height: 8),
+            DetailLine(
+              icon: Icons.calendar_today_outlined,
+              label: sharedDateText(record.date),
+            ),
+            if (record.note.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Text(record.note, style: const TextStyle(color: muted)),
+              ),
           ],
         ),
       ),
