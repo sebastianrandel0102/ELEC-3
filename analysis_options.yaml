@@ -18,6 +18,7 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    - test/profile_photo_emulator/node_modules/**
 
 linter:
   # The lint rules applied to this project can be customized in the

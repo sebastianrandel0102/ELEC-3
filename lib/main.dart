@@ -19,6 +19,8 @@ import 'profile_photo_picker.dart';
 import 'profile_photo_service.dart';
 import 'profile_photo_widgets.dart';
 import 'savings_decrease.dart';
+import 'reminder_coordinator.dart';
+import 'reminder_widgets.dart';
 import 'shared_savings_screens.dart';
 import 'shared_savings_repository.dart';
 import 'smart_suggestions.dart';
@@ -26,6 +28,8 @@ import 'smart_task_recommendation_service.dart';
 
 import 'design_system.dart';
 export 'design_system.dart';
+
+final _appNavigator = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,11 +53,15 @@ class SaveTrackApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
+    navigatorKey: _appNavigator,
     title: 'SaveTrack',
     debugShowCheckedModeBanner: false,
     theme: SaveTrackDesign.theme,
     builder: startupError == null
-        ? (context, child) => CurrencyHost(child: child!)
+        ? (context, child) => ReminderHost(
+            openTarget: _openReminderTarget,
+            child: CurrencyHost(child: child!),
+          )
         : null,
     home: startupError != null
         ? SetupScreen(error: startupError!)
@@ -1114,6 +1122,12 @@ class GoalCard extends StatelessWidget {
         target = _number(data['targetAmount']);
     final double pct = target == 0 ? 0 : (saved / target).clamp(0.0, 1.0);
     final enlarged = MediaQuery.textScalerOf(context).scale(14) > 21;
+    final reminderTarget = ReminderTarget.fromData(
+      ReminderTargetType.personalGoal,
+      doc.id,
+      data,
+      deadline: (data['deadline'] as Timestamp?)?.toDate(),
+    );
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -1146,6 +1160,9 @@ class GoalCard extends StatelessWidget {
                       showDecreaseSavingsForm(context, uid, doc);
                     }
                     if (v == 'edit') showGoalForm(context, doc: doc);
+                    if (v == 'reminder') {
+                      showReminderEditor(context, reminderTarget);
+                    }
                     if (v == 'shared') {
                       createSharedGoal(context, personal: data);
                     }
@@ -1179,6 +1196,16 @@ class GoalCard extends StatelessWidget {
                       value: 'delete',
                       child: Text('Delete goal'),
                     ),
+                    PopupMenuItem(
+                      value: 'reminder',
+                      child: Text(
+                        ReminderScope.maybeOf(context)?.configurations
+                                    .containsKey(reminderTarget.key) ==
+                                true
+                            ? 'Manage Reminder'
+                            : 'Set Reminder',
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -1195,6 +1222,7 @@ class GoalCard extends StatelessWidget {
                   ),
                 ),
               ),
+            ReminderButton(target: reminderTarget),
             if ((data['note'] as String? ?? '').isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
@@ -1309,8 +1337,9 @@ class GoalCard extends StatelessWidget {
 }
 
 class PlannerScreen extends StatefulWidget {
-  const PlannerScreen({super.key, this.active = true});
+  const PlannerScreen({super.key, this.active = true, this.initialDate});
   final bool active;
+  final DateTime? initialDate;
   @override
   State<PlannerScreen> createState() => _PlannerScreenState();
 }
@@ -1325,6 +1354,8 @@ class _PlannerScreenState extends State<PlannerScreen>
   @override
   void initState() {
     super.initState();
+    _day = widget.initialDate ?? _day;
+    _followToday = widget.initialDate == null;
     WidgetsBinding.instance.addObserver(this);
     _foreground =
         WidgetsBinding.instance.lifecycleState == null ||
@@ -1759,6 +1790,11 @@ class TaskTile extends StatelessWidget {
     final d = doc.data();
     final done = d['completed'] == true;
     final time = d['time']?.toString() ?? '';
+    final reminderTarget = ReminderTarget.fromData(
+      ReminderTargetType.task,
+      doc.id,
+      d,
+    );
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: AnimatedContainer(
@@ -1855,6 +1891,7 @@ class TaskTile extends StatelessWidget {
                           ],
                         ),
                       ),
+                      ReminderButton(target: reminderTarget),
                     ],
                   ),
                 ),
@@ -1863,6 +1900,9 @@ class TaskTile extends StatelessWidget {
                 tooltip: 'Task actions',
                 onSelected: (v) {
                   if (v == 'edit') showTaskForm(context, doc: doc);
+                  if (v == 'reminder') {
+                    showReminderEditor(context, reminderTarget);
+                  }
                   if (v == 'delete') {
                     confirmDelete(
                       context,
@@ -1871,9 +1911,19 @@ class TaskTile extends StatelessWidget {
                     );
                   }
                 },
-                itemBuilder: (_) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                itemBuilder: (_) => [
+                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  PopupMenuItem(
+                    value: 'reminder',
+                    child: Text(
+                      ReminderScope.maybeOf(context)?.configurations
+                                  .containsKey(reminderTarget.key) ==
+                              true
+                          ? 'Manage Reminder'
+                          : 'Set Reminder',
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -2209,6 +2259,20 @@ class ProfileContent extends StatelessWidget {
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute<void>(
                     builder: (_) => const CurrencySettingsScreen(),
+                  ),
+                ),
+              ),
+              const Divider(indent: 20, endIndent: 20, height: 1),
+              ListTile(
+                leading: const MintIcon(Icons.notifications_outlined),
+                title: const Text('Smart Reminders'),
+                subtitle: const Text(
+                  'Manage reminders and phone notification settings.',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const SmartRemindersScreen(),
                   ),
                 ),
               ),
@@ -3139,6 +3203,16 @@ Future<void> showTaskForm(
   QueryDocumentSnapshot<Map<String, dynamic>>? doc,
 }) async {
   final form = GlobalKey<FormState>();
+  final reminderCoordinator = ReminderScope.maybeOf(context);
+  final account = reminderCoordinator?.uid;
+  var taskReference =
+      doc?.reference ?? (account == null ? null : _tasks(account).doc());
+  ReminderConfiguration? reminderDraft = taskReference == null
+      ? null
+      : reminderCoordinator?.configurations['task_${taskReference.id}'];
+  bool reminderChanged = false;
+  bool taskSaved = doc != null;
+  bool savedThisSession = false;
   final title = TextEditingController(text: doc?.data()['title']?.toString());
   final time = TextEditingController(text: doc?.data()['time']?.toString());
   String priority = doc?.data()['priority']?.toString() ?? 'Normal';
@@ -3222,6 +3296,58 @@ Future<void> showTaskForm(
                   icon: const Icon(Icons.calendar_today),
                   label: Text(_shortDate(DateTime.parse(day))),
                 ),
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.notifications_outlined),
+                  label: Text(
+                    reminderDraft == null
+                        ? 'Set Task Reminder'
+                        : reminderSummary(ctx, reminderDraft!),
+                  ),
+                  onPressed: busy
+                      ? null
+                      : () async {
+                          if (account == null || taskReference == null) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Sign in to configure a task reminder.',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
+                          final target = ReminderTarget.fromData(
+                            ReminderTargetType.task,
+                            taskReference!.id,
+                            {
+                              'title': title.text.trim().isEmpty
+                                  ? 'Your task'
+                                  : title.text.trim(),
+                              'time': time.text.trim(),
+                              'dateKey': day,
+                              'completed': doc?.data()['completed'] == true,
+                            },
+                          );
+                          final draft = await configureReminderDraft(
+                            ctx,
+                            uid: account,
+                            target: target,
+                            initial: reminderDraft,
+                          );
+                          if (draft != null && ctx.mounted) {
+                            setState(() {
+                              reminderDraft = draft;
+                              reminderChanged = true;
+                            });
+                          }
+                        },
+                ),
+                if (reminderDraft != null)
+                  const Text(
+                    'Reminder time is separate from the task schedule. Save the task to apply reminder changes.',
+                    style: TextStyle(color: muted, fontSize: 12),
+                  ),
               ],
             ),
           ),
@@ -3238,6 +3364,17 @@ Future<void> showTaskForm(
                       if (!form.currentState!.validate()) return;
                       setState(() => busy = true);
                       try {
+                        final activeAccount = reminderCoordinator != null
+                            ? reminderCoordinator.uid
+                            : doc == null
+                            ? FirebaseAuth.instance.currentUser!.uid
+                            : null;
+                        if (account != null && activeAccount != account) {
+                          throw const ReminderFailure(
+                            'Your account changed. Open the task again.',
+                          );
+                        }
+                        taskReference ??= _tasks(activeAccount!).doc();
                         final data = {
                           'title': title.text.trim(),
                           'time': time.text.trim(),
@@ -3245,22 +3382,72 @@ Future<void> showTaskForm(
                           'dateKey': day,
                           'updatedAt': FieldValue.serverTimestamp(),
                         };
-                        if (doc == null) {
+                        final target = ReminderTarget.fromData(
+                          ReminderTargetType.task,
+                          doc?.id ?? taskReference!.id,
+                          {
+                            ...data,
+                            'completed': doc?.data()['completed'] == true,
+                          },
+                        );
+                        if (reminderChanged && reminderDraft?.enabled == true) {
+                          final zone = reminderCoordinator?.zone;
+                          if (zone == null ||
+                              const ReminderTimeCalculator().next(
+                                    reminderDraft!,
+                                    target,
+                                    zone,
+                                    DateTime.now(),
+                                  ) ==
+                                  null) {
+                            throw const ReminderFailure(
+                              'Choose a valid future reminder before saving.',
+                            );
+                          }
+                        }
+                        if (!taskSaved) {
                           data.addAll({
                             'completed': false,
                             'createdAt': FieldValue.serverTimestamp(),
                           });
-                          await _tasks(FirebaseAuth.instance.currentUser!.uid)
-                              .add(data);
+                          await taskReference!.set(data);
                         } else {
-                          await doc.reference.update(data);
+                          await taskReference!.update(data);
+                        }
+                        taskSaved = true;
+                        savedThisSession = true;
+                        if (reminderChanged && reminderDraft != null) {
+                          if (reminderCoordinator == null) {
+                            throw const ReminderFailure(
+                              'Task saved. Reminder service unavailable.',
+                            );
+                          }
+                          await reminderCoordinator.save(
+                            reminderDraft!,
+                            target,
+                          );
+                          if (ctx.mounted) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  reminderCoordinator
+                                      .status(reminderDraft!.key)
+                                      .message,
+                                ),
+                              ),
+                            );
+                          }
                         }
                         if (ctx.mounted) Navigator.pop(ctx);
                       } catch (e) {
                         setState(() => busy = false);
                         if (ctx.mounted) {
                           ScaffoldMessenger.of(ctx).showSnackBar(
-                            SnackBar(content: Text('Could not save task: $e')),
+                            SnackBar(
+                              content: Text(
+                                '${savedThisSession && reminderChanged ? 'Task saved; reminder change could not be confirmed' : 'Could not save task'}: $e',
+                              ),
+                            ),
                           );
                         }
                       }
@@ -3270,6 +3457,110 @@ Future<void> showTaskForm(
           ],
         ),
       ),
+    ),
+  );
+}
+
+Future<void> _openReminderTarget(
+  ReminderCoordinator coordinator,
+  ReminderPayload payload,
+) async {
+  final navigator = _appNavigator.currentState;
+  if (navigator == null) return;
+  void unavailable() {
+    final context = _appNavigator.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This reminder item is no longer available to your account.',
+          ),
+        ),
+      );
+    }
+  }
+
+  if (coordinator.uid != payload.uid ||
+      FirebaseAuth.instance.currentUser?.uid != payload.uid) {
+    unavailable();
+    return;
+  }
+  try {
+    final target = await coordinator.repository.target(
+      payload.uid,
+      payload.type,
+      payload.targetId,
+    );
+    if (target == null || !target.available || coordinator.uid != payload.uid) {
+      unavailable();
+      return;
+    }
+    if (payload.type == ReminderTargetType.sharedGoal) {
+      unawaited(
+        navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) => SharedGoalDetailsScreen(goalId: payload.targetId),
+          ),
+        ),
+      );
+    } else {
+      unawaited(
+        navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) =>
+                _ReminderItemScreen(payload: payload, target: target),
+          ),
+        ),
+      );
+    }
+  } catch (_) {
+    unavailable();
+  }
+}
+
+/// Reuses the existing goal card and planner, guarded across account changes.
+class _ReminderItemScreen extends StatelessWidget {
+  const _ReminderItemScreen({required this.payload, required this.target});
+  final ReminderPayload payload;
+  final ReminderTarget target;
+  @override
+  Widget build(BuildContext context) => StreamBuilder<User?>(
+    stream: FirebaseAuth.instance.authStateChanges(),
+    initialData: FirebaseAuth.instance.currentUser,
+    builder: (context, session) => Scaffold(
+      appBar: AppBar(
+        title: Text(
+          payload.type == ReminderTargetType.task ? 'Planner' : 'Goal details',
+        ),
+      ),
+      body: session.data?.uid != payload.uid
+          ? const Center(child: Text('Sign in to access this item.'))
+          : payload.type == ReminderTargetType.task
+          ? PlannerScreen(initialDate: target.taskDay)
+          : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _goals(payload.uid)
+                  .where(FieldPath.documentId, isEqualTo: payload.targetId)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(child: Text('This goal is unavailable.'));
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                    child: Text('This goal is no longer available.'),
+                  );
+                }
+                return ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    GoalCard(uid: payload.uid, doc: snapshot.data!.docs.first),
+                  ],
+                );
+              },
+            ),
     ),
   );
 }

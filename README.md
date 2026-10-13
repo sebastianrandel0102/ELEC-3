@@ -31,7 +31,9 @@ The supplied Firestore rules restrict private document access to the signed-in u
 
 Implemented: email/password registration and sign-in, Firebase email password recovery, authenticated password changes, profile creation at registration, a live dashboard, savings goal create/edit/delete, batched deposits and transaction history, daily and weekly savings pace calculations for goals with deadlines, daily task create/edit/delete/completion, date navigation, summaries, and sign-out.
 
-Not yet implemented: personal goal/task filters and sorting, transaction correction/deletion, a weekly planner view, daily/weekly/monthly trend charts, profile editing, and notification reminders/preferences. Shared transaction and Firestore security regression tests run locally in an isolated emulator. Live Firebase behavior still requires configuration and manual account testing.
+Not yet implemented: personal goal/task filters and sorting, transaction correction/deletion, a weekly planner view, daily/weekly/monthly trend charts, and profile editing. Shared transaction and Firestore security regression tests run locally in an isolated emulator. Live Firebase behavior still requires configuration and manual account testing.
+
+Smart Reminders adds native Android/iOS scheduling for personal goals, each shared-goal member's own preferences, and planner tasks. Use the goal/task bell controls and **Profile → Smart Reminders**. See [setup, permissions, time policies, validation, and device limitations](docs/smart-reminders.md). Deploy the added Firestore reminder rules before using synced preferences. Native phone delivery still needs the documented real-device acceptance checks.
 
 ## Checks
 
