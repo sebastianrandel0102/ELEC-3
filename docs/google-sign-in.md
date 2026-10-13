@@ -1,5 +1,17 @@
 # SaveTrack Google Sign-In
 
+## Release APK resource fix (October 13, 2026)
+
+The pre-fix release APK reproduced a separate cause of the same "Google sign-in is not configured yet" error: `google-services.json` and the generated XML contained the correct web client, but the final release APK did not contain `default_web_client_id`. The debug APK did contain it. The release shrinker report, `build/app/outputs/mapping/release/resources.txt`, explicitly marked that string as "not reachable".
+
+The Android Google Sign-In plugin retrieves this resource through `Resources.getIdentifier()` during initialization. Without it, the native plugin cannot supply the server client ID. `android/app/src/main/res/raw/keep.xml` now preserves `@string/default_web_client_id` alongside the existing reminder icon. This follows Android's [resource retention guidance](https://developer.android.com/studio/write/tool-attributes#toolskeep) and leaves resource shrinking enabled.
+
+Firebase's public provider endpoint confirmed Google is enabled and its web client matches the JSON on October 13. Both existing APKs' signing SHA-1 matched the Android OAuth entry in that JSON. Actual server-side certificate registration and a real account sign-in still require Firebase Console or a connected phone; neither was available in this session. Firestore rules do not control native OAuth initialization.
+
+Validation on October 13: `flutter test test/android_google_configuration_test.dart test/google_sign_in_test.dart test/password_management_test.dart` passed all **51** selected tests. `flutter build apk --release` succeeded. Inspection of the finished APK with `aapt2 dump resources` confirmed the correct `default_web_client_id` is present, and the shrinker report now marks it as reachable from the keep XML. `apksigner verify --print-certs` verified the APK signature and its SHA-1 match with the Android OAuth client in the JSON.
+
+After rebuilding, install `build/app/outputs/flutter-apk/app-release.apk` as an update to the phone's existing app. Hot reload does not update native APK resources. Before distributing any future release, check the finished APK with `aapt2 dump resources` and confirm the `string/default_web_client_id` entry contains the type-3 OAuth client ID from `google-services.json`. Checking only the generated XML or mocked authentication tests will not catch resource removal.
+
 ## Android APK configuration fix (October 12, 2026)
 
 The phone's "Google sign-in is not configured yet" error was caused by the empty `oauth_client` list in `android/app/google-services.json`. Firebase's public `accounts:createAuthUri` endpoint for this project's Android API key returned the enabled Google provider and its registered web client, `864730227148-5othh46crfepo1p2e1dtoq0l1aea8anf.apps.googleusercontent.com`. That verified client is now present as `client_type: 3`. The existing Google Services Gradle plugin generates `default_web_client_id` for the native Google SDK; no Dart override is necessary.
