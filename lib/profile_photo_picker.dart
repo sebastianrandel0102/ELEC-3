@@ -40,6 +40,9 @@ class GalleryProfilePhotoPicker implements ProfilePhotoPicker {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return null;
     final preferences = await SharedPreferences.getInstance();
     final owner = preferences.getString(_pendingUser);
+    if (owner == null) {
+      return null; // Leave goal-cover recovery to its workflow.
+    }
     try {
       final result = await picker.retrieveLostData();
       if (owner != uid || result.isEmpty) return null;

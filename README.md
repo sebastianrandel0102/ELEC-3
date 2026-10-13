@@ -2,6 +2,8 @@
 
 SaveTrack is a Flutter savings goals and daily planner app. It uses Firebase Authentication and Cloud Firestore for sign-in and cloud persistence.
 
+Optional personal/shared **Goal Cover Photos** include gallery selection, landscape cropping, compact private Firestore photos and Mint Aurora cards. New covers work on Spark without a Storage bucket or billing upgrade. See [implementation, setup and verification](docs/goal-cover-photos.md).
+
 ## Firebase setup
 
 Firebase credentials are intentionally not included in this repository. To connect your project:

@@ -15,6 +15,19 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:myproject/main.dart';
 
+import 'profile_photo_firestore_backend_test.dart'
+    show PhotoAuth, PhotoDatabase;
+
+Future<void> showTestGoalForm(
+  BuildContext context, {
+  QueryDocumentSnapshot<Map<String, dynamic>>? doc,
+}) => showGoalForm(
+  context,
+  doc: doc,
+  auth: PhotoAuth(),
+  firestore: PhotoDatabase(),
+);
+
 // These fixtures exercise presentation and callbacks without a live account.
 class TestReference extends Fake
     implements DocumentReference<Map<String, dynamic>> {
@@ -417,7 +430,7 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () {
-                if (type == 'goal') showGoalForm(context);
+                if (type == 'goal') showTestGoalForm(context);
                 if (type == 'deposit') showDepositForm(context, 'fixture', doc);
                 if (type == 'task') showTaskForm(context);
               },
@@ -470,7 +483,7 @@ void main() {
       Scaffold(
         body: Builder(
           builder: (context) => TextButton(
-            onPressed: () => showGoalForm(context, doc: goal),
+            onPressed: () => showTestGoalForm(context, doc: goal),
             child: const Text('Edit'),
           ),
         ),
@@ -1040,7 +1053,7 @@ void main() {
           body: Builder(
             builder: (context) => TextButton(
               onPressed: () {
-                if (type == 'goal') showGoalForm(context);
+                if (type == 'goal') showTestGoalForm(context);
                 if (type == 'deposit') {
                   showDepositForm(context, 'fixture', goal);
                 }

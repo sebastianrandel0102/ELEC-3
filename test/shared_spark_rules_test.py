@@ -5,6 +5,7 @@ backdate invitation windows and creation timestamps to simulate elapsed time.
 Run through run_shared_emulator.py (isolated demo project and loopback only).
 """
 import copy
+import base64
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 import secrets
@@ -21,6 +22,7 @@ def rid():
 
 
 def encode(value):
+    if isinstance(value, bytes): return {'bytesValue': base64.b64encode(value).decode('ascii')}
     if isinstance(value, bool): return {'booleanValue': value}
     if isinstance(value, int): return {'integerValue': str(value)}
     if isinstance(value, float): return {'doubleValue': value}
@@ -185,6 +187,50 @@ class SparkRulesTests(unittest.TestCase):
 
     def new_invite(self):
         code = rid(); self.ok(invitation_batch(self.gid, code)); return code
+
+    def test_goal_cover_preserves_contribution_withdrawal_invitation_and_membership_protocol(self):
+        cover = f'{self.path}/cover/AAAAAAAAAAAAAAAAAAAA.jpg'
+        before = read(self.path)
+        self.ok([write(self.path, {'coverStoragePath': cover, 'coverUpdatedAt': STAMP}, True)])
+        after = read(self.path)
+        self.assertEqual({k: v for k, v in after.items() if not k.startswith('cover')}, before)
+        code = self.new_invite()
+        self.ok(joining(self.gid, code), 'member')
+        self.ok(money(self.gid, amount=100, uid='member'), 'member')
+        self.ok(money(self.gid, amount=50, withdrawal=True))
+        self.assertEqual(read(self.path)['coverStoragePath'], cover)
+        self.assertEqual(read(self.path)['currentCents'], before['currentCents'] + 50)
+        self.ok(leaving(self.gid, owner=True))
+        self.assertEqual(read(self.path)['coverStoragePath'], cover)
+
+    def test_shared_contributor_cannot_change_cover_during_financial_update(self):
+        cover = f'{self.path}/cover/AAAAAAAAAAAAAAAAAAAA.jpg'
+        self.ok([write(self.path, {'coverStoragePath': cover, 'coverUpdatedAt': STAMP}, True)])
+        code = self.new_invite()
+        self.ok(joining(self.gid, code), 'member')
+        changes = money(self.gid, amount=100, uid='member')
+        changes[0]['update']['fields']['coverStoragePath'] = encode(f'{self.path}/cover/BBBBBBBBBBBBBBBBBBBB.jpg')
+        self.denied(changes, 'member')
+        self.assertEqual(read(self.path)['coverStoragePath'], cover)
+
+    def test_compact_firestore_cover_preserves_full_shared_financial_protocol(self):
+        cover = f'{self.path}/coverPhotos/AAAAAAAAAAAAAAAAAAAA'
+        before = read(self.path)
+        self.ok([write(cover, {'bytes': bytes.fromhex('FFD8FFE0FFD9'), 'contentType': 'image/jpeg',
+            'width': 960, 'height': 540, 'createdAt': STAMP})])
+        self.ok([write(self.path, {'coverStoragePath': cover, 'coverUpdatedAt': STAMP}, True)])
+        self.assertEqual({k: v for k, v in read(self.path).items() if not k.startswith('cover')}, before)
+        self.ok(joining(self.gid, self.new_invite()), 'member')
+        self.ok(money(self.gid, amount=100, uid='member'), 'member')
+        self.ok(money(self.gid, amount=50, withdrawal=True))
+        self.assertEqual(read(self.path)['currentCents'], before['currentCents'] + 50)
+        self.assertEqual(r.get(cover, 'member')[0], 200)
+        forged = money(self.gid, amount=100, uid='member')
+        forged[0]['update']['fields']['coverStoragePath'] = encode(f'{self.path}/coverPhotos/BBBBBBBBBBBBBBBBBBBB')
+        self.denied(forged, 'member')
+        self.ok(leaving(self.gid, owner=True))
+        self.assertEqual(r.get(cover, 'member')[0], 403)
+        self.assertEqual(read(self.path)['coverStoragePath'], cover)
 
     def test_invitation_limit_is_atomic_private_and_cannot_be_reset_early(self):
         code = rid()

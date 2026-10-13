@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'savings_decrease.dart';
+import 'goal_cover_service.dart';
 
 double? parseSharedAmount(String? value) {
   final amount = parseDecreaseAmount(value);
@@ -34,6 +35,8 @@ class SharedSavingsGoal {
   String get description => data['description'] as String? ?? '';
   String get ownerId => data['ownerId'] as String;
   String get iconKey => data['iconKey'] as String? ?? 'group';
+  GoalCoverTarget get coverTarget => GoalCoverTarget.shared(ownerId, id);
+  GoalCoverRecord get cover => GoalCoverRecord.fromMap(data, coverTarget);
   bool get archived => data['status'] == 'archived';
   double _amount(String key) => (data[key] as num? ?? 0).toDouble();
   double get target => _amount('targetAmount');

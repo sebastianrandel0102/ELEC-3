@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'shared_savings_models.dart';
 import 'currency_money.dart';
 import 'shared_savings_store.dart';
+import 'goal_cover_cache.dart';
 
 class SharedSavingsFailure implements Exception {
   const SharedSavingsFailure(this.message);
@@ -133,12 +134,20 @@ class SharedSavingsController extends ChangeNotifier {
   SharedSavingsController(this.repository) {
     _subscription = repository.watchGoals().listen(
       (value) {
+        GoalCoverCache.active?.retainShared(
+          repository.auth.currentUser?.uid ?? '',
+          value.map((g) => g.id).toSet(),
+        );
         goals = value;
         error = null;
         loading = false;
         notifyListeners();
       },
       onError: (Object failure) {
+        GoalCoverCache.active?.retainShared(
+          repository.auth.currentUser?.uid ?? '',
+          {},
+        );
         goals =
             []; // Never display stale shared financial data after revocation.
         error = sharedSavingsError(failure);

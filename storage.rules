@@ -17,7 +17,43 @@ service firebase.storage {
       allow update: if false;
       allow delete: if owns(uid) && file.matches('^[A-Za-z0-9]{20}[.]jpg$');
     }
-    // No existing Storage rules/integration were present in this repository.
+    function personalGoal(uid, gid) {
+      return /databases/(default)/documents/users/$(uid)/goals/$(gid);
+    }
+    function sharedGoal(gid) {
+      return /databases/(default)/documents/sharedGoals/$(gid);
+    }
+    function sharedOwner(gid) {
+      return request.auth != null && firestore.get(sharedGoal(gid)).data.ownerId == request.auth.uid;
+    }
+    function activeMember(gid) {
+      return request.auth != null
+        && request.auth.uid in firestore.get(sharedGoal(gid)).data.memberIds
+        && firestore.get(/databases/(default)/documents/sharedGoals/$(gid)/members/$(request.auth.uid)).data.status == 'active';
+    }
+    function validCoverFile(file) {
+      return file.matches('^[A-Za-z0-9]{20}[.]jpg$')
+        && request.resource.size > 0 && request.resource.size <= 1024 * 1024
+        && request.resource.contentType == 'image/jpeg';
+    }
+    match /users/{uid}/goals/{gid}/cover/{file} {
+      allow get: if owns(uid) && firestore.exists(personalGoal(uid, gid));
+      allow list: if false;
+      allow create: if resource == null && owns(uid) && firestore.exists(personalGoal(uid, gid)) && validCoverFile(file);
+      allow update: if false;
+      allow delete: if owns(uid) && file.matches('^[A-Za-z0-9]{20}[.]jpg$')
+        && (!firestore.exists(personalGoal(uid, gid))
+          || firestore.get(personalGoal(uid, gid)).data.get('coverStoragePath', '') != 'users/' + uid + '/goals/' + gid + '/cover/' + file);
+    }
+    match /sharedGoals/{gid}/cover/{file} {
+      allow get: if sharedOwner(gid) || (activeMember(gid)
+        && firestore.get(sharedGoal(gid)).data.get('coverStoragePath', '') == 'sharedGoals/' + gid + '/cover/' + file);
+      allow list: if false;
+      allow create: if resource == null && sharedOwner(gid) && validCoverFile(file);
+      allow update: if false;
+      allow delete: if sharedOwner(gid) && file.matches('^[A-Za-z0-9]{20}[.]jpg$')
+        && firestore.get(sharedGoal(gid)).data.get('coverStoragePath', '') != 'sharedGoals/' + gid + '/cover/' + file;
+    }
     match /{other=**} { allow read, write: if false; }
   }
 }

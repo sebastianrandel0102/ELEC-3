@@ -34,6 +34,12 @@
     }
   ],
   "fieldOverrides": [
-    { "collectionGroup": "profilePhotos", "fieldPath": "bytes", "indexes": [] }
+    { "collectionGroup": "profilePhotos", "fieldPath": "bytes", "indexes": [] },
+    { "collectionGroup": "coverPhotos", "fieldPath": "bytes", "indexes": [] },
+    { "collectionGroup": "goalCoverUploads", "fieldPath": "createdAt", "indexes": [
+      { "order": "ASCENDING", "queryScope": "COLLECTION" },
+      { "order": "DESCENDING", "queryScope": "COLLECTION" },
+      { "order": "ASCENDING", "queryScope": "COLLECTION_GROUP" }
+    ] }
   ]
 }
