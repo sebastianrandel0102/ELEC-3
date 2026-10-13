@@ -1,5 +1,7 @@
 # SaveTrack Gradient Modern redesign
 
+> Historical report from 11 October 2026. The current implementation and validation are documented in [Mint Aurora redesign — 13 October 2026](docs/mint-aurora-redesign.md).
+
 Implemented in the existing Flutter project on 11 October 2026. This pass builds on the existing mint theme and changes presentation only. No dependencies or production assets were added.
 
 ## Audit and preserved behavior

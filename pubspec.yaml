@@ -70,7 +70,11 @@ flutter:
   uses-material-design: true
   assets:
     - assets/branding/google_g.png
+    - assets/fonts/Manrope-OFL.txt
   fonts:
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/Manrope.ttf
     - family: GoogleSans
       fonts:
         - asset: assets/branding/GoogleSans.ttf

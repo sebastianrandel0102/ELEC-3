@@ -123,7 +123,7 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
               title: widget.withdrawal
                   ? 'Decrease Savings'
                   : 'Add to ${data['title']}',
-              detail: '${data['title']} · authoritative currency $code',
+              detail: '${data['title']} · savings recorded in $code',
             ),
             content: SizedBox(
               width: 440,
@@ -132,14 +132,24 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      'Current Savings: ${originalMoney(balance, code)}',
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    TonalPanel(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Current Savings: ${originalMoney(balance, code)}',
+                            style: SaveTrackDesign.amount.copyWith(
+                              fontSize: 24,
+                              color: teal,
+                            ),
+                          ),
+                          Text(
+                            'Target Amount: ${originalMoney(data['targetAmount'] as num? ?? 0, code)}',
+                          ),
+                          CurrencyContextLabel(source: code),
+                        ],
+                      ),
                     ),
-                    Text(
-                      'Target Amount: ${originalMoney(data['targetAmount'] as num? ?? 0, code)}',
-                    ),
-                    CurrencyContextLabel(source: code),
                     const SizedBox(height: 16),
                     OutlinedButton.icon(
                       onPressed: locked
@@ -156,7 +166,12 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                       icon: const Icon(Icons.currency_exchange),
                       label: Text('Input Currency: $inputCurrency'),
                     ),
+                    const SizedBox(height: 16),
                     TextFormField(
+                      style: SaveTrackDesign.amount.copyWith(
+                        fontSize: 28,
+                        color: teal,
+                      ),
                       key: ValueKey(
                         widget.withdrawal
                             ? 'decrease-amount'

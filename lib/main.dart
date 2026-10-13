@@ -155,14 +155,7 @@ class SessionLoading extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: SaveTrackDesign.lightMint,
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: const Icon(Icons.trending_up, size: 40, color: teal),
-                ),
+                const AuroraEmblem(size: 80, onDark: true),
                 const SizedBox(height: 24),
                 const Text(
                   'SaveTrack',
@@ -341,8 +334,10 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Your goals, your progress.',
+                      Text(
+                        _register
+                            ? 'Start building a future you look forward to.'
+                            : 'Continue building your goals, one day at a time.',
                         style: TextStyle(color: muted),
                       ),
                       const SizedBox(height: 26),
@@ -616,49 +611,55 @@ class SaveTrackNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SafeArea(
     top: false,
-    child: Padding(
-      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-      child: Container(
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: SaveTrackDesign.border),
-          boxShadow: SaveTrackDesign.shadows,
-        ),
-        child: NavigationBar(
-          animationDuration: MediaQuery.disableAnimationsOf(context)
-              ? Duration.zero
-              : SaveTrackDesign.motion,
-          selectedIndex: selectedIndex,
-          onDestinationSelected: onSelected,
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.home_outlined),
-              selectedIcon: Icon(Icons.home),
-              label: 'Today',
+    child: Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 760),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Container(
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(color: SaveTrackDesign.border),
+              boxShadow: SaveTrackDesign.shadows,
             ),
-            NavigationDestination(
-              icon: Icon(Icons.savings_outlined),
-              selectedIcon: Icon(Icons.savings),
-              label: 'Goals',
+            child: NavigationBar(
+              animationDuration: MediaQuery.disableAnimationsOf(context)
+                  ? Duration.zero
+                  : SaveTrackDesign.motion,
+              selectedIndex: selectedIndex,
+              onDestinationSelected: onSelected,
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.home_outlined),
+                  selectedIcon: Icon(Icons.home),
+                  label: 'Today',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.savings_outlined),
+                  selectedIcon: Icon(Icons.savings),
+                  label: 'Goals',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.checklist_outlined),
+                  selectedIcon: Icon(Icons.checklist),
+                  label: 'Planner',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.insights_outlined),
+                  selectedIcon: Icon(Icons.insights),
+                  label: 'Reports',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.person_outline),
+                  selectedIcon: Icon(Icons.person),
+                  label: 'Profile',
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.checklist_outlined),
-              selectedIcon: Icon(Icons.checklist),
-              label: 'Planner',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.insights_outlined),
-              selectedIcon: Icon(Icons.insights),
-              label: 'Reports',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+          ),
         ),
       ),
     ),
@@ -775,7 +776,7 @@ class SavingsOverview extends StatelessWidget {
               child: Text(
                 'Your savings',
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: SaveTrackDesign.onHeroMuted,
                 ),
@@ -783,10 +784,14 @@ class SavingsOverview extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 20),
-        Text(
+        const SizedBox(height: 24),
+        AmountText(
           totalLabel ?? _money(total),
-          style: SaveTrackDesign.amount.copyWith(color: Colors.white),
+          onDark: true,
+          style: SaveTrackDesign.amount.copyWith(
+            color: Colors.white,
+            fontSize: 34,
+          ),
         ),
         const SizedBox(height: 6),
         const Text(
@@ -800,25 +805,34 @@ class SavingsOverview extends StatelessWidget {
             onDark: true,
           ),
         const SizedBox(height: 16),
-        Wrap(
-          spacing: 16,
-          runSpacing: 8,
-          children: [
-            Text(
-              '$count active ${count == 1 ? 'goal' : 'goals'}',
-              style: const TextStyle(
-                color: SaveTrackDesign.onHeroMuted,
-                fontSize: 13,
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: .06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: mint.withValues(alpha: .14)),
+          ),
+          child: Wrap(
+            spacing: 16,
+            runSpacing: 8,
+            children: [
+              Text(
+                '$count active ${count == 1 ? 'goal' : 'goals'}',
+                style: const TextStyle(
+                  color: SaveTrackDesign.onHeroMuted,
+                  fontSize: 13,
+                ),
               ),
-            ),
-            Text(
-              '${targetLabel ?? _money(target)} target',
-              style: const TextStyle(
-                color: SaveTrackDesign.onHeroMuted,
-                fontSize: 13,
+              Text(
+                '${targetLabel ?? _money(target)} target',
+                style: const TextStyle(
+                  color: SaveTrackDesign.onHeroMuted,
+                  fontSize: 13,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     ),
@@ -898,10 +912,10 @@ class GoalsScreen extends StatelessWidget {
     length: 2,
     child: Column(
       children: [
-        TabBar(
+        AuroraTabs(
           tabs: [
-            Tab(text: 'Personal', icon: Icon(Icons.savings_outlined)),
-            Tab(text: 'Shared', icon: Icon(Icons.groups_outlined)),
+            Tab(text: 'Personal'),
+            Tab(text: 'Shared'),
           ],
         ),
         Expanded(
@@ -1072,20 +1086,15 @@ class GoalCard extends StatelessWidget {
                 ),
               ),
             const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: SaveTrackDesign.input,
-                borderRadius: BorderRadius.circular(16),
-              ),
+            TonalPanel(
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AmountText(
                     '${money(saved)} saved',
                     style: SaveTrackDesign.amount.copyWith(
-                      fontSize: 22,
+                      fontSize: 26,
                       color: teal,
                       letterSpacing: -.4,
                     ),
@@ -1295,9 +1304,9 @@ class PlannerDateHeader extends StatelessWidget {
         title: 'Make today count.',
         detail: 'A clear plan. A little more focus.',
       ),
-      Card(
+      TonalPanel(
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1357,7 +1366,7 @@ class DailyCompletion extends StatelessWidget {
   final int done, total;
   @override
   Widget build(BuildContext context) => Card(
-    color: SaveTrackDesign.lightMint,
+    color: Colors.white,
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: Row(
@@ -1383,6 +1392,8 @@ class DailyCompletion extends StatelessWidget {
                     color: ink,
                   ),
                 ),
+                const SizedBox(height: 12),
+                MintProgress(value: total == 0 ? 0 : done / total),
               ],
             ),
           ),
@@ -1564,7 +1575,7 @@ class TaskTile extends StatelessWidget {
           border: Border.all(color: SaveTrackDesign.border),
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1886,6 +1897,17 @@ class ProfileContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const Text(
+                'YOUR ACCOUNT',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: SaveTrackDesign.onHeroMuted,
+                  fontSize: 11,
+                  letterSpacing: 1.4,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 20),
               Center(child: avatar ?? ProfileAvatar(name: name)),
               const SizedBox(height: 24),
               Column(
@@ -1895,7 +1917,7 @@ class ProfileContent extends StatelessWidget {
                     name,
                     textAlign: TextAlign.center,
                     style: const TextStyle(
-                      fontSize: 24,
+                      fontSize: 26,
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -1929,7 +1951,7 @@ class ProfileContent extends StatelessWidget {
                 leading: const MintIcon(Icons.currency_exchange),
                 title: const Text('Currency Settings'),
                 subtitle: Text(
-                  'Choose your preferred currency and view your savings in currencies worldwide.\nCurrent: ${CurrencyScope.maybeOf(context)?.preferred ?? 'PHP'}',
+                  'Display savings in your preferred currency.\nCurrent: ${CurrencyScope.maybeOf(context)?.preferred ?? 'PHP'}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.of(context).push(
@@ -1999,7 +2021,7 @@ class SummaryTile extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MintIcon(icon),
+              MintIcon(icon, size: 36),
               const SizedBox(height: 12),
               Text(
                 s.hasData
@@ -2008,12 +2030,12 @@ class SummaryTile extends StatelessWidget {
                           : '${s.data!.docs.where((d) => d.data()['completed'] == true).length}/${s.data!.docs.length}')
                     : '',
                 style: const TextStyle(
-                  fontSize: 23,
+                  fontSize: 28,
                   fontWeight: FontWeight.w800,
                   color: ink,
                 ),
               ),
-              Text(label, style: const TextStyle(color: muted, fontSize: 12)),
+              Text(label, style: const TextStyle(color: muted, fontSize: 13)),
             ],
           );
         },
@@ -2038,13 +2060,13 @@ class ReportMetric extends StatelessWidget {
   final bool featured;
   @override
   Widget build(BuildContext context) {
-    final amount = Text(
-      value,
-      style: SaveTrackDesign.amount.copyWith(
-        fontSize: featured ? 34 : 22,
-        color: featured ? Colors.white : ink,
-      ),
+    final amountStyle = SaveTrackDesign.amount.copyWith(
+      fontSize: featured ? 34 : 22,
+      color: featured ? Colors.white : ink,
     );
+    final amount = featured
+        ? AmountText(value, onDark: true, style: amountStyle)
+        : Text(value, style: amountStyle);
     final content = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -2167,15 +2189,7 @@ class BrandMark extends StatelessWidget {
 class BrandDot extends StatelessWidget {
   const BrandDot({super.key});
   @override
-  Widget build(BuildContext context) => Container(
-    width: 34,
-    height: 34,
-    decoration: BoxDecoration(
-      gradient: SaveTrackDesign.signature,
-      borderRadius: BorderRadius.circular(11),
-    ),
-    child: const Icon(Icons.trending_up, color: Colors.white, size: 21),
-  );
+  Widget build(BuildContext context) => const AuroraEmblem(size: 36);
 }
 
 class LoadingPanel extends StatelessWidget {
@@ -2261,7 +2275,7 @@ class EmptyPanel extends StatelessWidget {
     child: Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: SaveTrackDesign.soft,
+        gradient: SaveTrackDesign.surface,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: SaveTrackDesign.border),
       ),
@@ -2269,7 +2283,7 @@ class EmptyPanel extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          MintIcon(icon, size: 56),
+          MintIcon(icon, size: 64),
           const SizedBox(height: 16),
           Text(
             title,
@@ -2431,16 +2445,17 @@ Future<void> showTransactionHistory(
                           children: [
                             MintIcon(
                               withdrawal ? Icons.south_east : Icons.south_west,
+                              color: withdrawal ? SaveTrackDesign.error : teal,
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
+                                  AmountText(
                                     '${withdrawal ? '-' : '+'}${displayMoney(context, _number(data['amount']), data['currencyCode'] as String? ?? goalCurrency(goal.data()))}',
                                     style: TextStyle(
-                                      fontSize: 17,
+                                      fontSize: 21,
                                       fontWeight: FontWeight.w700,
                                       color: withdrawal
                                           ? SaveTrackDesign.error
@@ -2556,8 +2571,14 @@ Future<void> showGoalTypeChoice(BuildContext context) =>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const FormHeading(
+                icon: Icons.flag_outlined,
+                title: 'Your next milestone',
+                detail: 'Choose how you want to save.',
+              ),
+              const SizedBox(height: 16),
               ListTile(
-                leading: const Icon(Icons.savings_outlined),
+                leading: const MintIcon(Icons.savings_outlined),
                 title: const Text('Personal goal'),
                 subtitle: const Text('Keep your savings private.'),
                 onTap: () {
@@ -2566,7 +2587,7 @@ Future<void> showGoalTypeChoice(BuildContext context) =>
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.groups_outlined),
+                leading: const MintIcon(Icons.groups_outlined),
                 title: const Text('Save Together'),
                 subtitle: const Text(
                   'Create a shared goal and invite members.',

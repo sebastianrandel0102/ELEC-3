@@ -66,8 +66,8 @@ class _ProfileAvatarState extends State<ProfileAvatar> {
 
   Widget _fallback() {
     final initials = profileInitials(widget.name);
-    return ColoredBox(
-      color: mint,
+    return DecoratedBox(
+      decoration: const BoxDecoration(gradient: SaveTrackDesign.glow),
       child: Center(
         child: initials.isEmpty
             ? Icon(Icons.person_outline, color: teal, size: widget.size * .42)
@@ -525,14 +525,10 @@ class _ProfilePhotoPreviewState extends State<ProfilePhotoPreview> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
-                'Preview Profile Picture',
-                style: SaveTrackDesign.heading,
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Adjust the crop, then save your photo.',
-                style: TextStyle(color: muted),
+              const FormHeading(
+                icon: Icons.crop_rounded,
+                title: 'Preview Profile Picture',
+                detail: 'Adjust the crop, then save your photo.',
               ),
               const SizedBox(height: 24),
               Center(
@@ -593,7 +589,7 @@ class _ProfilePhotoPreviewState extends State<ProfilePhotoPreview> {
                     style: const TextStyle(color: SaveTrackDesign.error),
                   ),
                 ),
-              FilledButton(
+              GradientButton(
                 key: const ValueKey('save-profile-picture'),
                 onPressed: _processing ? null : _confirm,
                 child: _processing
@@ -655,8 +651,10 @@ class _ProfilePhotoUploadDialogState extends State<_ProfilePhotoUploadDialog> {
   Widget build(BuildContext context) => PopScope(
     canPop: false,
     child: AlertDialog(
-      title: Text(
-        widget.removing
+      title: FormHeading(
+        icon: Icons.cloud_upload_outlined,
+        detail: 'Updating your account securely.',
+        title: widget.removing
             ? 'Removing Profile Picture'
             : 'Uploading Profile Picture',
       ),

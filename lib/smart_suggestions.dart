@@ -139,9 +139,10 @@ class _SmartSuggestionsState extends State<SmartSuggestions>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Why this task?',
-                style: Theme.of(context).textTheme.titleLarge,
+              const FormHeading(
+                icon: Icons.auto_awesome_outlined,
+                title: 'Why this task?',
+                detail: 'A little clarity for your next move.',
               ),
               const SizedBox(height: 12),
               Text(
@@ -252,12 +253,8 @@ class SmartPlannerSummary extends StatelessWidget {
   final SmartTaskPlan plan;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => TonalPanel(
     padding: const EdgeInsets.all(14),
-    decoration: BoxDecoration(
-      color: SaveTrackDesign.lightMint,
-      borderRadius: BorderRadius.circular(16),
-    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -309,14 +306,9 @@ class SmartSuggestionCard extends StatelessWidget {
   final bool busy;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) => MintHero(
     key: ValueKey('smart-primary-${recommendation.taskId}'),
-    decoration: BoxDecoration(
-      gradient: SaveTrackDesign.signature,
-      borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
-      boxShadow: SaveTrackDesign.shadows,
-    ),
-    padding: const EdgeInsets.all(22),
+    padding: const EdgeInsets.all(24),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -475,11 +467,18 @@ class RecommendedTaskTile extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: Row(
                   children: [
-                    Text(
-                      recommendation.rank.toString().padLeft(2, '0'),
-                      style: const TextStyle(
-                        color: teal,
-                        fontWeight: FontWeight.w700,
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: SaveTrackDesign.mist,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        recommendation.rank.toString().padLeft(2, '0'),
+                        style: const TextStyle(
+                          color: teal,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),

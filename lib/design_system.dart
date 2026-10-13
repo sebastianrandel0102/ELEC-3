@@ -2,74 +2,99 @@ import 'package:flutter/material.dart';
 
 import 'dart:math' as math;
 
-const mint = Color(0xFFA8EDD5);
-const teal = Color(0xFF0D5C4B);
-const canvas = Color(0xFFF5FBF8);
-const ink = Color(0xFF19382E);
-const muted = Color(0xFF536F62);
+const mint = Color(0xFFA8F0D5);
+const teal = Color(0xFF0B5948);
+const canvas = Color(0xFFF6FBF8);
+const ink = Color(0xFF16382E);
+// A darker supporting tone than the decorative muted mint, for readable text.
+const muted = Color(0xFF526E61);
 
 abstract final class SaveTrackDesign {
   static const onHeroMuted = Color(0xFFE2FFF2);
-  static const emerald = Color(0xFF137C63);
-  static const fresh = Color(0xFF63DBB4);
-  static const premiumMint = Color(0xFF31B995);
-  static const lightMint = Color(0xFFDDF8EE);
+  static const midnight = Color(0xFF063F34);
+  static const emerald = Color(0xFF117B63);
+  static const fresh = Color(0xFF48CFA6);
+  static const luminous = Color(0xFF75E2BE);
+  static const premiumMint = Color(0xFF24A987);
+  static const lightMint = Color(0xFFDDF9ED);
+  static const mist = Color(0xFFEEFCF5);
+  static const textMuted = Color(0xFF91A69A);
+  static const divider = Color(0xFFEBF3EF);
+  static const info = Color(0xFF326C94);
   static const input = Color(0xFFF8FCFA);
   static const completed = Color(0xFFEDF7F1);
   static const errorSurface = Color(0xFFFFF3F3);
   static const warningSurface = Color(0xFFFFF6E5);
-  static const border = Color(0xFFE2EEE8);
+  static const border = Color(0xFFE2EFE8);
   static const error = Color(0xFFB83E48);
   static const warning = Color(0xFF926014);
-  static const success = Color(0xFF239B72);
+  static const success = Color(0xFF187F5B);
+  static const spaceXs = 4.0;
+  static const spaceSm = 8.0;
+  static const spaceMd = 12.0;
   static const space = 16.0;
   static const section = 24.0;
   static const radius = 22.0;
+  static const radiusSmall = 12.0;
+  static const radiusMedium = 16.0;
+  static const radiusHero = 30.0;
   static const maxWidth = 1080.0;
   static const motion = Duration(milliseconds: 240);
   static const signature = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [teal, Color(0xFF116A54), emerald],
+    colors: [midnight, teal, emerald],
+    stops: [0, .55, 1],
   );
   static const premium = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF073D33), teal, emerald],
+    colors: [Color(0xFF042E27), midnight, teal],
+    stops: [0, .5, 1],
   );
   static const soft = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [canvas, Color(0xFFE8F8F0), lightMint],
+    colors: [canvas, Color(0xFFE8F9F0), Color(0xFFD9F6E7)],
   );
   // Bright mint is reserved for accents. Text-bearing gradients stay dark
   // enough for white labels, including their lightest stop.
   static const spectrum = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [teal, Color(0xFF148B70), premiumMint, fresh],
+    colors: [midnight, emerald, premiumMint, luminous],
+    stops: [0, .35, .72, 1],
+  );
+  static const glow = LinearGradient(colors: [mint, luminous, fresh]);
+  static const surface = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Colors.white, Color(0xFFF4FCF8), Color(0xFFEAF9F1)],
   );
   static const progressOnDark = LinearGradient(
     colors: [mint, fresh, premiumMint],
   );
   static const amount = TextStyle(
+    fontFamily: 'Manrope',
     fontSize: 38,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     letterSpacing: -1.1,
     fontFeatures: [FontFeature.tabularFigures()],
   );
   static const heading = TextStyle(
-    fontSize: 26,
+    fontFamily: 'Manrope',
+    fontSize: 28,
     fontWeight: FontWeight.w700,
     letterSpacing: -.7,
     color: ink,
   );
   static const shadows = [
-    BoxShadow(color: Color(0x14145C4B), blurRadius: 24, offset: Offset(0, 8)),
+    BoxShadow(color: Color(0x0D063F34), blurRadius: 28, offset: Offset(0, 10)),
+    BoxShadow(color: Color(0x05063F34), blurRadius: 4, offset: Offset(0, 2)),
   ];
 
   static ThemeData get theme {
-    final base = ThemeData(useMaterial3: true);
+    final base = ThemeData(useMaterial3: true, fontFamily: 'Manrope');
     final shape = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(16),
     );
@@ -88,6 +113,10 @@ abstract final class SaveTrackDesign {
         onSurface: ink,
         error: error,
         outline: muted,
+        outlineVariant: border,
+        surfaceContainerHighest: lightMint,
+        secondaryContainer: lightMint,
+        onSecondaryContainer: teal,
       ),
       textTheme: base.textTheme
           .apply(bodyColor: ink, displayColor: ink)
@@ -116,7 +145,8 @@ abstract final class SaveTrackDesign {
               fontWeight: FontWeight.w600,
               letterSpacing: .1,
             ),
-          ),
+          )
+          .apply(fontFamily: 'Manrope'),
       appBarTheme: const AppBarTheme(
         backgroundColor: canvas,
         foregroundColor: ink,
@@ -134,6 +164,40 @@ abstract final class SaveTrackDesign {
           borderRadius: BorderRadius.circular(radius),
           side: const BorderSide(color: border),
         ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        dividerColor: Colors.transparent,
+        indicatorSize: TabBarIndicatorSize.tab,
+        labelColor: teal,
+        unselectedLabelColor: muted,
+        labelStyle: const TextStyle(
+          fontFamily: 'Manrope',
+          fontSize: 14,
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: const TextStyle(
+          fontFamily: 'Manrope',
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        indicator: BoxDecoration(
+          color: lightMint,
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: Colors.white,
+        selectedColor: lightMint,
+        side: const BorderSide(color: border),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        labelStyle: const TextStyle(
+          fontFamily: 'Manrope',
+          color: teal,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        checkmarkColor: teal,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -207,7 +271,8 @@ abstract final class SaveTrackDesign {
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
-            fontSize: 11,
+            fontSize: 12,
+            fontFamily: 'Manrope',
             fontWeight: states.contains(WidgetState.selected)
                 ? FontWeight.w700
                 : FontWeight.w500,
@@ -226,6 +291,7 @@ abstract final class SaveTrackDesign {
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         titleTextStyle: const TextStyle(
+          fontFamily: 'Manrope',
           fontSize: 22,
           fontWeight: FontWeight.w700,
           color: ink,
@@ -243,6 +309,19 @@ abstract final class SaveTrackDesign {
       listTileTheme: const ListTileThemeData(
         iconColor: teal,
         contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        titleTextStyle: TextStyle(
+          fontFamily: 'Manrope',
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          color: ink,
+          height: 1.4,
+        ),
+        subtitleTextStyle: TextStyle(
+          fontFamily: 'Manrope',
+          fontSize: 13,
+          color: muted,
+          height: 1.5,
+        ),
       ),
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
@@ -284,9 +363,195 @@ abstract final class SaveTrackDesign {
       checkboxTheme: CheckboxThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
       ),
-      dividerTheme: const DividerThemeData(color: border, thickness: 1),
+      sliderTheme: SliderThemeData(
+        activeTrackColor: teal,
+        inactiveTrackColor: lightMint,
+        thumbColor: teal,
+        overlayColor: mint.withValues(alpha: .25),
+        trackHeight: 4,
+      ),
+      dividerTheme: const DividerThemeData(color: divider, thickness: 1),
     );
   }
+}
+
+/// Static light and contour artwork; it never represents financial data.
+class _AuroraPainter extends CustomPainter {
+  const _AuroraPainter();
+  @override
+  void paint(Canvas canvas, Size size) {
+    final glow = Rect.fromCircle(
+      center: Offset(size.width * .94, size.height * .12),
+      radius: size.width * .72,
+    );
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..shader = const RadialGradient(
+          colors: [Color(0x2475E2BE), Color(0x0075E2BE)],
+        ).createShader(glow),
+    );
+    final center = Offset(size.width * 1.07, size.height * .92);
+    final stroke = Paint()
+      ..color = const Color(0x12A8F0D5)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1;
+    for (var i = 0; i < 6; i++) {
+      final radius = size.width * (.28 + i * .095);
+      canvas.drawCircle(center, radius, stroke);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_AuroraPainter oldDelegate) => false;
+}
+
+class AuroraEmblem extends StatelessWidget {
+  const AuroraEmblem({super.key, this.size = 40, this.onDark = false});
+  final double size;
+  final bool onDark;
+  @override
+  Widget build(BuildContext context) => ExcludeSemantics(
+    child: Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        gradient: onDark ? SaveTrackDesign.glow : SaveTrackDesign.signature,
+        borderRadius: BorderRadius.circular(size * .3),
+        border: Border.all(color: mint.withValues(alpha: .25)),
+      ),
+      child: Icon(
+        Icons.trending_up_rounded,
+        color: onDark ? SaveTrackDesign.midnight : Colors.white,
+        size: size * .62,
+      ),
+    ),
+  );
+}
+
+/// Quiet surface for balances, form context, and secondary summaries.
+class TonalPanel extends StatelessWidget {
+  const TonalPanel({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(20),
+  });
+  final Widget child;
+  final EdgeInsets padding;
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: padding,
+    decoration: BoxDecoration(
+      gradient: SaveTrackDesign.surface,
+      border: Border.all(color: SaveTrackDesign.border),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: child,
+  );
+}
+
+/// Keeps currency strings intact at large text scales. Overflow stays readable
+/// through a horizontal gesture and an explicit hint, without shrinking text.
+class AmountText extends StatelessWidget {
+  const AmountText(
+    this.text, {
+    super.key,
+    required this.style,
+    this.onDark = false,
+  });
+  final String text;
+  final TextStyle style;
+  final bool onDark;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final resolved = DefaultTextStyle.of(context).style.merge(style);
+      final measure = TextPainter(
+        text: TextSpan(text: text, style: resolved),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+        maxLines: 1,
+      )..layout();
+      final overflow = measure.width > constraints.maxWidth;
+      measure.dispose();
+      if (!overflow) return Text(text, style: style);
+      final hintColor = onDark ? SaveTrackDesign.onHeroMuted : muted;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Text(text, style: style, softWrap: false),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.swap_horiz_rounded, color: hintColor, size: 16),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  'Swipe to view full amount',
+                  style: TextStyle(color: hintColor, fontSize: 12, height: 1.4),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
+}
+
+class AuroraNotice extends StatelessWidget {
+  const AuroraNotice(this.message, {super.key, this.error = false});
+  final String message;
+  final bool error;
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: error,
+    child: Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: error ? SaveTrackDesign.errorSurface : SaveTrackDesign.mist,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: error
+              ? SaveTrackDesign.error.withValues(alpha: .18)
+              : SaveTrackDesign.border,
+        ),
+      ),
+      child: DetailLine(
+        icon: error ? Icons.error_outline_rounded : Icons.info_outline_rounded,
+        label: message,
+        color: error ? SaveTrackDesign.error : muted,
+      ),
+    ),
+  );
+}
+
+class AuroraTabs extends StatelessWidget {
+  const AuroraTabs({super.key, required this.tabs});
+  final List<Widget> tabs;
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+    padding: const EdgeInsets.all(5),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      border: Border.all(color: SaveTrackDesign.border),
+      borderRadius: BorderRadius.circular(19),
+    ),
+    child: TabBar(
+      isScrollable: MediaQuery.textScalerOf(context).scale(14) > 20,
+      tabAlignment: MediaQuery.textScalerOf(context).scale(14) > 20
+          ? TabAlignment.center
+          : TabAlignment.fill,
+      tabs: tabs,
+    ),
+  );
 }
 
 /// Keeps scrollable screens and forms comfortable on phones and wide windows.
@@ -295,7 +560,15 @@ class PageSurface extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(gradient: SaveTrackDesign.soft),
+    decoration: const BoxDecoration(
+      color: canvas,
+      gradient: RadialGradient(
+        center: Alignment(1, -1),
+        radius: 1.6,
+        colors: [SaveTrackDesign.lightMint, canvas],
+        stops: [0, .75],
+      ),
+    ),
     child: SafeArea(
       top: false,
       bottom: false,
@@ -314,10 +587,12 @@ class MintHero extends StatelessWidget {
     super.key,
     required this.child,
     this.deep = false,
+    this.edgeToEdge = false,
     this.padding = const EdgeInsets.all(24),
   });
   final Widget child;
   final bool deep;
+  final bool edgeToEdge;
   final EdgeInsets padding;
   @override
   Widget build(BuildContext context) => Container(
@@ -325,40 +600,18 @@ class MintHero extends StatelessWidget {
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
       gradient: deep ? SaveTrackDesign.premium : SaveTrackDesign.signature,
-      borderRadius: BorderRadius.circular(28),
-      boxShadow: SaveTrackDesign.shadows,
+      borderRadius: edgeToEdge
+          ? BorderRadius.zero
+          : BorderRadius.circular(SaveTrackDesign.radiusHero),
+      border: Border.all(color: mint.withValues(alpha: .16)),
+      boxShadow: edgeToEdge ? null : SaveTrackDesign.shadows,
     ),
     child: Stack(
       children: [
-        Positioned(
-          right: -64,
-          top: -88,
+        const Positioned.fill(
           child: IgnorePointer(
             child: ExcludeSemantics(
-              child: Container(
-                width: 280,
-                height: 280,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0x0FFFFFFF), width: 40),
-                ),
-              ),
-            ),
-          ),
-        ),
-        Positioned(
-          right: -12,
-          bottom: -112,
-          child: IgnorePointer(
-            child: ExcludeSemantics(
-              child: Container(
-                width: 220,
-                height: 220,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0x08FFFFFF), width: 1),
-                ),
-              ),
+              child: CustomPaint(painter: _AuroraPainter()),
             ),
           ),
         ),
@@ -378,18 +631,20 @@ class MintHero extends StatelessWidget {
 }
 
 class MintIcon extends StatelessWidget {
-  const MintIcon(this.icon, {super.key, this.size = 44});
+  const MintIcon(this.icon, {super.key, this.size = 44, this.color = teal});
   final IconData icon;
   final double size;
+  final Color color;
   @override
   Widget build(BuildContext context) => Container(
     width: size,
     height: size,
     decoration: BoxDecoration(
-      color: SaveTrackDesign.lightMint,
+      gradient: SaveTrackDesign.surface,
+      border: Border.all(color: SaveTrackDesign.border),
       borderRadius: BorderRadius.circular(14),
     ),
-    child: Icon(icon, color: teal, size: 23),
+    child: Icon(icon, color: color, size: 23),
   );
 }
 
@@ -402,6 +657,7 @@ class StatusPill extends StatelessWidget {
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
       color: color.withValues(alpha: .08),
+      border: Border.all(color: color.withValues(alpha: .12)),
       borderRadius: BorderRadius.circular(30),
     ),
     child: Text(
@@ -433,18 +689,16 @@ class MintProgress extends StatelessWidget {
               height: 8,
               color: onDark ? const Color(0x33FFFFFF) : SaveTrackDesign.border,
             ),
-            ShaderMask(
-              shaderCallback: (bounds) =>
-                  (onDark
-                          ? SaveTrackDesign.progressOnDark
-                          : SaveTrackDesign.spectrum)
-                      .createShader(bounds),
-              blendMode: BlendMode.srcIn,
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 8,
-                backgroundColor: Colors.transparent,
-                color: Colors.white,
+            FractionallySizedBox(
+              widthFactor: progress.clamp(0, 1),
+              child: Container(
+                height: 8,
+                decoration: BoxDecoration(
+                  gradient: onDark
+                      ? SaveTrackDesign.progressOnDark
+                      : SaveTrackDesign.spectrum,
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
             ),
           ],
@@ -487,6 +741,7 @@ class _GradientButtonState extends State<GradientButton> {
           gradient: widget.onPressed == null ? null : SaveTrackDesign.signature,
           color: widget.onPressed == null ? muted : null,
           borderRadius: BorderRadius.circular(16),
+          boxShadow: widget.onPressed == null ? null : SaveTrackDesign.shadows,
         ),
         child: FilledButton(
           onPressed: widget.onPressed,
@@ -525,9 +780,9 @@ class ScreenIntro extends StatelessWidget {
             Text(
               eyebrow,
               style: const TextStyle(
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: FontWeight.w700,
-                letterSpacing: .2,
+                letterSpacing: 1.1,
                 color: teal,
               ),
             ),
@@ -713,8 +968,14 @@ class FormHeading extends StatelessWidget {
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      MintIcon(icon, size: 48),
-      const SizedBox(height: 16),
+      Row(
+        children: [
+          MintIcon(icon, size: 48),
+          const SizedBox(width: 12),
+          const Expanded(child: Divider()),
+        ],
+      ),
+      const SizedBox(height: 20),
       Text(title, style: Theme.of(context).textTheme.titleLarge),
       const SizedBox(height: 6),
       Text(
@@ -740,6 +1001,7 @@ class FieldCaption extends StatelessWidget {
           color: muted,
           fontWeight: FontWeight.w600,
           fontSize: 13,
+          letterSpacing: .3,
         ),
       ),
     ),
@@ -847,29 +1109,46 @@ class AuthComposition extends StatelessWidget {
   final bool register;
   Widget _showcase({required bool compact}) => MintHero(
     deep: true,
-    padding: EdgeInsets.all(compact ? 20 : 32),
+    padding: EdgeInsets.all(compact ? 24 : 36),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!compact) ...[
-          const Icon(Icons.savings_outlined, size: 44),
-          const SizedBox(height: 48),
-        ],
+        Row(
+          children: [
+            const AuroraEmblem(size: 40, onDark: true),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text(
+                'A little closer, every day.',
+                style: TextStyle(
+                  color: SaveTrackDesign.onHeroMuted,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: compact ? 24 : 72),
         Text(
           register
               ? 'Big plans.\nStart right here.'
               : 'Small steps.\nBrighter tomorrows.',
           style: TextStyle(
-            fontSize: compact ? 24 : 38,
+            fontFamily: 'Manrope',
+            fontSize: compact ? 30 : 42,
             fontWeight: FontWeight.w700,
-            height: 1.15,
-            letterSpacing: -.8,
+            height: 1.18,
+            letterSpacing: -1.2,
           ),
         ),
         const SizedBox(height: 12),
         const Text(
-          'A little intention, every day.',
-          style: TextStyle(color: SaveTrackDesign.onHeroMuted),
+          'Your financial goals and daily plans, beautifully organized.',
+          style: TextStyle(
+            color: SaveTrackDesign.onHeroMuted,
+            fontSize: 13,
+            height: 1.6,
+          ),
         ),
         if (!compact) ...[
           const SizedBox(height: 48),
@@ -894,8 +1173,9 @@ class AuthComposition extends StatelessWidget {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final wide = constraints.maxWidth >= 760;
-      final form = Card(
-        child: Padding(padding: EdgeInsets.all(wide ? 32 : 24), child: child),
+      final form = Padding(
+        padding: EdgeInsets.all(wide ? 32 : 4),
+        child: child,
       );
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -908,12 +1188,12 @@ class AuthComposition extends StatelessWidget {
               children: [
                 Expanded(child: _showcase(compact: false)),
                 const SizedBox(width: 32),
-                Expanded(child: form),
+                Expanded(child: Card(child: form)),
               ],
             )
           else ...[
             _showcase(compact: true),
-            const SizedBox(height: 20),
+            const SizedBox(height: 32),
             form,
           ],
         ],

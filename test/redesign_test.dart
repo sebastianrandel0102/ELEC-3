@@ -2,6 +2,8 @@
 // application continues to use the original Firebase SDK objects.
 // ignore_for_file: subtype_of_sealed_class
 
+import 'ui_preview_fonts.dart';
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -89,7 +91,7 @@ Future<void> mount(
       theme: const bool.fromEnvironment('SAVE_UI_PREVIEWS')
           ? SaveTrackDesign.theme.copyWith(
               textTheme: SaveTrackDesign.theme.textTheme.apply(
-                fontFamily: 'Roboto',
+                fontFamily: 'Manrope',
               ),
             )
           : SaveTrackDesign.theme,
@@ -150,6 +152,7 @@ void main() {
     }
   });
   setUpAll(() async {
+    await loadManropeForPreviews();
     // Optional review images use the SDK's real fonts instead of Ahem. No font
     // dependency or development-machine path is added to the application.
     if (!const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;
@@ -514,6 +517,7 @@ void main() {
     expect(find.text('+PHP ₱12,345,678.90'), findsOneWidget);
     expect(find.text('10/10/2026'), findsOneWidget);
     expect(tester.takeException(), isNull);
+    await capture(tester, 'history-populated-narrow');
     await tester.tap(find.byTooltip('Close history'));
     await tester.pumpAndSettle();
     expect(find.text('+PHP ₱12,345,678.90'), findsNothing);
@@ -593,8 +597,8 @@ void main() {
     await tester.pump();
     expect(
       tester
-          .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
-          .value,
+          .widget<FractionallySizedBox>(find.byType(FractionallySizedBox))
+          .widthFactor,
       .75,
     );
   });
@@ -655,8 +659,15 @@ void main() {
       await tester.scrollUntilVisible(find.text('Currency Settings'), 300);
       expect(find.text('Currency Settings'), findsOneWidget);
       await tester.scrollUntilVisible(find.text('Change Password'), 300);
+      await Scrollable.ensureVisible(
+        tester.element(find.text('Change Password')),
+        alignment: .5,
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Change Password'));
       await tester.scrollUntilVisible(find.text('Sign out'), 300);
+      await tester.ensureVisible(find.text('Sign out'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Sign out'));
       expect(passwordCalls, 1);
       expect(logoutCalls, 1);
@@ -716,17 +727,37 @@ void main() {
           size: size,
           scale: scale,
         );
+        await tester.scrollUntilVisible(
+          find.text('PHP ₱987,654,321.00'),
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
         expect(find.text('PHP ₱987,654,321.00'), findsOneWidget);
         expect(
           tester.widget<MintProgress>(find.byType(MintProgress)).value,
           closeTo(987654321 / 999999999, .00001),
         );
-        await tester.scrollUntilVisible(find.text('See all'), 300);
+        await tester.scrollUntilVisible(
+          find.text('See all'),
+          300,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await Scrollable.ensureVisible(
+          tester.element(find.text('See all')),
+          alignment: .5,
+        );
+        await tester.pumpAndSettle();
         await tester.tap(find.text('See all'));
         await tester.scrollUntilVisible(
           find.text('Open planner'),
           size.width == 1280 ? -300 : 300,
+          scrollable: find.byType(Scrollable).first,
         );
+        await Scrollable.ensureVisible(
+          tester.element(find.text('Open planner')),
+          alignment: .5,
+        );
+        await tester.pumpAndSettle();
         await tester.tap(find.text('Open planner'));
         expect(goalCalls, 1);
         expect(plannerCalls, 1);
@@ -834,7 +865,7 @@ void main() {
         theme: const bool.fromEnvironment('SAVE_UI_PREVIEWS')
             ? SaveTrackDesign.theme.copyWith(
                 textTheme: SaveTrackDesign.theme.textTheme.apply(
-                  fontFamily: 'Roboto',
+                  fontFamily: 'Manrope',
                 ),
               )
             : SaveTrackDesign.theme,

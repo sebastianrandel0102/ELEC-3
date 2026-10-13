@@ -1,6 +1,8 @@
 // Firestore SDK interfaces are test doubles; production uses SDK snapshots.
 // ignore_for_file: subtype_of_sealed_class
 
+import 'ui_preview_fonts.dart';
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -120,7 +122,7 @@ void main() {
         theme: const bool.fromEnvironment('SAVE_UI_PREVIEWS')
             ? SaveTrackDesign.theme.copyWith(
                 textTheme: SaveTrackDesign.theme.textTheme.apply(
-                  fontFamily: 'Roboto',
+                  fontFamily: 'Manrope',
                 ),
               )
             : SaveTrackDesign.theme,
@@ -200,6 +202,7 @@ void main() {
   }
 
   setUpAll(() async {
+    await loadManropeForPreviews();
     if (!const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;
     final config = jsonDecode(
       await File('.dart_tool/package_config.json').readAsString(),
@@ -430,8 +433,9 @@ void main() {
     expect(find.text('All done for today!'), findsOneWidget);
     expect(find.byType(SmartSuggestionCard), findsNothing);
     expect(find.text('Your Tasks'), findsOneWidget);
-    expect(find.byType(TaskTile), findsOneWidget);
     expect(find.text('1 of 1 tasks completed'), findsOneWidget);
+    await tester.scrollUntilVisible(find.byType(TaskTile), 100);
+    expect(find.byType(TaskTile), findsOneWidget);
   });
 
   testWidgets('Why this task shows actual overlap names without writes', (
