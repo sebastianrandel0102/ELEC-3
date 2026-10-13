@@ -30,8 +30,38 @@ service cloud.firestore {
     match /exchangeRates/{snapshot} { allow read, write: if false; }
 
     match /users/{uid} {
+      function validAvatar() {
+        let path = request.resource.data.get('avatarStoragePath', null);
+        let queue = request.resource.data.get('avatarCleanupPaths', []);
+        return (path == null || (path is string
+          && path.split('/')[1] == uid
+          && (path.matches('^users/[^/]+/profile/avatar/[A-Za-z0-9]{20}[.]jpg$')
+            || (path.matches('^users/[^/]+/profilePhotos/[A-Za-z0-9]{20}$')
+              && existsAfter(/databases/$(database)/documents/users/$(uid)/profilePhotos/$(path.split('/')[3]))))))
+          && queue is list && queue.size() <= 100;
+      }
       allow read, delete: if owns(uid);
-      allow create, update: if owns(uid) && validCurrency(request.resource.data.get('preferredCurrencyCode', 'PHP'));
+      allow create, update: if owns(uid) && validCurrency(request.resource.data.get('preferredCurrencyCode', 'PHP')) && validAvatar();
+
+      // Small private avatars on Spark. Image data never rides with profile,
+      // savings or planner snapshots; existing image objects are immutable.
+      match /profilePhotos/{photoId} {
+        allow get, list: if owns(uid);
+        allow create: if owns(uid) && photoId.matches('^[A-Za-z0-9]{20}$')
+          && request.resource.data.keys().hasOnly(['bytes','contentType','width','height','createdAt'])
+          && request.resource.data.bytes is bytes
+          && request.resource.data.bytes.size() > 0
+          && request.resource.data.bytes.size() <= 200 * 1024
+          && request.resource.data.bytes.toHexString().matches('^FFD8FF.*FFD9$')
+          && request.resource.data.contentType == 'image/jpeg'
+          && request.resource.data.width == 512 && request.resource.data.height == 512
+          && request.resource.data.createdAt == request.time;
+        allow update: if false;
+        allow delete: if owns(uid)
+          && (!exists(/databases/$(database)/documents/users/$(uid))
+            || get(/databases/$(database)/documents/users/$(uid)).data.get('avatarStoragePath', null)
+              != 'users/' + uid + '/profilePhotos/' + photoId);
+      }
 
       match /goals/{goalId} {
         function validBalance() {

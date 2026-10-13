@@ -15,6 +15,9 @@ import 'currency_transactions.dart';
 import 'decrease_savings_dialog.dart';
 import 'firebase_options.dart';
 import 'password_dialog.dart';
+import 'profile_photo_picker.dart';
+import 'profile_photo_service.dart';
+import 'profile_photo_widgets.dart';
 import 'savings_decrease.dart';
 import 'shared_savings_screens.dart';
 import 'shared_savings_repository.dart';
@@ -1801,21 +1804,56 @@ class ReportTaskMetric extends StatelessWidget {
       );
 }
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
   @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser!;
-    return ProfileContent(
-      name: user.displayName ?? 'SaveTrack user',
-      email: user.email ?? '',
-      onPassword: () => showChangePasswordDialog(
-        context,
-        AuthService.instance.passwordChangeSession(),
-      ),
-      onSignOut: () => AuthService.instance.signOut(),
-    );
-  }
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  late final user = FirebaseAuth.instance.currentUser!;
+  late final profile = FirebaseFirestore.instance
+      .collection('users')
+      .doc(user.uid)
+      .snapshots(includeMetadataChanges: true)
+      .where((snapshot) => !snapshot.metadata.hasPendingWrites);
+  late final photoService = ProfilePhotoService(FirestoreProfilePhotoBackend());
+  late final picker = GalleryProfilePhotoPicker();
+  @override
+  Widget build(BuildContext context) =>
+      StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+        stream: profile,
+        builder: (context, snapshot) {
+          final data = snapshot.data?.data() ?? <String, dynamic>{};
+          final name = data['displayName'] is String
+              ? data['displayName'] as String
+              : user.displayName ?? 'SaveTrack user';
+          return ProfileContent(
+            name: name,
+            email: user.email ?? '',
+            avatar: ProfilePhotoEditor(
+              key: ValueKey(user.uid),
+              uid: user.uid,
+              name: name,
+              path: data['avatarStoragePath'] is String
+                  ? data['avatarStoragePath'] as String
+                  : null,
+              googlePhotoUrl: user.photoURL,
+              service: photoService,
+              picker: picker,
+              enabled: snapshot.hasData && !snapshot.hasError,
+            ),
+            profileError: snapshot.hasError
+                ? 'Your profile could not be loaded. Check your connection and reopen Profile.'
+                : null,
+            onPassword: () => showChangePasswordDialog(
+              context,
+              AuthService.instance.passwordChangeSession(),
+            ),
+            onSignOut: () => AuthService.instance.signOut(),
+          );
+        },
+      );
 }
 
 /// Pure account presentation; Firebase remains owned by ProfileScreen.
@@ -1826,16 +1864,15 @@ class ProfileContent extends StatelessWidget {
     required this.email,
     required this.onPassword,
     required this.onSignOut,
+    this.avatar,
+    this.profileError,
   });
   final String name, email;
   final VoidCallback onPassword, onSignOut;
+  final Widget? avatar;
+  final String? profileError;
   @override
   Widget build(BuildContext context) {
-    final identity = name.trim().isNotEmpty
-        ? name.trim()
-        : email.trim().isNotEmpty
-        ? email.trim()
-        : 'S';
     return ListView(
       padding: const EdgeInsets.all(20),
       children: [
@@ -1849,27 +1886,14 @@ class ProfileContent extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Align(
-                alignment: Alignment.centerLeft,
-                child: CircleAvatar(
-                  radius: 34,
-                  backgroundColor: mint,
-                  child: Text(
-                    identity.characters.first.toUpperCase(),
-                    style: const TextStyle(
-                      color: teal,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                ),
-              ),
+              Center(child: avatar ?? ProfileAvatar(name: name)),
               const SizedBox(height: 24),
               Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Text(
                     name,
+                    textAlign: TextAlign.center,
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w700,
@@ -1879,6 +1903,7 @@ class ProfileContent extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     email,
+                    textAlign: TextAlign.center,
                     style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
                   ),
                 ],
@@ -1886,6 +1911,14 @@ class ProfileContent extends StatelessWidget {
             ],
           ),
         ),
+        if (profileError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Text(
+              profileError!,
+              style: const TextStyle(color: SaveTrackDesign.error),
+            ),
+          ),
         const SizedBox(height: 24),
         const FieldCaption('Preferences & app'),
         Card(

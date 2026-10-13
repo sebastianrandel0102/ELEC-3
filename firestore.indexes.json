@@ -33,5 +33,7 @@
       ]
     }
   ],
-  "fieldOverrides": []
+  "fieldOverrides": [
+    { "collectionGroup": "profilePhotos", "fieldPath": "bytes", "indexes": [] }
+  ]
 }
