@@ -4,6 +4,40 @@ service cloud.firestore {
     function owns(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
+    function compactCoverExists(parts, version) {
+      return (parts.size() == 4
+          && existsAfter(/databases/$(database)/documents/sharedGoals/$(parts[1])/coverPhotos/$(version)))
+        || (parts.size() == 6
+          && existsAfter(/databases/$(database)/documents/users/$(parts[1])/goals/$(parts[3])/coverPhotos/$(version)));
+    }
+    function validCover(data, prefix) {
+      let path = data.get('coverStoragePath', null);
+      let parts = path is string ? path.split('/') : [];
+      let version = parts.size() > 0 ? parts[parts.size() - 1] : '';
+      return (path == null || (path is string &&
+        ((path == prefix + '/cover/' + version && version.matches('^[A-Za-z0-9]{20}[.]jpg$'))
+        || (path == prefix + '/coverPhotos/' + version && version.matches('^[A-Za-z0-9]{20}$')
+          && compactCoverExists(parts, version)))))
+        && (!data.keys().hasAny(['coverUpdatedAt']) || data.coverUpdatedAt is timestamp);
+    }
+    function validCoverPhoto(photoId) {
+      let p = request.resource.data;
+      return photoId.matches('^[A-Za-z0-9]{20}$')
+        && p.keys().hasAll(['bytes', 'contentType', 'width', 'height', 'createdAt'])
+        && p.keys().hasOnly(['bytes', 'contentType', 'width', 'height', 'createdAt'])
+        && p.bytes is bytes && p.bytes.size() > 0 && p.bytes.size() <= 200 * 1024
+        && p.bytes.toHexString().matches('^FFD8FF.*FFD9$')
+        && p.contentType == 'image/jpeg' && p.width == 960 && p.height == 540
+        && p.createdAt == request.time;
+    }
+    function coverChanged() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasAny(['coverStoragePath', 'coverUpdatedAt']);
+    }
+    function coverOnlyUpdate(prefix) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coverStoragePath', 'coverUpdatedAt'])
+        && validCover(request.resource.data, prefix)
+        && request.resource.data.coverUpdatedAt == request.time;
+    }
 
 
     // Active fiat catalog: SIX List One, 2026-09-17. No funds/metals/crypto.
@@ -42,6 +76,26 @@ service cloud.firestore {
       }
       allow read, delete: if owns(uid);
       allow create, update: if owns(uid) && validCurrency(request.resource.data.get('preferredCurrencyCode', 'PHP')) && validAvatar();
+
+      // Private durable upload journal. No photo binaries or public URLs here.
+      match /goalCoverUploads/{version} {
+        function validUpload() {
+          let r = request.resource.data;
+          let prefix = r.shared ? 'sharedGoals/' + r.goalId : 'users/' + uid + '/goals/' + r.goalId;
+          return version.matches('^[A-Za-z0-9]{20}$')
+            && r.keys().hasOnly(['goalId', 'shared', 'storagePath', 'createdAt'])
+            && r.goalId is string && r.goalId.size() > 0 && !r.goalId.matches('.*[/].*')
+            && r.shared is bool && (r.storagePath == prefix + '/cover/' + version + '.jpg'
+              || r.storagePath == prefix + '/coverPhotos/' + version)
+            && r.createdAt == request.time
+            && (r.shared
+              ? get(/databases/$(database)/documents/sharedGoals/$(r.goalId)).data.ownerId == uid
+              : exists(/databases/$(database)/documents/users/$(uid)/goals/$(r.goalId)));
+        }
+        allow read, delete: if owns(uid);
+        allow create: if owns(uid) && validUpload();
+        allow update: if false;
+      }
 
       // Small private avatars on Spark. Image data never rides with profile,
       // savings or planner snapshots; existing image objects are immutable.
@@ -160,13 +214,27 @@ service cloud.firestore {
         }
 
         allow read, delete: if owns(uid);
-        allow create: if owns(uid) && validBalance();
+        allow create: if owns(uid) && validBalance()
+          && !request.resource.data.keys().hasAny(['coverStoragePath', 'coverUpdatedAt']);
         allow update: if owns(uid) && validBalance()
+          && (!coverChanged() || coverOnlyUpdate('users/' + uid + '/goals/' + goalId))
           && request.resource.data.get('currencyCode', 'PHP') == resource.data.get('currencyCode', 'PHP')
           && (request.resource.data.get('lastDepositId','') == resource.data.get('lastDepositId','') || validDepositUpdate())
           && (request.resource.data.savedAmount >= resource.data.savedAmount
             ? request.resource.data.get('lastWithdrawalId', '') == resource.data.get('lastWithdrawalId', '')
             : validWithdrawalUpdate());
+
+        // Compact private covers on Spark; immutable and separate from money.
+        match /coverPhotos/{photoId} {
+          allow get: if owns(uid) && exists(/databases/$(database)/documents/users/$(uid)/goals/$(goalId));
+          allow list, update: if false;
+          allow create: if owns(uid) && validCoverPhoto(photoId)
+            && exists(/databases/$(database)/documents/users/$(uid)/goals/$(goalId));
+          allow delete: if owns(uid)
+            && (!exists(/databases/$(database)/documents/users/$(uid)/goals/$(goalId))
+              || get(/databases/$(database)/documents/users/$(uid)/goals/$(goalId)).data.get('coverStoragePath', null)
+                != 'users/' + uid + '/goals/' + goalId + '/coverPhotos/' + photoId);
+        }
 
         match /transactions/{transactionId} {
           function validWithdrawalCreate() {
@@ -243,7 +311,8 @@ service cloud.firestore {
       return g.keys().hasOnly(['schemaVersion', 'name', 'description', 'iconKey', 'startDate', 'deadline',
           'targetCents', 'targetAmount', 'ownerId', 'ownerName', 'memberIds', 'memberNames', 'personalDeposits',
           'memberCount', 'currentCents', 'depositCents', 'decreaseCents', 'currentAmount', 'totalDeposits',
-          'totalDecreases', 'status', 'createdAt', 'updatedAt', 'lastKind', 'lastId', 'lastActor', 'lastSubject'])
+          'totalDecreases', 'status', 'createdAt', 'updatedAt', 'lastKind', 'lastId', 'lastActor', 'lastSubject',
+          'coverStoragePath', 'coverUpdatedAt'])
         && g.schemaVersion == 2 && shortText(g.name, 100) && g.name.size() > 0 && shortText(g.description, 1000)
         && g.iconKey in ['group', 'travel', 'home', 'school', 'gift', 'emergency']
         && validDay(g.startDate) && validDay(g.deadline) && g.deadline >= g.startDate
@@ -354,8 +423,12 @@ service cloud.firestore {
     match /sharedGoals/{goalId} {
       allow read: if signedIn() && request.auth.uid in resource.data.memberIds;
       allow create: if signedIn() && request.resource.data.lastKind == 'create'
+        && !request.resource.data.keys().hasAny(['coverStoragePath', 'coverUpdatedAt'])
         && validGoal(request.resource.data) && creatingGoal(goalId, request.resource.data);
+      allow update: if ownerOf(goalId) && memberOf(goalId)
+        && coverOnlyUpdate('sharedGoals/' + goalId);
       allow update: if signedIn() && validGoal(request.resource.data)
+        && !coverChanged()
         && request.resource.data.lastId != resource.data.lastId
         && ((request.resource.data.lastKind in ['contribute', 'decrease'] && moneyChange(goalId, resource.data, request.resource.data))
           || (request.resource.data.lastKind == 'accept' && joining(goalId, resource.data, request.resource.data))
@@ -367,6 +440,18 @@ service cloud.firestore {
               || (request.resource.data.lastKind == 'archive' && request.resource.data.status == 'archived'
                 && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt', 'lastKind', 'lastId', 'lastActor', 'lastSubject'])))));
       allow delete: if false;
+      match /coverPhotos/{photoId} {
+        function currentMemberCover() {
+          return memberOf(goalId)
+            && get(mp(goalId, request.auth.uid)).data.status == 'active'
+            && get(gp(goalId)).data.get('coverStoragePath', null) == 'sharedGoals/' + goalId + '/coverPhotos/' + photoId;
+        }
+        allow get: if ownerOf(goalId) || currentMemberCover();
+        allow list, update: if false;
+        allow create: if ownerOf(goalId) && memberOf(goalId) && validCoverPhoto(photoId);
+        allow delete: if ownerOf(goalId)
+          && get(gp(goalId)).data.get('coverStoragePath', null) != 'sharedGoals/' + goalId + '/coverPhotos/' + photoId;
+      }
       match /members/{memberId} {
         // A user can read only their own membership before joining/rejoining.
         allow get: if owns(memberId) || memberOf(goalId);

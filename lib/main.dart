@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -14,6 +15,9 @@ import 'currency_savings_dialog.dart';
 import 'currency_transactions.dart';
 import 'decrease_savings_dialog.dart';
 import 'firebase_options.dart';
+import 'goal_cover_service.dart';
+import 'goal_cover_processing.dart';
+import 'goal_cover_widgets.dart';
 import 'password_dialog.dart';
 import 'profile_photo_picker.dart';
 import 'profile_photo_service.dart';
@@ -143,7 +147,10 @@ class AuthGate extends StatelessWidget {
             ? const AuthScreen()
             : SharedSavingsHost(
                 key: ValueKey(snapshot.data!.uid),
-                child: const HomeShell(),
+                child: GoalCoverSession(
+                  uid: snapshot.data!.uid,
+                  child: const HomeShell(),
+                ),
               ),
       );
     },
@@ -1110,12 +1117,22 @@ class GoalsPreview extends StatelessWidget {
 }
 
 class GoalCard extends StatelessWidget {
-  const GoalCard({super.key, required this.uid, required this.doc});
+  const GoalCard({
+    super.key,
+    required this.uid,
+    required this.doc,
+    this.details = false,
+    this.coverLoad,
+  });
   final String uid;
   final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  final bool details;
+  final Future<Uint8List?> Function(String)? coverLoad;
   @override
   Widget build(BuildContext context) {
     final data = doc.data();
+    final coverTarget = GoalCoverTarget.personal(uid, doc.id);
+    final cover = GoalCoverRecord.fromMap(data, coverTarget);
     final code = goalCurrency(data);
     String money(num value) => displayMoney(context, value, code);
     final saved = _number(data['savedAmount']),
@@ -1135,6 +1152,38 @@ class GoalCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Semantics(
+              button: !details,
+              label: details ? 'Goal cover' : 'Open goal details',
+              child: InkWell(
+                onTap: details
+                    ? null
+                    : () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => PersonalGoalDetailsScreen(
+                            uid: uid,
+                            goalId: doc.id,
+                          ),
+                        ),
+                      ),
+                child: GoalCoverImage(
+                  target: coverTarget,
+                  name: '${data['title']}',
+                  path: cover.path,
+                  decodeWidth: details ? 1280 : 640,
+                  load: coverLoad,
+                  onEdit: details
+                      ? () => showGoalCoverActions(
+                          context,
+                          coverTarget,
+                          cover.path,
+                        )
+                      : null,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1160,6 +1209,10 @@ class GoalCard extends StatelessWidget {
                       showDecreaseSavingsForm(context, uid, doc);
                     }
                     if (v == 'edit') showGoalForm(context, doc: doc);
+                    if (v == 'cover') changeGoalCover(context, coverTarget);
+                    if (v == 'remove-cover') {
+                      removeGoalCover(context, coverTarget);
+                    }
                     if (v == 'reminder') {
                       showReminderEditor(context, reminderTarget);
                     }
@@ -1188,6 +1241,19 @@ class GoalCard extends StatelessWidget {
                       value: 'edit',
                       child: Text('Edit goal'),
                     ),
+                    PopupMenuItem(
+                      value: 'cover',
+                      child: Text(
+                        cover.path == null
+                            ? 'Add Goal Photo'
+                            : 'Change Goal Photo',
+                      ),
+                    ),
+                    if (cover.path != null)
+                      const PopupMenuItem(
+                        value: 'remove-cover',
+                        child: Text('Remove Goal Photo'),
+                      ),
                     const PopupMenuItem(
                       value: 'shared',
                       child: Text('Save Together'),
@@ -1311,6 +1377,17 @@ class GoalCard extends StatelessWidget {
               alignment: WrapAlignment.end,
               spacing: 8,
               children: [
+                if (!details)
+                  TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            PersonalGoalDetailsScreen(uid: uid, goalId: doc.id),
+                      ),
+                    ),
+                    child: const Text('Details'),
+                  ),
                 TextButton(
                   onPressed: () => showTransactionHistory(context, doc),
                   child: const Text('History'),
@@ -1334,6 +1411,58 @@ class GoalCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class PersonalGoalDetailsScreen extends StatefulWidget {
+  const PersonalGoalDetailsScreen({
+    super.key,
+    required this.uid,
+    required this.goalId,
+  });
+  final String uid, goalId;
+  @override
+  State<PersonalGoalDetailsScreen> createState() =>
+      _PersonalGoalDetailsScreenState();
+}
+
+class _PersonalGoalDetailsScreenState extends State<PersonalGoalDetailsScreen> {
+  late final stream = _goals(widget.uid)
+      .where(FieldPath.documentId, isEqualTo: widget.goalId)
+      .snapshots();
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    appBar: AppBar(title: const Text('Goal Details')),
+    body: PageSurface(
+      child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: stream,
+        builder: (context, snapshot) {
+          if (FirebaseAuth.instance.currentUser?.uid != widget.uid ||
+              snapshot.hasError) {
+            return const ErrorPanel(
+              message: 'This goal is no longer available to you.',
+            );
+          }
+          if (!snapshot.hasData) return const LoadingPanel();
+          if (snapshot.data!.docs.isEmpty) {
+            return const ErrorPanel(message: 'This goal has been deleted.');
+          }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(20),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 860),
+                child: GoalCard(
+                  uid: widget.uid,
+                  doc: snapshot.data!.docs.single,
+                  details: true,
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    ),
+  );
 }
 
 class PlannerScreen extends StatefulWidget {
@@ -2695,6 +2824,20 @@ Future<void> _deleteGoal(
     await batch.commit();
   }
   await goal.reference.delete();
+  // Goal/history deletion succeeds independently of optional photo cleanup.
+  // The durable journal retries cleanup when the server is available again.
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid != null) {
+    final target = GoalCoverTarget.personal(uid, goal.id);
+    final cover = GoalCoverRecord.fromMap(goal.data(), target);
+    if (cover.path != null) {
+      try {
+        await FirestoreGoalCoverBackend().cleanup(target, cover.path!);
+      } catch (_) {
+        /* journal retries */
+      }
+    }
+  }
 }
 
 Future<void> showTransactionHistory(
@@ -2948,8 +3091,21 @@ Future<void> showGoalTypeChoice(BuildContext context) =>
 Future<void> showGoalForm(
   BuildContext context, {
   QueryDocumentSnapshot<Map<String, dynamic>>? doc,
+  FirebaseAuth? auth,
+  FirebaseFirestore? firestore,
 }) async {
   final form = GlobalKey<FormState>();
+  final goalAuth = auth ?? FirebaseAuth.instance;
+  final goalDb = firestore ?? FirebaseFirestore.instance;
+  final uid = goalAuth.currentUser!.uid;
+  final goalRef =
+      doc?.reference ??
+      goalDb.collection('users').doc(uid).collection('goals').doc();
+  final coverTarget = GoalCoverTarget.personal(uid, goalRef.id);
+  Uint8List? pendingCover;
+  bool goalSaved = false, photoBusy = false;
+  String? coverError;
+  double? coverProgress;
   String code = doc == null ? 'PHP' : goalCurrency(doc.data());
   final title = TextEditingController(text: doc?.data()['title'] as String?);
   final note = TextEditingController(text: doc?.data()['note'] as String?);
@@ -2961,159 +3117,270 @@ Future<void> showGoalForm(
   );
   DateTime? deadline = (doc?.data()['deadline'] as Timestamp?)?.toDate();
   bool busy = false;
+  final coverSession = goalAuth.authStateChanges().map(
+    (user) => user?.uid == uid,
+  );
   await showDialog<void>(
     context: context,
-    builder: (ctx) => FormControllerScope(
-      controllers: [title, note, target],
-      child: StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          scrollable: true,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 24,
-          ),
-          title: FormHeading(
-            icon: Icons.flag_outlined,
-            title: doc == null ? 'Create a goal' : 'Edit goal',
-            detail: 'Give your next milestone a name and a destination.',
-          ),
-          content: Form(
-            key: form,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  GoalCurrencyField(
-                    code: code,
-                    enabled: doc == null && !busy,
-                    onChanged: (value) => setState(() => code = value),
-                  ),
-                  if (doc != null)
-                    Text(
-                      'Stored denomination: $code ? fixed after creation',
-                      style: const TextStyle(color: muted, fontSize: 12),
-                    ),
-                  const SizedBox(height: 12),
-                  const FieldCaption('Your milestone'),
-                  TextFormField(
-                    controller: title,
-                    decoration: const InputDecoration(
-                      labelText: 'Goal name',
-                      prefixIcon: Icon(Icons.flag_outlined),
-                    ),
-                    validator: (v) => v == null || v.trim().isEmpty
-                        ? 'Enter a goal name.'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: target,
-                    style: SaveTrackDesign.amount.copyWith(
-                      fontSize: 24,
-                      color: teal,
-                    ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Target amount ($code)',
-                      prefixText: '$code ',
-                    ),
-                    validator: (v) {
-                      final n = parseCurrencyAmount(v ?? '', code);
-                      return n == null || !n.positive
-                          ? 'Enter an amount greater than zero.'
-                          : null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  const FieldCaption('A little personal detail'),
-                  TextFormField(
-                    controller: note,
-                    maxLines: 2,
-                    decoration: const InputDecoration(
-                      labelText: 'Note (optional)',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final d = await showDatePicker(
-                        context: ctx,
-                        firstDate: DateTime.now().subtract(
-                          const Duration(days: 1),
-                        ),
-                        lastDate: DateTime.now().add(
-                          const Duration(days: 3650),
-                        ),
-                        initialDate:
-                            deadline ??
-                            DateTime.now().add(const Duration(days: 90)),
-                      );
-                      if (d != null) setState(() => deadline = d);
-                    },
-                    icon: const Icon(Icons.calendar_month),
-                    label: Text(
-                      deadline == null
-                          ? 'Set target date'
-                          : _shortDate(deadline!),
-                    ),
-                  ),
-                ],
+    barrierDismissible: false,
+    builder: (ctx) => GoalCoverRouteGuard(
+      active: coverSession,
+      child: FormControllerScope(
+        controllers: [title, note, target],
+        child: StatefulBuilder(
+          builder: (ctx, setState) => PopScope(
+            canPop: !busy && !photoBusy,
+            child: AlertDialog(
+              scrollable: true,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 24,
               ),
+              title: FormHeading(
+                icon: Icons.flag_outlined,
+                title: doc == null ? 'Create a goal' : 'Edit goal',
+                detail: 'Give your next milestone a name and a destination.',
+              ),
+              content: AbsorbPointer(
+                absorbing: busy || photoBusy,
+                child: Form(
+                  key: form,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (doc == null)
+                          GoalCoverFormSection(
+                            target: coverTarget,
+                            pending: pendingCover,
+                            enabled: !goalSaved,
+                            onBusyChanged: (value) {
+                              if (ctx.mounted) {
+                                setState(() => photoBusy = value);
+                              }
+                            },
+                            onPendingChanged: (bytes) =>
+                                setState(() => pendingCover = bytes),
+                          )
+                        else
+                          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                            stream: goalRef.snapshots(),
+                            builder: (context, snapshot) =>
+                                GoalCoverFormSection(
+                                  target: coverTarget,
+                                  exists: true,
+                                  enabled: !busy,
+                                  onBusyChanged: (value) {
+                                    if (ctx.mounted) {
+                                      setState(() => photoBusy = value);
+                                    }
+                                  },
+                                  path: GoalCoverRecord.fromMap(
+                                    snapshot.data?.data() ?? doc.data(),
+                                    coverTarget,
+                                  ).path,
+                                ),
+                          ),
+                        if (goalSaved && coverError != null)
+                          Text(
+                            'Goal saved. Its cover could not be confirmed. $coverError',
+                            style: const TextStyle(
+                              color: SaveTrackDesign.error,
+                            ),
+                          ),
+                        if (busy && goalSaved && pendingCover != null) ...[
+                          const Text('Uploading Goal Cover'),
+                          const SizedBox(height: 8),
+                          LinearProgressIndicator(value: coverProgress),
+                        ],
+                        AbsorbPointer(
+                          absorbing: goalSaved,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              GoalCurrencyField(
+                                code: code,
+                                enabled: doc == null && !busy,
+                                onChanged: (value) =>
+                                    setState(() => code = value),
+                              ),
+                              if (doc != null)
+                                Text(
+                                  'Stored denomination: $code ? fixed after creation',
+                                  style: const TextStyle(
+                                    color: muted,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              const SizedBox(height: 12),
+                              const FieldCaption('Your milestone'),
+                              TextFormField(
+                                controller: title,
+                                decoration: const InputDecoration(
+                                  labelText: 'Goal name',
+                                  prefixIcon: Icon(Icons.flag_outlined),
+                                ),
+                                validator: (v) => v == null || v.trim().isEmpty
+                                    ? 'Enter a goal name.'
+                                    : null,
+                              ),
+                              const SizedBox(height: 12),
+                              TextFormField(
+                                controller: target,
+                                style: SaveTrackDesign.amount.copyWith(
+                                  fontSize: 24,
+                                  color: teal,
+                                ),
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                decoration: InputDecoration(
+                                  labelText: 'Target amount ($code)',
+                                  prefixText: '$code ',
+                                ),
+                                validator: (v) {
+                                  final n = parseCurrencyAmount(v ?? '', code);
+                                  return n == null || !n.positive
+                                      ? 'Enter an amount greater than zero.'
+                                      : null;
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                              const FieldCaption('A little personal detail'),
+                              TextFormField(
+                                controller: note,
+                                maxLines: 2,
+                                decoration: const InputDecoration(
+                                  labelText: 'Note (optional)',
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              OutlinedButton.icon(
+                                onPressed: () async {
+                                  final d = await showDatePicker(
+                                    context: ctx,
+                                    firstDate: DateTime.now().subtract(
+                                      const Duration(days: 1),
+                                    ),
+                                    lastDate: DateTime.now().add(
+                                      const Duration(days: 3650),
+                                    ),
+                                    initialDate:
+                                        deadline ??
+                                        DateTime.now().add(
+                                          const Duration(days: 90),
+                                        ),
+                                  );
+                                  if (d != null) setState(() => deadline = d);
+                                },
+                                icon: const Icon(Icons.calendar_month),
+                                label: Text(
+                                  deadline == null
+                                      ? 'Set target date'
+                                      : _shortDate(deadline!),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: busy || photoBusy
+                      ? null
+                      : () => Navigator.pop(ctx),
+                  child: Text(goalSaved ? 'Done without photo' : 'Cancel'),
+                ),
+                GradientButton(
+                  expand: false,
+                  onPressed: busy || photoBusy
+                      ? null
+                      : () async {
+                          if (!goalSaved && !form.currentState!.validate()) {
+                            return;
+                          }
+                          setState(() => busy = true);
+                          try {
+                            if (goalAuth.currentUser?.uid != uid) {
+                              throw const GoalCoverFailure(
+                                'Your session changed. Please sign in again.',
+                              );
+                            }
+                            final data = {
+                              'title': title.text.trim(),
+                              'note': note.text.trim(),
+                              'targetAmount': parseCurrencyAmount(
+                                target.text,
+                                code,
+                              )!.toDouble(),
+                              'deadline': deadline == null
+                                  ? null
+                                  : Timestamp.fromDate(deadline!),
+                              'updatedAt': FieldValue.serverTimestamp(),
+                            };
+                            if (doc == null && !goalSaved) {
+                              data.addAll({
+                                'currencyCode': code,
+                                'savedAmount': 0.0,
+                                'archived': false,
+                                'createdAt': FieldValue.serverTimestamp(),
+                              });
+                              await goalDb.runTransaction((tx) async {
+                                final existing = await tx.get(goalRef);
+                                if (!existing.exists) tx.set(goalRef, data);
+                              });
+                              if (ctx.mounted) setState(() => goalSaved = true);
+                            } else if (doc != null) {
+                              await doc.reference.update(data);
+                            }
+                            if (pendingCover != null) {
+                              await GoalCoverService(
+                                FirestoreGoalCoverBackend(),
+                              ).replace(
+                                coverTarget,
+                                pendingCover!,
+                                onProgress: (value) {
+                                  if (ctx.mounted) {
+                                    setState(() => coverProgress = value);
+                                  }
+                                },
+                              );
+                            }
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          } catch (e) {
+                            if (ctx.mounted) {
+                              setState(() {
+                                busy = false;
+                                coverError = goalSaved
+                                    ? goalCoverError(e)
+                                    : null;
+                              });
+                              if (!goalSaved) {
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Could not save the goal. Check your connection and try again.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                  child: SaveActionLabel(
+                    busy: busy,
+                    label: goalSaved ? 'Retry Cover Upload' : 'Save',
+                  ),
+                ),
+              ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: busy ? null : () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            GradientButton(
-              expand: false,
-              onPressed: busy
-                  ? null
-                  : () async {
-                      if (!form.currentState!.validate()) return;
-                      setState(() => busy = true);
-                      try {
-                        final data = {
-                          'title': title.text.trim(),
-                          'note': note.text.trim(),
-                          'targetAmount': parseCurrencyAmount(
-                            target.text,
-                            code,
-                          )!.toDouble(),
-                          'deadline': deadline == null
-                              ? null
-                              : Timestamp.fromDate(deadline!),
-                          'updatedAt': FieldValue.serverTimestamp(),
-                        };
-                        if (doc == null) {
-                          data.addAll({
-                            'currencyCode': code,
-                            'savedAmount': 0.0,
-                            'archived': false,
-                            'createdAt': FieldValue.serverTimestamp(),
-                          });
-                          await _goals(FirebaseAuth.instance.currentUser!.uid)
-                              .add(data);
-                        } else {
-                          await doc.reference.update(data);
-                        }
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      } catch (e) {
-                        setState(() => busy = false);
-                        if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            SnackBar(content: Text('Could not save goal: $e')),
-                          );
-                        }
-                      }
-                    },
-              child: SaveActionLabel(busy: busy, label: 'Save'),
-            ),
-          ],
         ),
       ),
     ),

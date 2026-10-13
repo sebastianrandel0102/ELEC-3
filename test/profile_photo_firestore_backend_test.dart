@@ -21,6 +21,8 @@ class PhotoAuth extends Fake implements FirebaseAuth {
   User? session = PhotoUser('owner');
   @override
   User? get currentUser => session;
+  @override
+  Stream<User?> authStateChanges() => Stream.value(session);
 }
 
 class PhotoDatabase extends Fake implements FirebaseFirestore {
@@ -52,9 +54,11 @@ class PhotoDatabase extends Fake implements FirebaseFirestore {
       writes.add((path, values));
       final next = Map<String, dynamic>.from(documents[path] ?? {});
       for (final entry in values.entries) {
-        if (entry.value is FieldValue && entry.key == 'avatarStoragePath') {
+        if (entry.value is FieldValue &&
+            ['avatarStoragePath', 'coverStoragePath'].contains(entry.key)) {
           next.remove(entry.key);
-        } else if (entry.value is FieldValue && entry.key == 'createdAt') {
+        } else if (entry.value is FieldValue &&
+            ['createdAt', 'coverUpdatedAt'].contains(entry.key)) {
           next[entry.key] = Timestamp.now();
         } else {
           next[entry.key] = entry.value;
@@ -100,6 +104,17 @@ class PhotoReference extends Fake
   Future<void> delete() async {
     database.deletions.add(path);
     database.documents.remove(path);
+  }
+
+  @override
+  Future<void> set(Map<String, dynamic> data, [SetOptions? options]) async {
+    database.writes.add((path, data));
+    database.documents[path] = data.map(
+      (key, value) => MapEntry(
+        key,
+        value is FieldValue && key == 'createdAt' ? Timestamp.now() : value,
+      ),
+    );
   }
 }
 

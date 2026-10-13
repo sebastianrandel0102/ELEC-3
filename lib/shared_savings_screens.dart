@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'design_system.dart';
+import 'goal_cover_service.dart';
+import 'goal_cover_widgets.dart';
 import 'currency_money.dart';
 import 'currency_widgets.dart';
 import 'currency_transactions.dart';
@@ -352,9 +354,15 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
 }
 
 class SharedGoalCard extends StatelessWidget {
-  const SharedGoalCard({super.key, required this.goal, required this.uid});
+  const SharedGoalCard({
+    super.key,
+    required this.goal,
+    required this.uid,
+    this.coverLoad,
+  });
   final SharedSavingsGoal goal;
   final String uid;
+  final Future<Uint8List?> Function(String)? coverLoad;
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 16),
@@ -367,6 +375,15 @@ class SharedGoalCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              GoalCoverImage(
+                target: goal.coverTarget,
+                name: goal.name,
+                path: goal.cover.path,
+                icon: sharedIcons[goal.iconKey] ?? Icons.groups_outlined,
+                viewerUid: uid,
+                load: coverLoad,
+              ),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   MintIcon(sharedIcons[goal.iconKey] ?? Icons.groups_outlined),
@@ -475,6 +492,10 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
           : DateTime.now().add(const Duration(days: 90)));
   late String icon = widget.goal?.iconKey ?? 'group';
   bool busy = false;
+  bool photoBusy = false;
+  Uint8List? pendingCover;
+  String? savedGoalId;
+  double? coverProgress;
   String? error;
   Map<String, dynamic>? pending;
   @override
@@ -505,7 +526,7 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
   }
 
   Future<void> submit() async {
-    if (busy) return;
+    if (busy || photoBusy) return;
     if (!form.currentState!.validate()) return;
     if (sharedDateText(start).compareTo(sharedDateText(deadline)) > 0) {
       setState(() => error = 'Start date must be on or before the deadline.');
@@ -526,11 +547,23 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
       error = null;
     });
     try {
-      final result = await service.call(
-        widget.goal == null ? 'create' : 'edit',
-        pending!,
-        requestId: requestId,
-      );
+      final result = savedGoalId != null
+          ? {'goalId': savedGoalId}
+          : await service.call(
+              widget.goal == null ? 'create' : 'edit',
+              pending!,
+              requestId: requestId,
+            );
+      savedGoalId = result['goalId'] as String;
+      if (pendingCover != null) {
+        await GoalCoverService(FirestoreGoalCoverBackend()).replace(
+          GoalCoverTarget.shared(service.uid, savedGoalId!),
+          pendingCover!,
+          onProgress: (value) {
+            if (mounted) setState(() => coverProgress = value);
+          },
+        );
+      }
       if (!mounted) return;
       if (widget.goal != null) {
         Navigator.pop(context);
@@ -545,7 +578,9 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          error = sharedError(e);
+          error = savedGoalId != null
+              ? 'Goal saved. Its cover could not be confirmed. ${goalCoverError(e)}'
+              : sharedError(e);
           if (_canCorrect(e)) pending = null;
         });
       }
@@ -572,6 +607,36 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
               detail: 'A clear milestone for the people who matter.',
             ),
             const SizedBox(height: 20),
+            if (widget.goal == null)
+              GoalCoverFormSection(
+                target: GoalCoverTarget.shared(
+                  service.uid,
+                  'pending-$requestId',
+                ),
+                pending: pendingCover,
+                enabled: !busy && savedGoalId == null,
+                onBusyChanged: (value) {
+                  if (mounted) setState(() => photoBusy = value);
+                },
+                onPendingChanged: (bytes) =>
+                    setState(() => pendingCover = bytes),
+              )
+            else
+              StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: service.goal(widget.goal!.id).snapshots(),
+                builder: (context, snapshot) => GoalCoverFormSection(
+                  target: widget.goal!.coverTarget,
+                  exists: true,
+                  enabled: !busy && widget.goal!.ownerId == service.uid,
+                  onBusyChanged: (value) {
+                    if (mounted) setState(() => photoBusy = value);
+                  },
+                  path: GoalCoverRecord.fromMap(
+                    snapshot.data?.data() ?? widget.goal!.data,
+                    widget.goal!.coverTarget,
+                  ).path,
+                ),
+              ),
             if (widget.personal != null)
               SharedNotice(
                 'This creates a new shared goal with copied details and a zero starting balance. Your personal balance of ${originalMoney(widget.personal!['savedAmount'] as num? ?? 0, widget.personal!['originalCurrencyCode'] as String? ?? goalCurrency(widget.personal!))} and transaction history stay private and unchanged. No existing funds or transactions are copied.',
@@ -677,13 +742,27 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
               ),
             ),
             if (error != null) SharedNotice(error!, error: true),
+            if (busy && savedGoalId != null && pendingCover != null) ...[
+              const Text('Uploading Goal Cover'),
+              LinearProgressIndicator(value: coverProgress),
+            ],
+            if (!busy && savedGoalId != null && error != null)
+              TextButton(
+                onPressed: () => Navigator.of(context).pushReplacement(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        SharedGoalDetailsScreen(goalId: savedGoalId!),
+                  ),
+                ),
+                child: const Text('Continue without photo'),
+              ),
             if (pending != null && error != null)
               const SharedNotice(
                 'Retry uses the same submitted values to prevent duplicates. Reopen the form to enter different values.',
               ),
             const SizedBox(height: 20),
             FilledButton.icon(
-              onPressed: busy ? null : submit,
+              onPressed: busy || photoBusy ? null : submit,
               icon: busy
                   ? const SizedBox.square(
                       dimension: 20,
@@ -693,6 +772,8 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
               label: Text(
                 busy
                     ? 'Saving…'
+                    : savedGoalId != null && error != null
+                    ? 'Retry Cover Upload'
                     : pending != null && error != null
                     ? 'Retry same request'
                     : widget.goal == null
@@ -754,6 +835,22 @@ class _SharedGoalDetailsScreenState extends State<SharedGoalDetailsScreen> {
               const SharedNotice(
                 'Showing cached information. Reconnect to verify access and record changes.',
               ),
+            GoalCoverImage(
+              target: goal.coverTarget,
+              name: goal.name,
+              path: goal.cover.path,
+              icon: sharedIcons[goal.iconKey] ?? Icons.groups_outlined,
+              decodeWidth: 1280,
+              viewerUid: uid,
+              onEdit: owner
+                  ? () => showGoalCoverActions(
+                      context,
+                      goal.coverTarget,
+                      goal.cover.path,
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 16),
             SharedGoalHero(goal: goal),
             ReminderButton(
               shared: true,
