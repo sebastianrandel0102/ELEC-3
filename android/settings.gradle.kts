@@ -28,3 +28,5 @@ plugins {
 }
 
 include(":app")
+
+apply(from = "flutterfire-compat.settings.gradle.kts")

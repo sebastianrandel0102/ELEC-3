@@ -2,30 +2,38 @@ import 'package:flutter/material.dart';
 
 import 'dart:math' as math;
 
-const mint = Color(0xFFA8F0D5);
-const teal = Color(0xFF0B5948);
+const mint = Color(0xFFABF2D7);
+const teal = Color(0xFF0B5B4B);
 const canvas = Color(0xFFF6FBF8);
-const ink = Color(0xFF16382E);
+const ink = Color(0xFF14362B);
 // A darker supporting tone than the decorative muted mint, for readable text.
 const muted = Color(0xFF526E61);
 
 abstract final class SaveTrackDesign {
-  static const onHeroMuted = Color(0xFFE2FFF2);
-  static const midnight = Color(0xFF063F34);
-  static const emerald = Color(0xFF117B63);
-  static const fresh = Color(0xFF48CFA6);
-  static const luminous = Color(0xFF75E2BE);
-  static const premiumMint = Color(0xFF24A987);
-  static const lightMint = Color(0xFFDDF9ED);
-  static const mist = Color(0xFFEEFCF5);
-  static const textMuted = Color(0xFF91A69A);
-  static const divider = Color(0xFFEBF3EF);
+  static const obsidian = Color(0xFF052F28);
+  static const onHeroMuted = Color(0xFFD9F6E9);
+  static const midnight = Color(0xFF073F34);
+  static const emerald = Color(0xFF13876D);
+  // The text-bearing stop is deeper than the accent emerald to meet AA.
+  static const heroEnd = Color(0xFF106550);
+  static const fresh = Color(0xFF4BD4A8);
+  static const luminous = Color(0xFF75E7BF);
+  static const premiumMint = Color(0xFF26B58E);
+  static const lightMint = Color(0xFFDCF8EB);
+  static const mist = Color(0xFFEDFAF3);
+  static const cloud = Color(0xFFF4FCF8);
+  static const textMuted = Color(0xFF91A59A);
+  static const divider = Color(0xFFEBF3EE);
   static const info = Color(0xFF326C94);
   static const input = Color(0xFFF8FCFA);
   static const completed = Color(0xFFEDF7F1);
   static const errorSurface = Color(0xFFFFF3F3);
   static const warningSurface = Color(0xFFFFF6E5);
-  static const border = Color(0xFFE2EFE8);
+  static const border = Color(0xFFE1EEE7);
+  static const elevatedBorder = Color(0xFFD7EAE0);
+  static const heroTrack = Color(0x33FFFFFF);
+  static const heroSurface = Color(0x14FFFFFF);
+  static const heroHighlight = Color(0x2475E7BF);
   static const error = Color(0xFFB83E48);
   static const warning = Color(0xFF926014);
   static const success = Color(0xFF187F5B);
@@ -33,29 +41,37 @@ abstract final class SaveTrackDesign {
   static const spaceSm = 8.0;
   static const spaceMd = 12.0;
   static const space = 16.0;
+  static const spaceLg = 20.0;
   static const section = 24.0;
+  static const region = 32.0;
+  static const spaceXl = 40.0;
+  static const spaceXxl = 48.0;
   static const radius = 22.0;
   static const radiusSmall = 12.0;
   static const radiusMedium = 16.0;
   static const radiusHero = 30.0;
   static const maxWidth = 1080.0;
+  static const pressMotion = Duration(milliseconds: 120);
+  static const selectionMotion = Duration(milliseconds: 190);
   static const motion = Duration(milliseconds: 240);
+  static const progressMotion = Duration(milliseconds: 420);
+  static const motionCurve = Curves.easeOutCubic;
   static const signature = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [midnight, teal, emerald],
-    stops: [0, .55, 1],
+    colors: [midnight, teal, heroEnd],
+    stops: [0, .6, 1],
   );
   static const premium = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF042E27), midnight, teal],
-    stops: [0, .5, 1],
+    colors: [obsidian, midnight, teal],
+    stops: [0, .48, 1],
   );
   static const soft = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [canvas, Color(0xFFE8F9F0), Color(0xFFD9F6E7)],
+    colors: [Colors.white, mist, lightMint],
   );
   // Bright mint is reserved for accents. Text-bearing gradients stay dark
   // enough for white labels, including their lightest stop.
@@ -69,7 +85,7 @@ abstract final class SaveTrackDesign {
   static const surface = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Colors.white, Color(0xFFF4FCF8), Color(0xFFEAF9F1)],
+    colors: [Colors.white, cloud, mist],
   );
   static const progressOnDark = LinearGradient(
     colors: [mint, fresh, premiumMint],
@@ -77,21 +93,32 @@ abstract final class SaveTrackDesign {
   static const amount = TextStyle(
     fontFamily: 'Manrope',
     fontSize: 38,
-    fontWeight: FontWeight.w800,
-    letterSpacing: -1.1,
+    fontWeight: FontWeight.w700,
+    height: 1.15,
+    letterSpacing: -1.2,
     fontFeatures: [FontFeature.tabularFigures()],
   );
   static const heading = TextStyle(
     fontFamily: 'Manrope',
-    fontSize: 28,
+    fontSize: 29,
     fontWeight: FontWeight.w700,
     letterSpacing: -.7,
     color: ink,
   );
   static const shadows = [
-    BoxShadow(color: Color(0x0D063F34), blurRadius: 28, offset: Offset(0, 10)),
-    BoxShadow(color: Color(0x05063F34), blurRadius: 4, offset: Offset(0, 2)),
+    BoxShadow(color: Color(0x0B073F34), blurRadius: 24, offset: Offset(0, 8)),
   ];
+
+  static double pageInset(double width) => width < 360 ? space : spaceLg;
+
+  static EdgeInsets pagePadding(double width, {double bottom = spaceXl}) =>
+      EdgeInsets.fromLTRB(pageInset(width), spaceMd, pageInset(width), bottom);
+
+  static Duration duration(BuildContext context, Duration value) =>
+      MediaQuery.disableAnimationsOf(context) ||
+          MediaQuery.accessibleNavigationOf(context)
+      ? Duration.zero
+      : value;
 
   static ThemeData get theme {
     final base = ThemeData(useMaterial3: true, fontFamily: 'Manrope');
@@ -108,7 +135,7 @@ abstract final class SaveTrackDesign {
         seedColor: emerald,
         primary: teal,
         onPrimary: Colors.white,
-        secondary: emerald,
+        secondary: teal,
         surface: Colors.white,
         onSurface: ink,
         error: error,
@@ -122,6 +149,7 @@ abstract final class SaveTrackDesign {
           .apply(bodyColor: ink, displayColor: ink)
           .copyWith(
             headlineMedium: heading,
+            headlineLarge: amount.copyWith(color: ink, fontSize: 44),
             titleLarge: const TextStyle(
               fontSize: 21,
               fontWeight: FontWeight.w700,
@@ -267,7 +295,7 @@ abstract final class SaveTrackDesign {
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         indicatorColor: lightMint,
-        height: 76,
+        height: 72,
         elevation: 0,
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
@@ -381,23 +409,26 @@ class _AuroraPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final glow = Rect.fromCircle(
-      center: Offset(size.width * .94, size.height * .12),
-      radius: size.width * .72,
+      center: Offset(size.width * 1.05, size.height * .04),
+      radius: size.width * .65,
     );
     canvas.drawRect(
       Offset.zero & size,
       Paint()
-        ..shader = const RadialGradient(
-          colors: [Color(0x2475E2BE), Color(0x0075E2BE)],
+        ..shader = RadialGradient(
+          colors: [
+            SaveTrackDesign.heroHighlight,
+            SaveTrackDesign.luminous.withValues(alpha: 0),
+          ],
         ).createShader(glow),
     );
-    final center = Offset(size.width * 1.07, size.height * .92);
+    final center = Offset(size.width * 1.2, size.height * 1.1);
     final stroke = Paint()
-      ..color = const Color(0x12A8F0D5)
+      ..color = mint.withValues(alpha: .09)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1;
-    for (var i = 0; i < 6; i++) {
-      final radius = size.width * (.28 + i * .095);
+    for (var i = 0; i < 4; i++) {
+      final radius = size.width * (.38 + i * .12);
       canvas.drawCircle(center, radius, stroke);
     }
   }
@@ -451,6 +482,223 @@ class TonalPanel extends StatelessWidget {
   );
 }
 
+/// A compact bento cell. Values and labels are supplied by the existing screen.
+class AuroraMetricCard extends StatelessWidget {
+  const AuroraMetricCard({
+    super.key,
+    required this.icon,
+    required this.value,
+    required this.label,
+  });
+  final IconData icon;
+  final String value, label;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(SaveTrackDesign.space),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  value,
+                  style: SaveTrackDesign.amount.copyWith(
+                    fontSize: 28,
+                    color: ink,
+                    letterSpacing: -.6,
+                  ),
+                ),
+              ),
+              const SizedBox(width: SaveTrackDesign.spaceSm),
+              MintIcon(icon, size: 32),
+            ],
+          ),
+          const SizedBox(height: SaveTrackDesign.spaceMd),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    ),
+  );
+}
+
+/// Shared analytical surface, deliberately quieter than financial heroes.
+class AuroraChartSurface extends StatelessWidget {
+  const AuroraChartSurface({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
+  final String title;
+  final IconData icon;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Card(
+    child: Padding(
+      padding: const EdgeInsets.all(SaveTrackDesign.spaceLg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              const SizedBox(width: SaveTrackDesign.spaceMd),
+              MintIcon(icon, size: 36),
+            ],
+          ),
+          const SizedBox(height: SaveTrackDesign.space),
+          const Divider(height: 1),
+          const SizedBox(height: SaveTrackDesign.section),
+          child,
+        ],
+      ),
+    ),
+  );
+}
+
+class AuroraLoadingSurface extends StatelessWidget {
+  const AuroraLoadingSurface({
+    super.key,
+    this.featured = false,
+    this.minHeight = 0,
+  });
+  final bool featured;
+  final double minHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    if (featured) {
+      return Semantics(
+        label: 'Loading savings',
+        liveRegion: true,
+        child: ExcludeSemantics(
+          child: MintHero(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 220),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.account_balance_wallet_outlined),
+                  const SizedBox(height: 32),
+                  FractionallySizedBox(
+                    widthFactor: .7,
+                    child: Container(
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: SaveTrackDesign.heroSurface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  FractionallySizedBox(
+                    widthFactor: .9,
+                    child: Container(
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: SaveTrackDesign.heroSurface,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return Semantics(
+      label: 'Loading content',
+      liveRegion: true,
+      child: ExcludeSemantics(
+        child: Card(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: minHeight),
+            child: Padding(
+              padding: const EdgeInsets.all(SaveTrackDesign.section),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth < 140) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const MintIcon(Icons.hourglass_empty_rounded, size: 32),
+                        const SizedBox(height: 16),
+                        Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: SaveTrackDesign.border,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                        ),
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      MintIcon(Icons.hourglass_empty_rounded, size: 44),
+                      const SizedBox(width: SaveTrackDesign.space),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            FractionallySizedBox(
+                              widthFactor: .65,
+                              child: Container(
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: SaveTrackDesign.border,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: SaveTrackDesign.spaceMd),
+                            FractionallySizedBox(
+                              widthFactor: .9,
+                              child: Container(
+                                height: 8,
+                                decoration: BoxDecoration(
+                                  color: SaveTrackDesign.mist,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: SaveTrackDesign.space),
+                      if (SaveTrackDesign.duration(
+                            context,
+                            SaveTrackDesign.motion,
+                          ) !=
+                          Duration.zero)
+                        const SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Keeps currency strings intact at large text scales. Overflow stays readable
 /// through a horizontal gesture and an explicit hint, without shrinking text.
 class AmountText extends StatelessWidget {
@@ -459,30 +707,76 @@ class AmountText extends StatelessWidget {
     super.key,
     required this.style,
     this.onDark = false,
+    this.compactCurrency = false,
+    this.supportingSuffix,
   });
   final String text;
   final TextStyle style;
   final bool onDark;
+  final bool compactCurrency;
+  final String? supportingSuffix;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final resolved = DefaultTextStyle.of(context).style.merge(style);
+      // Only typographic emphasis changes; the formatter's exact string,
+      // currency, signs and decimals remain intact, including in semantics.
+      final prefix = compactCurrency
+          ? RegExp(r'^[^0-9]+').stringMatch(text)
+          : null;
+      final suffix =
+          supportingSuffix != null && text.endsWith(supportingSuffix!)
+          ? supportingSuffix!
+          : '';
+      final span = prefix == null || prefix.length == text.length
+          ? TextSpan(text: text, style: resolved)
+          : TextSpan(
+              style: resolved,
+              children: [
+                TextSpan(
+                  text: prefix,
+                  style: TextStyle(
+                    fontSize: (resolved.fontSize ?? 38) * .55,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0,
+                  ),
+                ),
+                TextSpan(
+                  text: text.substring(
+                    prefix.length,
+                    text.length - suffix.length,
+                  ),
+                ),
+                if (suffix.isNotEmpty)
+                  TextSpan(
+                    text: suffix,
+                    style: TextStyle(
+                      fontSize: (resolved.fontSize ?? 28) * .55,
+                      fontWeight: FontWeight.w500,
+                      letterSpacing: 0,
+                    ),
+                  ),
+              ],
+            );
       final measure = TextPainter(
-        text: TextSpan(text: text, style: resolved),
+        text: span,
         textDirection: Directionality.of(context),
         textScaler: MediaQuery.textScalerOf(context),
         maxLines: 1,
       )..layout();
       final overflow = measure.width > constraints.maxWidth;
       measure.dispose();
-      if (!overflow) return Text(text, style: style);
+      Widget figure({bool? softWrap}) => compactCurrency
+          ? Text.rich(span, softWrap: softWrap)
+          : Text(text, style: style, softWrap: softWrap);
+      if (!overflow) return figure();
       final hintColor = onDark ? SaveTrackDesign.onHeroMuted : muted;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Text(text, style: style, softWrap: false),
+            child: figure(softWrap: false),
           ),
           const SizedBox(height: 6),
           Row(
@@ -640,9 +934,8 @@ class MintIcon extends StatelessWidget {
     width: size,
     height: size,
     decoration: BoxDecoration(
-      gradient: SaveTrackDesign.surface,
-      border: Border.all(color: SaveTrackDesign.border),
-      borderRadius: BorderRadius.circular(14),
+      color: SaveTrackDesign.mist,
+      borderRadius: BorderRadius.circular(SaveTrackDesign.radiusSmall),
     ),
     child: Icon(icon, color: color, size: 23),
   );
@@ -676,18 +969,21 @@ class MintProgress extends StatelessWidget {
     label: 'Progress',
     value: '${(value * 100).round()}%',
     child: TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: value),
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : SaveTrackDesign.motion,
-      curve: Curves.easeOutCubic,
+      tween: Tween(begin: value, end: value),
+      duration: SaveTrackDesign.duration(
+        context,
+        SaveTrackDesign.progressMotion,
+      ),
+      curve: SaveTrackDesign.motionCurve,
       builder: (_, progress, _) => ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: Stack(
           children: [
             Container(
               height: 8,
-              color: onDark ? const Color(0x33FFFFFF) : SaveTrackDesign.border,
+              color: onDark
+                  ? SaveTrackDesign.heroTrack
+                  : SaveTrackDesign.lightMint,
             ),
             FractionallySizedBox(
               widthFactor: progress.clamp(0, 1),
@@ -733,9 +1029,8 @@ class _GradientButtonState extends State<GradientButton> {
     onPointerCancel: (_) => setState(() => _pressed = false),
     child: AnimatedScale(
       scale: _pressed ? .985 : 1,
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 120),
+      duration: SaveTrackDesign.duration(context, SaveTrackDesign.pressMotion),
+      curve: SaveTrackDesign.motionCurve,
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: widget.onPressed == null ? null : SaveTrackDesign.signature,
@@ -780,14 +1075,20 @@ class ScreenIntro extends StatelessWidget {
             Text(
               eyebrow,
               style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.1,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
                 color: teal,
               ),
             ),
             const SizedBox(height: 8),
-            Text(title, style: SaveTrackDesign.heading),
+            LayoutBuilder(
+              builder: (context, constraints) => Text(
+                title,
+                style: SaveTrackDesign.heading.copyWith(
+                  fontSize: constraints.maxWidth < 340 ? 26 : 29,
+                ),
+              ),
+            ),
             const SizedBox(height: 6),
             Text(detail, style: const TextStyle(color: muted, height: 1.5)),
           ],
@@ -805,10 +1106,8 @@ class EnterOnce extends StatelessWidget {
   @override
   Widget build(BuildContext context) => TweenAnimationBuilder<double>(
     tween: Tween(begin: 0, end: 1),
-    duration: MediaQuery.disableAnimationsOf(context)
-        ? Duration.zero
-        : SaveTrackDesign.motion,
-    curve: Curves.easeOutCubic,
+    duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
+    curve: SaveTrackDesign.motionCurve,
     child: child,
     builder: (context, value, child) => Opacity(
       opacity: value,
@@ -931,7 +1230,7 @@ class AdaptiveCardList extends StatelessWidget {
           ? 2
           : 1;
       return ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        padding: SaveTrackDesign.pagePadding(constraints.maxWidth, bottom: 100),
         itemCount: (itemCount / columns).ceil() + 1,
         itemBuilder: (context, row) {
           if (row == 0) return header;
@@ -1038,30 +1337,40 @@ class DetailLine extends StatelessWidget {
 }
 
 class ProgressRing extends StatelessWidget {
-  const ProgressRing({super.key, required this.value, this.size = 72});
+  const ProgressRing({
+    super.key,
+    required this.value,
+    this.size = 72,
+    this.onDark = false,
+  });
   final double value, size;
+  final bool onDark;
   @override
   Widget build(BuildContext context) => Semantics(
     label: 'Completion',
     value: '${(value * 100).round()}%',
     child: TweenAnimationBuilder<double>(
-      tween: Tween(begin: 0, end: value),
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 420),
-      curve: Curves.easeOutCubic,
+      tween: Tween(begin: value, end: value),
+      duration: SaveTrackDesign.duration(
+        context,
+        SaveTrackDesign.progressMotion,
+      ),
+      curve: SaveTrackDesign.motionCurve,
       builder: (context, progress, _) => SizedBox.square(
-        dimension: size,
+        dimension:
+            size *
+            (MediaQuery.textScalerOf(context).scale(16) / 16).clamp(1, 1.7),
         child: CustomPaint(
-          painter: _RingPainter(progress),
+          painter: _RingPainter(progress, onDark: onDark),
           child: Center(
             child: ExcludeSemantics(
               child: Text(
                 '${(value * 100).round()}%',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: teal,
+                  color: onDark ? Colors.white : teal,
+                  fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),
             ),
@@ -1073,29 +1382,39 @@ class ProgressRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  const _RingPainter(this.value);
+  const _RingPainter(this.value, {this.onDark = false});
   final double value;
+  final bool onDark;
   @override
   void paint(Canvas canvas, Size size) {
-    final bounds = (Offset.zero & size).deflate(5);
+    final bounds = (Offset.zero & size).deflate(6);
     final stroke = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6
+      ..strokeWidth = 7
       ..strokeCap = StrokeCap.round;
-    canvas.drawOval(bounds, stroke..color = SaveTrackDesign.border);
+    canvas.drawOval(
+      bounds,
+      stroke
+        ..color = onDark
+            ? SaveTrackDesign.heroTrack
+            : SaveTrackDesign.lightMint,
+    );
     if (value > 0) {
       canvas.drawArc(
         bounds,
         -math.pi / 2,
         math.pi * 2 * value.clamp(0, 1),
         false,
-        stroke..shader = SaveTrackDesign.spectrum.createShader(bounds),
+        stroke
+          ..shader = (onDark ? SaveTrackDesign.glow : SaveTrackDesign.spectrum)
+              .createShader(bounds),
       );
     }
   }
 
   @override
-  bool shouldRepaint(_RingPainter oldDelegate) => oldDelegate.value != value;
+  bool shouldRepaint(_RingPainter oldDelegate) =>
+      oldDelegate.value != value || oldDelegate.onDark != onDark;
 }
 
 class AuthComposition extends StatelessWidget {
@@ -1152,7 +1471,7 @@ class AuthComposition extends StatelessWidget {
         ),
         if (!compact) ...[
           const SizedBox(height: 48),
-          const Divider(color: Color(0x33FFFFFF)),
+          const Divider(color: SaveTrackDesign.heroTrack),
           const SizedBox(height: 20),
           const DetailLine(
             icon: Icons.flag_outlined,
