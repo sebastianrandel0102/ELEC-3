@@ -1,11 +1,11 @@
 {
-    "name": "myproject",
-    "short_name": "myproject",
+    "name": "SaveTrack",
+    "short_name": "SaveTrack",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#073F34",
+    "theme_color": "#073F34",
+    "description": "SaveTrack — Savings Goals & Daily Planner",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

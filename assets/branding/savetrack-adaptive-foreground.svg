@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <title>SaveTrack — piggy bank and one floating coin</title>
+  <desc>A simple mint piggy bank with two sturdy feet, one small eye, and a gold coin directly above the money slot.</desc>
+  <g transform="translate(512 512) scale(0.84) translate(-512 -512)"><g id="pig">
+    <path id="tail" fill="#4BD4A8" d="M 710 525 C 753 523 782 498 778 455 C 809 490 794 542 736 555 Z" />
+    <path id="body" fill="#4BD4A8" d="M 299 455 C 305 422 322 392 347 369 L 347 315 Q 347 301 361 305 Q 397 314 418 349 C 448 337 480 331 514 331 C 636 331 730 417 735 530 C 739 596 705 654 661 689 L 661 741 Q 661 763 639 763 L 595 763 Q 573 763 573 741 L 573 720 C 526 737 463 737 416 721 L 416 741 Q 416 763 394 763 L 350 763 Q 328 763 328 741 L 328 689 C 294 664 271 629 259 591 L 235 591 Q 213 591 213 569 L 213 489 Q 213 455 247 455 Z" />
+    <path id="slot" fill="#073F34" d="M 462 364 L 562 364 C 570 364 576 370 576 378 C 576 386 570 392 562 392 L 462 392 C 454 392 448 386 448 378 C 448 370 454 364 462 364 Z" />
+    <path id="eye" fill="#073F34" d="M 364 442 C 364 449.732 357.732 456 350 456 C 342.268 456 336 449.732 336 442 C 336 434.268 342.268 428 350 428 C 357.732 428 364 434.268 364 442 Z" />
+  </g>
+  <g id="coin">
+    <path id="coin-face" fill="#F5C96A" d="M 584 222 C 584 261.765 551.765 294 512 294 C 472.235 294 440 261.765 440 222 C 440 182.235 472.235 150 512 150 C 551.765 150 584 182.235 584 222 Z" />
+    <path id="coin-rim" fill="none" stroke="#DDAA4F" stroke-width="12" d="M 562 222 C 562 249.614 539.614 272 512 272 C 484.386 272 462 249.614 462 222 C 462 194.386 484.386 172 512 172 C 539.614 172 562 194.386 562 222 Z" />
+  </g>
+</g></svg>

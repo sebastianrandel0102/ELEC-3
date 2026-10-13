@@ -170,7 +170,7 @@ class SessionLoading extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const AuroraEmblem(size: 80, onDark: true),
+                const AuroraEmblem(size: 80, onDark: true, animate: true),
                 const SizedBox(height: 24),
                 const Text(
                   'SaveTrack',
@@ -2653,8 +2653,10 @@ class BrandMark extends StatelessWidget {
         child: Text(
           'SaveTrack',
           style: TextStyle(
+            fontFamily: 'Manrope',
             fontSize: 20,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -.5,
             color: teal,
           ),
         ),
