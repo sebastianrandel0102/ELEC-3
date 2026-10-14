@@ -1,3 +1,16 @@
+SaveTrack branding:
+
+- `savetrack-symbol.svg`: original 1024 × 1024 vector master. Edit this file to change the piggy bank geometry.
+- `savetrack-icon.svg` / `.png`: opaque emerald gradient launcher artwork.
+- `savetrack-symbol.png`: transparent mint symbol, also used to export the native splash images.
+- `savetrack-light.svg` / `.png`: emerald pig and gold coin for light surfaces.
+- `savetrack-monochrome.svg` / `.png`: one-color pig and a separate ring-shaped coin.
+- `savetrack-adaptive-foreground.svg` / `.png`: transparent foreground within the Android safe area.
+
+Regenerate all variants, Flutter vector drawing code, Android resources, iOS icons/splash images, and web icons with `py tools/generate_branding.py` from the repository root. Python standard library and the project's existing Flutter/image tooling are sufficient; no new packages are needed. The in-app logo uses compiled vector drawing code, so these export PNGs do not add image decoding or unused launcher artwork to the Flutter asset bundle.
+
+See [implementation and verification details](../../docs/BRANDING.md).
+
 Google branding assets used only by the Continue with Google button:
 
 - `google_g.png`: downloaded unchanged from Google's current branding guidelines at https://developers.google.com/static/identity/images/g-logo.png.

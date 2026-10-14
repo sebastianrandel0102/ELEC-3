@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'dart:math' as math;
 
+import 'branding/savetrack_logo.dart';
+
 const mint = Color(0xFFABF2D7);
 const teal = Color(0xFF0B5B4B);
 const canvas = Color(0xFFF6FBF8);
@@ -438,26 +440,17 @@ class _AuroraPainter extends CustomPainter {
 }
 
 class AuroraEmblem extends StatelessWidget {
-  const AuroraEmblem({super.key, this.size = 40, this.onDark = false});
+  const AuroraEmblem({
+    super.key,
+    this.size = 40,
+    this.onDark = false,
+    this.animate = false,
+  });
   final double size;
-  final bool onDark;
+  final bool onDark, animate;
   @override
-  Widget build(BuildContext context) => ExcludeSemantics(
-    child: Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        gradient: onDark ? SaveTrackDesign.glow : SaveTrackDesign.signature,
-        borderRadius: BorderRadius.circular(size * .3),
-        border: Border.all(color: mint.withValues(alpha: .25)),
-      ),
-      child: Icon(
-        Icons.trending_up_rounded,
-        color: onDark ? SaveTrackDesign.midnight : Colors.white,
-        size: size * .62,
-      ),
-    ),
-  );
+  Widget build(BuildContext context) =>
+      SaveTrackLogo(size: size, onDark: onDark, animate: animate);
 }
 
 /// Quiet surface for balances, form context, and secondary summaries.
