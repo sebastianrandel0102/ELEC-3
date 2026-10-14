@@ -10,6 +10,7 @@ import 'package:myproject/ai_coach/ai_domain.dart';
 import 'package:myproject/ai_coach/ai_response.dart';
 import 'package:myproject/ai_coach/ai_widgets.dart';
 import 'package:myproject/design_system.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ai_coach_fixtures.dart';
 import 'redesign_test.dart' as preview;
@@ -33,6 +34,7 @@ void main() {
     }
   });
   setUp(() {
+    SharedPreferences.setMockInitialValues({});
     time = DateTime(2026, 10, 14);
     gateway = RecordingAiGateway();
     controller = AiCoachController(
@@ -48,6 +50,7 @@ void main() {
     Size size = const Size(390, 844),
     double scale = 1,
     double keyboard = 0,
+    AiCoachController? withController,
   }) async {
     addTearDown(() {
       tester.view.resetPhysicalSize();
@@ -56,11 +59,31 @@ void main() {
     });
     await preview.mount(
       tester,
-      AiCoachScreen(controller: controller),
+      AiCoachScreen(controller: withController ?? controller),
       size: size,
       scale: scale,
       keyboard: keyboard,
     );
+  }
+
+  Future<AiCoachController> reopenCoach(
+    WidgetTester tester, {
+    String uid = 'private-uid',
+    Size size = const Size(390, 844),
+    double scale = 1,
+  }) async {
+    await tester.pumpWidget(const SizedBox.shrink());
+    final fresh = AiCoachController(gateway: gateway, currentUid: () => uid);
+    addTearDown(fresh.dispose);
+    await mount(tester, withController: fresh, size: size, scale: scale);
+    return fresh;
+  }
+
+  Future<void> askQuestion(WidgetTester tester) async {
+    await tester.enterText(find.byType(TextField), 'Explain science');
+    await tester.pump();
+    await tester.tap(find.byTooltip('Send question'));
+    await tester.pumpAndSettle();
   }
 
   for (final width in [320.0, 360.0, 390.0, 412.0, 480.0, 600.0, 960.0]) {
@@ -200,13 +223,113 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Before your first question'), findsOneWidget);
     expect(gateway.requests, isEmpty);
+    expect(
+      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+      false,
+    );
+    await preview.capture(tester, 'ai-provider-notice');
+    await tester.ensureVisible(find.text('Do not show again'));
+    await tester.tap(find.text('Do not show again'));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(gateway.requests, isEmpty);
+    expect(firstUse.providerAcknowledged, false);
+    expect((await SharedPreferences.getInstance()).getKeys(), isEmpty);
     expect(
       tester.widget<TextField>(find.byType(TextField)).controller!.text,
       'Explain science',
     );
+  });
+  testWidgets(
+    'remembered notice survives reopening and stays account-specific',
+    (tester) async {
+      await reopenCoach(tester);
+      await askQuestion(tester);
+      await tester.ensureVisible(find.text('Do not show again'));
+      await tester.tap(find.text('Do not show again'));
+      await tester.tap(find.text('I understand'));
+      await tester.pumpAndSettle();
+      expect(gateway.requests, hasLength(1));
+
+      final returning = await reopenCoach(tester);
+      expect(returning.providerAcknowledged, false);
+      await askQuestion(tester);
+      expect(find.text('Before your first question'), findsNothing);
+      expect(returning.providerAcknowledged, true);
+      expect(gateway.requests, hasLength(2));
+
+      await reopenCoach(tester, uid: 'another-user');
+      await askQuestion(tester);
+      expect(find.text('Before your first question'), findsOneWidget);
+      expect(gateway.requests, hasLength(2));
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    },
+  );
+  testWidgets(
+    'accepting without remembering shows the notice on a future visit',
+    (tester) async {
+      await reopenCoach(tester);
+      await askQuestion(tester);
+      await tester.tap(find.text('I understand'));
+      await tester.pumpAndSettle();
+      expect(gateway.requests, hasLength(1));
+      await reopenCoach(tester);
+      await askQuestion(tester);
+      expect(find.text('Before your first question'), findsOneWidget);
+      expect(gateway.requests, hasLength(1));
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+    },
+  );
+  testWidgets('AI privacy can reopen the notice and restore future reminders', (
+    tester,
+  ) async {
+    await reopenCoach(tester);
+    await askQuestion(tester);
+    await tester.ensureVisible(find.text('Do not show again'));
+    await tester.tap(find.text('Do not show again'));
+    await tester.tap(find.text('I understand'));
+    await tester.pumpAndSettle();
+    await reopenCoach(tester);
+    await tester.tap(find.byTooltip('Chat actions'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('AI privacy'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(
+      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+      true,
+    );
+    await tester.ensureVisible(find.text('Do not show again'));
+    await tester.tap(find.text('Do not show again'));
+    await tester.tap(find.text('I understand'));
+    await tester.pumpAndSettle();
+    await reopenCoach(tester);
+    await askQuestion(tester);
+    expect(find.text('Before your first question'), findsOneWidget);
+    expect(gateway.requests, hasLength(1));
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+  });
+  testWidgets('notice checkbox and confirmation work with large text', (
+    tester,
+  ) async {
+    await reopenCoach(tester, size: const Size(320, 640), scale: 2);
+    await askQuestion(tester);
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.text('Do not show again'));
+    await tester.tap(find.text('Do not show again'));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value,
+      true,
+    );
+    await tester.tap(find.text('I understand'));
+    await tester.pumpAndSettle();
+    expect(gateway.requests, hasLength(1));
+    expect(tester.takeException(), isNull);
   });
   testWidgets(
     'Coach review approval is required and exact local facts remain separate',

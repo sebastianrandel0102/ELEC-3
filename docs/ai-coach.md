@@ -84,8 +84,11 @@ guards, not tamper-proof provider quotas. There are no automatic retry loops.
 ## Privacy and authoritative financial facts
 
 The first send explains Google processing, unpaid-service product improvement
-and human review, in-memory retention, and answer limitations. The AI privacy
-menu can reopen this disclosure. Users should not type personal, sensitive,
+and human review, in-memory retention, and answer limitations. Selecting
+**Do not show again** and confirming **I understand** saves a versioned,
+account-specific preference on this device; canceling saves nothing. The
+**AI privacy** menu always reopens this disclosure and lets users uncheck the
+option to restore it on future visits. Users should not type personal, sensitive,
 confidential or credential information. The implementation cannot reliably
 classify arbitrary user-written questions; the notice does not promise that.
 

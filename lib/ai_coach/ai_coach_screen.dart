@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../design_system.dart';
 import 'ai_controller.dart';
@@ -134,32 +135,91 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
 
   Future<bool> _providerNotice({bool always = false}) async {
     if (_controller.providerAcknowledged && !always) return true;
+    final uid = _controller.currentUid();
+    // Version the preference so a changed disclosure can be shown again.
+    final preferenceKey = 'savetrack.ai.providerNotice.v1.$uid';
+    var doNotShowAgain = false;
+    SharedPreferences? preferences;
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        preferences = await SharedPreferences.getInstance();
+        doNotShowAgain = preferences.getBool(preferenceKey) ?? false;
+      } catch (_) {
+        // If local storage is unavailable, keep showing the notice.
+      }
+    }
+    if (!mounted || _controller.currentUid() != uid) return false;
+    if (doNotShowAgain && !always) {
+      _controller.acknowledgeProvider();
+      return true;
+    }
     final accepted = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(always ? 'AI privacy' : 'Before your first question'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'SaveTrack AI sends your questions, recent chat turns and any summary you explicitly approve to Google’s Gemini service.\n\n'
-            'The unpaid service may use questions and answers to improve products, including human review. Do not enter personal, sensitive or confidential information, passwords or tokens.\n\n'
-            'Exact SaveTrack financial facts stay local. Chat history is held in memory and cleared when you leave or sign out. AI answers can be inaccurate and have no live web search.',
-            style: TextStyle(height: 1.6),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: Text(always ? 'AI privacy' : 'Before your first question'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'SaveTrack AI sends your questions, recent chat turns and any summary you explicitly approve to Google’s Gemini service.\n\n'
+                  'The unpaid service may use questions and answers to improve products, including human review. Do not enter personal, sensitive or confidential information, passwords or tokens.\n\n'
+                  'Exact SaveTrack financial facts stay local. Chat history is held in memory and cleared when you leave or sign out. AI answers can be inaccurate and have no live web search.',
+                  style: TextStyle(height: 1.6),
+                ),
+                if (uid != null && uid.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    title: const Text(
+                      'Do not show again',
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    value: doNotShowAgain,
+                    onChanged: (value) =>
+                        setDialogState(() => doNotShowAgain = value ?? false),
+                  ),
+                ],
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('I understand'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('I understand'),
-          ),
-        ],
       ),
     );
-    if (!mounted || accepted != true) return false;
+    if (!mounted || accepted != true || _controller.currentUid() != uid) {
+      return false;
+    }
+    var saved = true;
+    if (uid != null && uid.isNotEmpty) {
+      try {
+        preferences ??= await SharedPreferences.getInstance();
+        saved = await preferences.setBool(preferenceKey, doNotShowAgain);
+      } catch (_) {
+        saved = false;
+      }
+    }
+    if (!mounted || _controller.currentUid() != uid) return false;
     _controller.acknowledgeProvider();
+    if (!saved) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not save your privacy notice preference.'),
+        ),
+      );
+    }
     return true;
   }
 
@@ -461,9 +521,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                           tooltip: 'Chat actions',
                           icon: const Icon(Icons.more_horiz_rounded),
                           onSelected: (value) {
-                            if (value == 'setup') {
-                              _setup();
-                            } else if (value == 'privacy') {
+                            if (value == 'privacy') {
                               _providerNotice(always: true);
                             } else if (value == 'revoke') {
                               _controller.revokeContext();
@@ -488,10 +546,6 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                             const PopupMenuItem(
                               value: 'privacy',
                               child: Text('AI privacy'),
-                            ),
-                            const PopupMenuItem(
-                              value: 'setup',
-                              child: Text('AI setup'),
                             ),
                           ],
                         ),
