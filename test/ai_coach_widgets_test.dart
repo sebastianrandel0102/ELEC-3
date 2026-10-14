@@ -381,6 +381,52 @@ void main() {
     await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     await review;
+    for (final subject in [AiContextValue.planner, AiContextValue.report]) {
+      final summary = AiSafeSummary({
+        AiContextField.subject: subject,
+        AiContextField.workload: subject == AiContextValue.planner
+            ? AiContextValue.light
+            : AiContextValue.moderate,
+        AiContextField.completion: subject == AiContextValue.planner
+            ? AiContextValue.noneComplete
+            : AiContextValue.someComplete,
+        AiContextField.priority: subject == AiContextValue.planner
+            ? AiContextValue.noHighPriority
+            : AiContextValue.highPriorityPresent,
+      });
+      final subjectReview = showAiContextReview(
+        tester.element(find.byType(AiCoachScreen)),
+        AiLocalFacts(
+          title: 'Local preview',
+          values: const {},
+          summary: summary,
+          subjectKey: 'preview-${subject.name}',
+          revision: 'preview',
+          ownerUid: 'private-uid',
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      await preview.capture(tester, 'ai-context-review-${subject.name}');
+      await tester.tap(find.text('View exact data'));
+      await tester.pumpAndSettle();
+      expect(find.text(summary.text), findsOneWidget);
+      expect(tester.takeException(), isNull);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      await subjectReview;
+    }
+    final sharedReview = showAiContextReview(
+      tester.element(find.byType(AiCoachScreen)),
+      goalFixture(shared: true),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Approve this summary'), findsNothing);
+    expect(find.text('View exact data'), findsNothing);
+    await preview.capture(tester, 'ai-context-review-shared');
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await sharedReview;
     gateway.reply =
         '## Your next step\n\nYou’re in the **early stage** of this goal. Build a contribution routine that fits your week.\n\n'
         '1. Pick a consistent savings day.\n2. Review your local daily pace.\n3. Adjust if your budget changes.\n\nExact financial values stay in the SaveTrack fact card.';
@@ -404,6 +450,35 @@ void main() {
       scale: 2,
     );
     await preview.capture(tester, 'ai-accessibility-320');
+    final largeTextReview = showAiContextReview(
+      tester.element(find.byType(AiCoachScreen)),
+      goalFixture(),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await preview.capture(tester, 'ai-context-review-accessibility-320');
+    await tester.ensureVisible(find.text('General advice instead'));
+    await tester.tap(find.text('General advice instead'));
+    await tester.pumpAndSettle();
+    expect(await largeTextReview, AiReviewChoice.localOnly);
+    await preview.mount(
+      tester,
+      AiCoachScreen(controller: controller),
+      size: const Size(740, 360),
+      keyboard: 150,
+    );
+    final shortReview = showAiContextReview(
+      tester.element(find.byType(AiCoachScreen)),
+      goalFixture(),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.ensureVisible(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(await shortReview, isNull);
+    expect(tester.takeException(), isNull);
     controller.revokeContext();
   });
 }

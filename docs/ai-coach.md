@@ -89,7 +89,8 @@ menu can reopen this disclosure. Users should not type personal, sensitive,
 confidential or credential information. The implementation cannot reliably
 classify arbitrary user-written questions; the notice does not promise that.
 
-Coach review displays the **exact categorical JSON** that would be sent. The
+Coach review displays readable categorical summary rows, with the **exact
+categorical JSON** available under **View exact data**. The
 allowlist contains only subject, broad progress/deadline category, workload,
 completion category, and presence of high-priority work. Raw goal/task text,
 balances, currency, exact dates, counts, notes, UIDs, document IDs, transaction

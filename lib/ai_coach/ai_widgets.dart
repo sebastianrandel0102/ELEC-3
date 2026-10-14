@@ -452,66 +452,380 @@ Future<AiReviewChoice?> showAiContextReview(
   useSafeArea: true,
   showDragHandle: true,
   backgroundColor: Colors.white,
-  builder: (context) => SingleChildScrollView(
-    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+  constraints: const BoxConstraints(maxWidth: 560),
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+  ),
+  clipBehavior: Clip.antiAlias,
+  builder: (context) => _AiContextReviewSheet(facts: facts),
+);
+
+class _AiContextReviewSheet extends StatelessWidget {
+  const _AiContextReviewSheet({required this.facts});
+  final AiLocalFacts facts;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+    child: SafeArea(
+      top: false,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final content = Padding(
+            padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: SaveTrackDesign.lightMint,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.shield_outlined,
+                        color: teal,
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    const Expanded(
+                      child: Text(
+                        'Review AI Context',
+                        style: TextStyle(
+                          fontSize: 22,
+                          height: 1.25,
+                          letterSpacing: -.5,
+                          fontWeight: FontWeight.w700,
+                          color: ink,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  facts.shared
+                      ? 'Shared goal facts stay on your device. Member participation does not authorize external sharing.'
+                      : 'Only the broad categories below will be shared. Names, exact amounts, dates, notes and identifiers stay on your device.',
+                  style: const TextStyle(
+                    color: muted,
+                    height: 1.6,
+                    fontSize: 13,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                if (facts.shared)
+                  const _AiReviewNotice(
+                    icon: Icons.lock_outline_rounded,
+                    title: 'Shared goals stay private',
+                    detail: 'You can still get general advice without sharing this goal’s context.',
+                    tonal: true,
+                  )
+                else
+                  _AiReviewSummary(summary: facts.summary),
+                const SizedBox(height: 20),
+                const _AiReviewNotice(
+                  icon: Icons.info_outline_rounded,
+                  title: 'About Google processing',
+                  detail: 'Google processes questions and answers. Unpaid API content may be used to improve products and reviewed by people. Do not include personal, confidential or sensitive information.',
+                ),
+                if (!facts.shared) ...[
+                  const SizedBox(height: 16),
+                  const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.schedule_rounded, size: 16, color: muted),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Approval lasts 10 minutes. Revoke it anytime.',
+                          style: TextStyle(
+                            color: muted,
+                            fontSize: 12,
+                            height: 1.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          );
+          final actions = Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!facts.shared) ...[
+                  FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: teal,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(52),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 14,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: () =>
+                        Navigator.pop(context, AiReviewChoice.approve),
+                    child: const Text(
+                      'Approve this summary',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: teal,
+                    minimumSize: const Size.fromHeight(52),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 14,
+                    ),
+                    side: const BorderSide(
+                      color: SaveTrackDesign.elevatedBorder,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () =>
+                      Navigator.pop(context, AiReviewChoice.localOnly),
+                  child: const Text(
+                    'General advice instead',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+              ],
+            ),
+          );
+          // Short screens and large text scroll as one unit so the footer
+          // cannot crowd out the summary or overflow above an open keyboard.
+          if (constraints.maxHeight < 560 ||
+              MediaQuery.textScalerOf(context).scale(14) > 21) {
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [content, const Divider(height: 1), actions],
+              ),
+            );
+          }
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(child: SingleChildScrollView(child: content)),
+              const Divider(height: 1),
+              actions,
+            ],
+          );
+        },
+      ),
+    ),
+  );
+}
+
+class _AiReviewSummary extends StatelessWidget {
+  const _AiReviewSummary({required this.summary});
+  final AiSafeSummary summary;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: SaveTrackDesign.mist,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: SaveTrackDesign.elevatedBorder),
+    ),
+    clipBehavior: Clip.antiAlias,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.shield_outlined, color: teal, size: 32),
-        const SizedBox(height: 14),
-        const Text(
-          'Review AI Context',
-          style: TextStyle(
-            fontSize: 23,
-            fontWeight: FontWeight.w700,
-            color: ink,
+        const Padding(
+          padding: EdgeInsets.fromLTRB(18, 16, 18, 8),
+          child: Text(
+            'What AI will see',
+            style: TextStyle(
+              color: teal,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
-        const SizedBox(height: 10),
-        Text(
-          facts.shared
-              ? 'Shared goal facts stay on your device. Member participation does not authorize external sharing.'
-              : 'Only these anonymous categories would be sent. Names, exact amounts, dates, notes and identifiers stay on your device.',
-          style: const TextStyle(color: muted, height: 1.6),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 0, 18, 8),
+          child: Column(
+            children: [
+              for (final entry in summary.fields.entries)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final label = Text(
+                        _fieldLabel(entry.key),
+                        style: const TextStyle(color: muted, fontSize: 13),
+                      );
+                      final value = Text(
+                        _valueLabel(entry.value),
+                        style: const TextStyle(
+                          color: ink,
+                          fontSize: 13,
+                          height: 1.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      );
+                      if (constraints.maxWidth < 280 ||
+                          MediaQuery.textScalerOf(context).scale(13) > 19.5) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [label, const SizedBox(height: 3), value],
+                        );
+                      }
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(child: label),
+                          const SizedBox(width: 16),
+                          Expanded(flex: 2, child: value),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+            ],
+          ),
         ),
-        const SizedBox(height: 16),
-        if (!facts.shared)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: SaveTrackDesign.mist,
-              borderRadius: BorderRadius.circular(16),
+        const Divider(height: 1, color: SaveTrackDesign.elevatedBorder),
+        ExpansionTile(
+          title: const Text(
+            'View exact data',
+            style: TextStyle(
+              color: teal,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
             ),
-            child: SelectableText(
-              facts.summary.text,
+          ),
+          tilePadding: const EdgeInsets.symmetric(horizontal: 18),
+          childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
+          expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
+          iconColor: teal,
+          collapsedIconColor: teal,
+          shape: const Border(),
+          collapsedShape: const Border(),
+          children: [
+            SelectableText(
+              summary.text,
               style: const TextStyle(
                 color: ink,
                 fontFamily: 'monospace',
+                fontSize: 12,
                 height: 1.6,
               ),
             ),
-          ),
-        const SizedBox(height: 16),
-        const Text(
-          'Google processes questions and answers. Unpaid API content may be used to improve products and reviewed by people. Do not include personal, confidential or sensitive information. Approval expires in 10 minutes and can be revoked.',
-          style: TextStyle(color: muted, height: 1.6, fontSize: 12),
-        ),
-        const SizedBox(height: 20),
-        if (!facts.shared)
-          FilledButton(
-            onPressed: () => Navigator.pop(context, AiReviewChoice.approve),
-            child: const Text('Approve this summary'),
-          ),
-        OutlinedButton(
-          onPressed: () => Navigator.pop(context, AiReviewChoice.localOnly),
-          child: const Text('General advice instead'),
-        ),
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel'),
+          ],
         ),
       ],
     ),
-  ),
-);
+  );
+
+  static String _fieldLabel(AiContextField field) => switch (field) {
+    AiContextField.subject => 'Subject',
+    AiContextField.progress => 'Progress',
+    AiContextField.deadline => 'Deadline',
+    AiContextField.workload => 'Workload',
+    AiContextField.completion => 'Completion',
+    AiContextField.priority => 'Priority',
+  };
+
+  static String _valueLabel(AiContextValue value) => switch (value) {
+    AiContextValue.savings => 'Savings goal',
+    AiContextValue.planner => 'Daily planner',
+    AiContextValue.report => 'Weekly report',
+    AiContextValue.notStarted => 'Not started',
+    AiContextValue.early => 'Early stage',
+    AiContextValue.midway => 'Midway',
+    AiContextValue.advanced => 'Well underway',
+    AiContextValue.achieved => 'Goal achieved',
+    AiContextValue.noDeadline => 'No deadline set',
+    AiContextValue.overdue => 'Overdue',
+    AiContextValue.soon => 'Coming up soon',
+    AiContextValue.later => 'Further away',
+    AiContextValue.noTasks => 'No tasks',
+    AiContextValue.light => 'Light',
+    AiContextValue.moderate => 'Moderate',
+    AiContextValue.busy => 'Busy',
+    AiContextValue.noneComplete => 'No tasks completed',
+    AiContextValue.someComplete => 'Some tasks completed',
+    AiContextValue.allComplete => 'All tasks completed',
+    AiContextValue.highPriorityPresent => 'High-priority tasks pending',
+    AiContextValue.noHighPriority => 'No high-priority tasks pending',
+  };
+}
+
+class _AiReviewNotice extends StatelessWidget {
+  const _AiReviewNotice({
+    required this.icon,
+    required this.title,
+    required this.detail,
+    this.tonal = false,
+  });
+  final IconData icon;
+  final String title, detail;
+  final bool tonal;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: tonal ? const EdgeInsets.all(16) : EdgeInsets.zero,
+    decoration: tonal
+        ? BoxDecoration(
+            color: SaveTrackDesign.mist,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: SaveTrackDesign.elevatedBorder),
+          )
+        : null,
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: teal, size: 18),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: ink,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                detail,
+                style: const TextStyle(color: muted, height: 1.6, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
+}
