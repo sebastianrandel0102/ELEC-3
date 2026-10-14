@@ -12,6 +12,11 @@ available memory.
 firebase_storage 13.6.0, and cloud_firestore 6.10.0. The original packages in the
 Pub cache and their Dart, web, and Apple implementations remain unchanged.
 
+AI Coach also stages firebase_app_check 0.4.8 and firebase_ai 4.0.0 with the same
+version-pinned built-in Kotlin migration. These packages retain their original
+native source and dependencies; only the legacy Gradle guards/compiler hooks
+are adapted for this repository's AGP 9 setup.
+
 The three Kotlin modules remove their legacy Kotlin Gradle Plugin guards and
 configure `kotlin.compilerOptions` directly, following the
 [Flutter migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-plugin-authors).
