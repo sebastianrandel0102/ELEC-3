@@ -7,6 +7,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_service.dart';
+import 'ai_coach/ai_coach_screen.dart';
+import 'ai_coach/ai_widgets.dart';
+import 'ai_coach/firebase_ai_gateway.dart';
 import 'currency_money.dart';
 import 'currency_service.dart';
 import 'currency_widgets.dart';
@@ -44,6 +47,7 @@ Future<void> main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await AiAppCheck.initialize();
   } catch (error) {
     startupError = error;
   }
@@ -585,6 +589,13 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Open AI Coach',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
+            ),
+            icon: const Icon(Icons.auto_awesome_rounded, color: teal, size: 26),
+          ),
           if (_index != 4)
             IconButton(
               tooltip: 'Profile',
@@ -827,6 +838,11 @@ class DashboardScreen extends StatelessWidget {
           ),
           onGoals: () => _openTab(context, 1),
           onPlanner: () => _openTab(context, 2),
+          ai: AiDashboardCard(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
+            ),
+          ),
         );
       },
     );
@@ -936,15 +952,22 @@ class DashboardLayout extends StatelessWidget {
     required this.onGoals,
     required this.onPlanner,
     this.tasksAreSlivers = false,
+    this.ai,
   });
   final Widget header, savings, metrics, goals, tasks;
+  final Widget? ai;
   final VoidCallback onGoals, onPlanner;
   final bool tasksAreSlivers;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
       final overview = Column(
-        children: [savings, const SizedBox(height: 16), metrics],
+        children: [
+          savings,
+          const SizedBox(height: 16),
+          metrics,
+          if (ai != null) ...[const SizedBox(height: 16), ai!],
+        ],
       );
       final planHeader = SectionHeader(
         title: "Today\u2019s plan",

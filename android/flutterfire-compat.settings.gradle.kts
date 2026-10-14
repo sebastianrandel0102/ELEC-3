@@ -6,6 +6,8 @@ val pluginVersions = mapOf(
     "firebase_auth" to "6.7.0",
     "firebase_storage" to "13.6.0",
     "cloud_firestore" to "6.10.0",
+    "firebase_app_check" to "0.4.8",
+    "firebase_ai" to "4.0.0",
 )
 
 fun writeIfChanged(destination: File, bytes: ByteArray) {
@@ -17,7 +19,7 @@ fun writeIfChanged(destination: File, bytes: ByteArray) {
 
 fun migrateKotlin(script: String): String {
     val legacyKotlin = Regex(
-        """(?ms)^// AGP 9\+ has built-in Kotlin support.*?^if \([^\n]+\) \{\n    apply plugin: 'kotlin-android'\n\}\n""",
+        """(?ms)^// AGP 9\+ has built-in Kotlin support.*?^if \([^\n]+\) \{\n[ \t]+apply plugin: 'kotlin-android'\n\}\n""",
     )
     val legacyCompilerOptions = Regex(
         """(?ms)^plugins\.withId\("org\.jetbrains\.kotlin\.android"\) \{.*?^\}\n""",
