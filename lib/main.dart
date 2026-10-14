@@ -589,6 +589,13 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
         actions: [
+          IconButton(
+            tooltip: 'Open AI Coach',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
+            ),
+            icon: const Icon(Icons.auto_awesome_rounded, color: teal, size: 26),
+          ),
           if (_index != 4)
             IconButton(
               tooltip: 'Profile',
