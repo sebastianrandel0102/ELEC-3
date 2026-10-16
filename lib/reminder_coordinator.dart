@@ -229,7 +229,11 @@ class ReminderCoordinator extends ChangeNotifier {
       statuses[key] ??
       const ReminderStatus(ReminderDelivery.off, 'Reminder off');
 
-  Future<void> save(ReminderConfiguration config, ReminderTarget target) async {
+  Future<void> save(
+    ReminderConfiguration config,
+    ReminderTarget target, {
+    Future<void> Function(ReminderConfiguration)? persist,
+  }) async {
     if (uid != config.uid) {
       throw const ReminderFailure(
         'Your account changed. Open the reminder again.',
@@ -254,7 +258,8 @@ class ReminderCoordinator extends ChangeNotifier {
     // Mobile Firestore already persists offline writes. Do not report cloud
     // confirmation while waiting; its snapshot metadata drives the sync label.
     try {
-      await repository.save(config).timeout(const Duration(seconds: 8));
+      await (persist ?? repository.save)(config)
+          .timeout(const Duration(seconds: 8));
     } on TimeoutException {
       throw const ReminderFailure(
         'The reminder change is awaiting cloud confirmation. Check Smart Reminders for sync and phone scheduling status.',
