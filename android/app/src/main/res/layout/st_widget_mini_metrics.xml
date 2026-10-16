@@ -1,0 +1,4 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/st_mini_metrics" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:padding="12dp" android:orientation="vertical" android:background="@drawable/st_widget_secondary_light">
+<TextView android:id="@+id/st_mini_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="@dimen/st_widget_label" android:maxLines="1"/>
+<TextView android:id="@+id/st_mini_value" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:textSize="@dimen/st_widget_title" android:fontFeatureSettings="tnum" android:fontFamily="sans-serif-medium"/>
+</LinearLayout>

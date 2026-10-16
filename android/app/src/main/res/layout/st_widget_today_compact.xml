@@ -1,0 +1,25 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:orientation="horizontal"
+    android:gravity="center_vertical" android:padding="10dp" android:baselineAligned="false"
+    android:background="@drawable/st_widget_emerald">
+    <LinearLayout android:id="@id/st_today_goal" android:layout_width="0dp"
+        android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+        <TextView android:id="@id/st_today_goal_label" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Savings" android:textSize="10sp"
+            android:maxLines="1" android:ellipsize="end" />
+        <TextView android:id="@id/st_today_goal_value" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textSize="17sp" android:textStyle="bold"
+            android:maxLines="1" />
+    </LinearLayout>
+    <LinearLayout android:id="@id/st_today_tasks" android:layout_width="0dp"
+        android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical"
+        android:layout_marginStart="8dp">
+        <TextView android:id="@id/st_today_tasks_label" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:text="Tasks left" android:textSize="10sp"
+            android:maxLines="1" android:ellipsize="end" />
+        <TextView android:id="@id/st_today_tasks_value" android:layout_width="match_parent"
+            android:layout_height="wrap_content" android:textSize="17sp" android:textStyle="bold"
+            android:maxLines="1" />
+    </LinearLayout>
+</LinearLayout>

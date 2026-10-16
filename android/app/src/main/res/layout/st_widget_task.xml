@@ -1,0 +1,6 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/st_task_row" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:layout_marginTop="6dp" android:padding="8dp" android:orientation="horizontal" android:gravity="center_vertical" android:background="@drawable/st_widget_today_panel">
+<ImageView android:id="@+id/st_task_icon" android:layout_width="18dp" android:layout_height="18dp" android:layout_marginEnd="8dp" android:src="@drawable/st_widget_task_marker" android:importantForAccessibility="no"/>
+<LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+<TextView android:id="@+id/st_task_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end" android:textSize="@dimen/st_widget_body" android:fontFamily="sans-serif-medium"/>
+<TextView android:id="@+id/st_task_meta" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxLines="1" android:ellipsize="end" android:textSize="@dimen/st_widget_label"/>
+</LinearLayout></LinearLayout>

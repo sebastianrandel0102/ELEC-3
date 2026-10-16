@@ -1,0 +1,15 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:orientation="vertical" android:padding="@dimen/st_widget_inset"
+    android:background="@drawable/st_widget_emerald">
+    <include layout="@layout/st_widget_today_header" />
+    <LinearLayout android:id="@+id/st_today_summaries" android:layout_width="match_parent"
+        android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="8dp"
+        android:orientation="horizontal" android:baselineAligned="false">
+        <include layout="@layout/st_widget_today_goal" android:layout_width="0dp"
+            android:layout_height="match_parent" android:layout_weight="1" />
+        <include layout="@layout/st_widget_today_tasks" android:layout_width="0dp"
+            android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="8dp" />
+    </LinearLayout>
+    <include layout="@layout/st_widget_today_footer" />
+</LinearLayout>

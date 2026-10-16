@@ -1,0 +1,8 @@
+<resources>
+    <color name="st_system_background">@color/st_day_background</color>
+    <color name="st_system_surface">@color/st_day_surface</color>
+    <color name="st_system_secondary">@color/st_day_secondary_surface</color>
+    <color name="st_system_text">@color/st_day_text</color>
+    <color name="st_system_action">@color/st_day_action</color>
+    <color name="st_system_action_text">@color/st_day_action_text</color>
+</resources>

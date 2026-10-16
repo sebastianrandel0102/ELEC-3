@@ -1,0 +1,11 @@
+<resources>
+<string name="st_widget_goal_name">SaveTrack — Savings Goal</string>
+<string name="st_widget_planner_name">SaveTrack — Today\'s Planner</string>
+<string name="st_widget_quick_save_name">SaveTrack — Quick Save</string>
+<string name="st_widget_today_name">SaveTrack — Today Overview</string>
+<string name="st_widget_goal_description">Track a selected savings goal from your home screen.</string>
+<string name="st_widget_planner_description">See today\'s tasks and productivity progress.</string>
+<string name="st_widget_quick_save_description">Open SaveTrack to quickly add savings.</string>
+<string name="st_widget_today_description">View savings and daily tasks together.</string>
+<string name="st_widget_setup">Tap to customize your widget</string>
+</resources>

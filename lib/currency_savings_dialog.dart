@@ -14,11 +14,13 @@ class CurrencySavingsDialog extends StatefulWidget {
     required this.goalUpdates,
     required this.onConfirm,
     this.withdrawal = false,
+    this.initialAmount,
   });
   final Map<String, dynamic> initialGoal;
   final Stream<DocumentSnapshot<Map<String, dynamic>>> goalUpdates;
   final Future<void> Function(LockedMoneyEntry entry, String note) onConfirm;
   final bool withdrawal;
+  final String? initialAmount;
   @override
   State<CurrencySavingsDialog> createState() => _CurrencySavingsDialogState();
 }
@@ -31,6 +33,16 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
   LockedMoneyEntry? submitted;
   String? submittedNote, error;
   bool busy = false;
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialAmount;
+    if (initial != null &&
+        parseCurrencyAmount(initial, inputCurrency)?.positive == true) {
+      amount.text = initial;
+    }
+  }
+
   @override
   void dispose() {
     amount.dispose();

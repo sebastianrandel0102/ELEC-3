@@ -1150,9 +1150,11 @@ class SharedContributionScreen extends StatefulWidget {
     super.key,
     required this.goal,
     this.decrease = false,
+    this.initialAmount,
   });
   final SharedSavingsGoal goal;
   final bool decrease;
+  final String? initialAmount;
   @override
   State<SharedContributionScreen> createState() =>
       _SharedContributionScreenState();
@@ -1168,6 +1170,16 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
   String? error;
   Map<String, dynamic>? pending;
   String inputCurrency = 'PHP';
+  @override
+  void initState() {
+    super.initState();
+    final initial = widget.initialAmount;
+    if (initial != null &&
+        parseCurrencyAmount(initial, 'PHP')?.positive == true) {
+      amount.text = initial;
+    }
+  }
+
   @override
   void dispose() {
     amount.dispose();

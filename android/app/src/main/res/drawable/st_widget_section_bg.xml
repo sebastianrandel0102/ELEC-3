@@ -1,0 +1,1 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"><solid android:color="@color/st_day_secondary_surface" /><corners android:radius="@dimen/st_widget_inner_radius" /></shape>

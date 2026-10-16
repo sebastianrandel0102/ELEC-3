@@ -1,0 +1,29 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/st_today_goal" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:orientation="vertical"
+    android:gravity="center_vertical" android:padding="12dp"
+    android:background="@drawable/st_widget_today_panel">
+    <TextView android:id="@+id/st_today_goal_label" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="Savings" android:textSize="@dimen/st_widget_label"
+        android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+    <TextView android:id="@+id/st_today_goal_value" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:textSize="@dimen/st_widget_metric" android:fontFeatureSettings="tnum" android:textStyle="bold"
+        android:fontFamily="sans-serif-medium" android:maxLines="1" />
+    <TextView android:id="@+id/st_today_goal_title" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:textSize="@dimen/st_widget_support"
+        android:maxLines="1" android:ellipsize="end" />
+    <ProgressBar android:id="@+id/st_today_goal_progress" style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent" android:layout_height="8dp"
+        android:layout_marginTop="8dp" android:max="1000"
+        android:progressDrawable="@drawable/st_widget_progress_track_light"
+        android:importantForAccessibility="no" />
+    <ProgressBar android:id="@+id/st_today_goal_progress_dark" style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent" android:layout_height="8dp"
+        android:layout_marginTop="8dp" android:max="1000" android:visibility="gone"
+        android:progressDrawable="@drawable/st_widget_progress_track"
+        android:importantForAccessibility="no" />
+    <TextView android:id="@+id/st_today_goal_amount" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginTop="8dp"
+        android:textSize="@dimen/st_widget_body" android:maxLines="1" android:visibility="gone" />
+    <TextView android:id="@+id/st_today_goal_remaining" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textSize="@dimen/st_widget_support" android:maxLines="1" android:visibility="gone" />
+</LinearLayout>
