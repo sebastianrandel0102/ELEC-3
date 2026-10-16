@@ -1,3 +1,5 @@
+> Current visual implementation and validation: [Mint Aurora 6.0 ? Widget Atelier](widget_atelier.md).
+
 # SaveTrack home-screen widgets — Mint Aurora Home Edition
 
 Implemented in the existing Flutter application on 16 October 2026.
@@ -37,17 +39,17 @@ The resolver uses **both** actual dp dimensions and font scale. Thresholds are c
 
 | Class | Effective constraints | Content priority |
 | --- | --- | --- |
-| Compact | Height below 110dp or width below 125dp | One metric and a short title when it fits; the whole surface is a shortcut |
+| Compact | Height below 120dp, or width below 125dp with height below 190dp | One metric and a short title when it fits; the whole surface is a shortcut |
 | Small | Remaining narrow/short sizes | Title, progress or task count; secondary content only with enough height |
 | Medium | At least 250 × 190dp | Financial summary, task rows or contribution shortcuts; actions when height permits |
 | Expanded | At least 250 × 270dp | Remaining amount, deadlines, additional tasks, optional bounded thumbnail |
 | Extra large | At least 250 × 360dp | Fuller goal and task summaries, comfortable actions, update label, Today Coach shortcut |
 
-Effective constraints divide available dimensions by at least the system font scale. Layouts preserve readable native text rather than proportionally stretching an image. Tall/narrow and wide/short hosts take different paths. The renderer measures the actual native header, footer and child views before adding rows, so lower-priority content is omitted before it can clip. Exact amounts use the existing formatter, retain the goal's ISO currency, and never undergo widget-only conversion. If an exact amount cannot fit readably, the primary metric becomes progress. Visual progress follows the application's existing 0–100% clamp; balances remain unchanged, including overfunding. Follow System uses the device brightness on the next widget repaint; background theme changes can wait for that repaint.
+Effective constraints divide available dimensions by at least the system font scale. Layouts preserve readable native text rather than proportionally stretching an image. Tall/narrow and wide/short hosts take different paths. The renderer measures the actual native header, footer and child views before adding rows, so lower-priority content is omitted before it can clip. Exact amounts use the existing formatter, retain the goal's ISO currency, and never undergo widget-only conversion. If an exact amount cannot fit readably, the primary metric becomes progress. Visual progress follows the application's existing 0–100% clamp; balances remain unchanged, including overfunding. Follow System resolves Android appearance per instance; Android 12+ also resolves supported day/night actions in the host. Older stopped-app theme changes can wait for repaint.
 
 Today Overview has dedicated resize layouts: equal savings/task cards side by side at ordinary sizes, stacked cards for tall narrow placements, and two labeled metrics for short placements. Both summaries retain separate tap targets. Its panels fill the available body instead of centering a generic two-line summary in empty space. Actual native measurements remove secondary amounts and task titles before progress bars or core metrics; singular task labels, empty days and stale Planner data have distinct states. The in-app preview mirrors the two-card composition and stacks for narrow widths or larger text.
 
-All providers allow horizontal and vertical resizing, with a 110 × 56dp metadata floor. Android 12 target cells are 4 × 2, or 4 × 3 for Today. Actual placement and minimum sizes are launcher-controlled. Rounded native surfaces and the system background ID permit launcher corner clipping. Four PNG picker previews and four Android 12 preview layouts are included; sample data is restricted to previews and tests.
+All providers allow horizontal and vertical resizing, with a 110 × 56dp metadata floor. Android 12 target cells are 4 × 2, or 4 × 3 for Today. Actual placement and minimum sizes are launcher-controlled. Rounded native surfaces and the system background ID permit launcher corner clipping. Four native-rendered PNG picker previews are included on all supported versions; sample data is restricted to previews and tests. Android 12 uses these images instead of the old separate preview layouts.
 
 ## Data flow and refresh
 
@@ -105,7 +107,7 @@ Firebase rules, indexes, account business logic, financial writers, reports, exi
 | `android/app/build.gradle.kts` | Test-only dependencies and AGP 9 host-test asset dependency |
 | `test/home_widgets_test.dart`, `test/home_widgets_recovery_test.dart` | Snapshot, configuration, navigation validation, privacy, synchronization, recovery and UI tests |
 | `android/app/src/test/kotlin/.../widgets/` | Native resolver, storage/lifecycle and RemoteViews layout tests |
-| `tools/generate_widget_previews.ps1` | Reproducible Windows artwork helper for the four checked-in picker PNGs |
+| `tools/generate_widget_previews.ps1` | Exporter for the four checked-in native picker PNGs |
 
 Restoration deliberately invalidates old/new widget IDs and asks for setup, rather than attaching restored IDs to possibly incorrect private selections. Removal and pruning affect device widget records only.
 
@@ -135,15 +137,15 @@ Validation results (including the Today Overview resize fix):
 | `flutter pub get` | Passed; no new runtime package dependency |
 | Dart formatting | Passed |
 | `flutter analyze --no-pub` | Passed, no issues |
-| Full `flutter test` suite | **539 passed** before the Today resize follow-up, including existing auth, currency, savings, cover-photo, reminder, planner and AI tests |
-| Targeted widget and recovery suite | **40 passed** after the Today resize fix |
-| `:app:testDebugUnitTest` | **39 passed**, zero failures after the Today resize fix |
+| Full `flutter test` suite | **542 passed**, including the Widget Atelier follow-up and existing app coverage |
+| Targeted widget and recovery suite | **42 passed** after Widget Atelier |
+| `:app:testDebugUnitTest` | **47 passed**, plus four isolated native picker capture tests |
 | Android debug APK | Built successfully at `build/app/outputs/flutter-apk/app-debug.apk` |
 | `git diff --check` | Passed |
 
 Native tests run under Robolectric on API 29, 31 and 35. They cover account/session binding, stale configuration revisions, isolated removal/restoration, privacy sanitization, stale and corrupt snapshots, per-instance preset intents, explicit themes for every provider, cached freshness retention, and clearing old photos/actions/text during RemoteViews reapplication. Layout measurement covers four widget types × seven geometries × three font scales × three API levels: **252 combinations**, including the five content classes, wide/short and tall/narrow shapes. A real medium-size overflow found by these tests was fixed with native view measurement. Test setup follows [Robolectric's current Gradle guidance](https://robolectric.org/getting-started/).
 
-The picker PNGs can be regenerated on Windows with `./tools/generate_widget_previews.ps1`. Their synthetic amounts/counts are labeled as samples, and the Planner count and progress agree. Android 12 preview layouts also show the Quick Save controls and Today bento composition.
+The picker PNGs can be regenerated on Windows with `./tools/generate_widget_previews.ps1 -Render`. They are actual native renders using sample facts from the test fixture; Planner counts and progress agree. All Android versions use the same accurate preview images.
 
 Today resize regressions additionally cover the reported 270 × 190dp geometry, tall layouts at three font scales, individual card navigation, stale/private details and RemoteViews reapplication. `TodayWidgetRenderingTest` uses API 31 native graphics to check that both metric strings fit their actual text bounds at seven geometries/font settings. Set `SAVETRACK_WIDGET_PREVIEW_DIR` when running Gradle tests to export its rendered PNGs for visual review.
 

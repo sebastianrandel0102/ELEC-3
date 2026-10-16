@@ -586,7 +586,7 @@ void main() {
         );
         expect(tester.takeException(), isNull);
         expect(find.text('Savings'), findsOneWidget);
-        expect(find.text('Today’s tasks'), findsOneWidget);
+        expect(find.text('Today’s focus'), findsOneWidget);
         expect(find.text('40%'), findsOneWidget);
         expect(find.text('Motorcycle Fund'), findsNothing);
       }
@@ -603,7 +603,125 @@ void main() {
       );
       expect(find.text('Open SaveTrack'), findsOneWidget);
       expect(find.text('40%'), findsNothing);
-      expect(find.text('Today’s tasks'), findsNothing);
+      expect(find.text('Today’s focus'), findsNothing);
+    },
+  );
+  testWidgets('all Atelier previews support themes, sizes and large text', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    for (final type in HomeWidgetType.values) {
+      for (final size in WidgetPreviewSize.values) {
+        for (final theme in [
+          WidgetTheme.mint,
+          WidgetTheme.emerald,
+          WidgetTheme.system,
+        ]) {
+          await tester.pumpWidget(
+            MaterialApp(
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: MediaQuery(
+                    data: const MediaQueryData(
+                      platformBrightness: Brightness.dark,
+                      textScaler: TextScaler.linear(1.7),
+                    ),
+                    child: WidgetPreviewCard(
+                      type: type,
+                      size: size,
+                      theme: theme,
+                      privacy: WidgetPrivacy.full,
+                      goal: facts(),
+                      presets: const ['50.00', '100.00'],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+          expect(tester.takeException(), isNull, reason: '$type $size $theme');
+        }
+      }
+    }
+  });
+  testWidgets(
+    'studio previews stay local until Save and Cancel preserves the instance',
+    (tester) async {
+      final first = HomeWidgetInstance(42, HomeWidgetType.goal, config());
+      final second = HomeWidgetInstance(
+        43,
+        HomeWidgetType.planner,
+        config(id: 43, type: HomeWidgetType.planner),
+      );
+      final bridge = FakeBridge()..installed = [first, second];
+      final source = FakeSource();
+      final controller = HomeWidgetController(
+        bridge: bridge,
+        source: source,
+        clock: () => now,
+      );
+      await controller.switchAccount('alice');
+      addTearDown(() {
+        controller.dispose();
+        unawaited(source.close());
+      });
+      await tester.pumpWidget(
+        HomeWidgetScope(
+          controller: controller,
+          child: MaterialApp(
+            theme: SaveTrackDesign.theme,
+            home: Builder(
+              builder: (context) => Scaffold(
+                body: TextButton(
+                  child: const Text('Configure'),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => WidgetConfigurationScreen(
+                        instance: bridge.installed.first,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Configure'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Light'), 350);
+      await tester.tap(find.text('Light'));
+      await tester.pumpAndSettle();
+      expect(bridge.installed.first.config!.theme, WidgetTheme.emerald);
+      await tester.scrollUntilVisible(find.text('Expanded'), -350);
+      await tester.tap(find.text('Expanded'));
+      await tester.pumpAndSettle();
+      expect(
+        tester.widget<WidgetPreviewCard>(find.byType(WidgetPreviewCard)).size,
+        WidgetPreviewSize.expanded,
+      );
+      expect(bridge.installed.first.config!.theme, WidgetTheme.emerald);
+      await tester.scrollUntilVisible(find.text('Save Widget'), 500);
+      await tester.tap(find.text('Save Widget'));
+      await tester.pumpAndSettle();
+      expect(bridge.installed.first.config!.theme, WidgetTheme.mint);
+      expect(bridge.installed[1].config, same(second.config));
+      await tester.tap(find.text('Configure'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Dark'), 350);
+      await tester.tap(find.text('Dark'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.text('Cancel'), 500);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(bridge.installed.first.config!.theme, WidgetTheme.mint);
+      expect(find.text('Configure'), findsOneWidget);
     },
   );
 }

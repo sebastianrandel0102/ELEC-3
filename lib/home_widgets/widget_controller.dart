@@ -28,6 +28,8 @@ class HomeWidgetController extends ChangeNotifier {
   StreamSubscription<WidgetPlannerFacts>? _plannerSubscription;
   Object? _plannerEpoch;
   WidgetPlannerFacts? _planner;
+  // Read-only preview data from the existing subscription; styling adds no reads.
+  WidgetPlannerFacts? get plannerFacts => _planner;
   String? _day;
   Timer? _debounce;
   int _generation = 0;

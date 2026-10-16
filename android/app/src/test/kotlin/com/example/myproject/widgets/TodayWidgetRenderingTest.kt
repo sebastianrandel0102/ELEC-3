@@ -54,7 +54,9 @@ class TodayWidgetRenderingTest {
                 assertEquals(View.VISIBLE, root.findViewById<View>(R.id.st_today_goal_progress).visibility)
                 assertEquals(View.VISIBLE, root.findViewById<View>(R.id.st_today_tasks_progress).visibility)
             }
-            for (id in listOf(R.id.st_today_goal_value, R.id.st_today_tasks_value)) {
+            val metricIds = if (root.findViewById<View>(R.id.st_compact_value) != null) listOf(R.id.st_compact_value)
+                else listOf(R.id.st_today_goal_value, R.id.st_today_tasks_value)
+            for (id in metricIds) {
                 val value = root.findViewById<TextView>(id)
                 assertTrue("Metric clipped at ${width}x$height font=$scale", value.paint.measureText(value.text.toString()) <= value.width + 1)
                 assertTrue("Metric height clipped at ${width}x$height font=$scale", value.height >= value.lineHeight)

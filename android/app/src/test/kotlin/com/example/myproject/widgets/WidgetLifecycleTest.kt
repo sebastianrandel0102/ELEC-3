@@ -99,7 +99,7 @@ class WidgetLifecycleTest {
             for (theme in listOf("emerald", "mint", "white")) {
                 val config = configure(id, type, theme = theme)
                 val root = WidgetRenderer.render(context, id, type, config, snapshot(config), 350f, 300f).apply(context, FrameLayout(context))
-                val expected = if (theme == "emerald") Color.rgb(217, 246, 233) else Color.rgb(82, 110, 97)
+                val expected = if (theme == "emerald") Color.rgb(220, 248, 235) else Color.rgb(82, 110, 97)
                 assertEquals("$type $theme", expected, root.findViewById<TextView>(R.id.st_brand).currentTextColor)
             }
         }
@@ -125,11 +125,11 @@ class WidgetLifecycleTest {
         val id = install("today"); val config = configure(id, "today", theme = "mint")
         val payload = snapshot(config)
         payload.getJSONObject("goal").put("title", "group").put("percent", 20).put("progress", 200)
-        payload.getJSONObject("planner").put("remaining", 1)
+        payload.getJSONObject("planner").put("remaining", 1).put("total", 2).put("done", 1)
         val root = measuredToday(context, id, config, payload, 270, 190)
         assertEquals("20%", root.findViewById<TextView>(R.id.st_today_goal_value).text.toString())
-        assertEquals("1", root.findViewById<TextView>(R.id.st_today_tasks_value).text.toString())
-        assertEquals("task left", root.findViewById<TextView>(R.id.st_today_tasks_title).text.toString())
+        assertEquals("1 / 2", root.findViewById<TextView>(R.id.st_today_tasks_value).text.toString())
+        assertEquals("1 task left", root.findViewById<TextView>(R.id.st_today_tasks_title).text.toString())
         val savings = root.findViewById<View>(R.id.st_today_goal)
         val tasks = root.findViewById<View>(R.id.st_today_tasks)
         assertEquals(savings.top, tasks.top)
@@ -228,7 +228,7 @@ class WidgetLifecycleTest {
             val config = configure(id, "quickSave")
             val before = store.config(id).toString()
             val root = WidgetRenderer.render(context, id, "quickSave", config, snapshot(config), 350f, 300f).apply(context, FrameLayout(context))
-            val button = findText(root, "+50.00")
+            val button = findText(root, "+₱50.00")
             assertNotNull(button)
             assertTrue(button!!.performClick())
             val launched = shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity

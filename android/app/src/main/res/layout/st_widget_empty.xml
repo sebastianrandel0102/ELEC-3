@@ -1,0 +1,10 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="wrap_content"
+    android:minHeight="48dp" android:orientation="horizontal" android:gravity="center_vertical">
+    <ImageView android:id="@+id/st_empty_icon" android:layout_width="20dp" android:layout_height="20dp"
+        android:layout_marginEnd="8dp" android:src="@drawable/st_widget_complete_marker"
+        android:importantForAccessibility="no" />
+    <TextView android:id="@id/st_text" android:layout_width="0dp" android:layout_weight="1"
+        android:layout_height="wrap_content" android:maxLines="3" android:ellipsize="end"
+        android:textSize="@dimen/st_widget_headline" android:fontFamily="sans-serif-medium" />
+</LinearLayout>

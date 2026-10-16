@@ -1,4 +1,1 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@android:id/background"><shape><corners android:radius="4dp" /><solid android:color="#D7EAE0" /></shape></item>
-    <item android:id="@android:id/progress"><clip><shape><corners android:radius="4dp" /><solid android:color="#13876D" /></shape></clip></item>
-</layer-list>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android"><item android:id="@android:id/background"><shape><corners android:radius="4dp"/><solid android:color="@color/st_day_track"/></shape></item><item android:id="@android:id/progress"><clip><shape><corners android:radius="4dp"/><solid android:color="@color/st_day_accent"/></shape></clip></item></layer-list>

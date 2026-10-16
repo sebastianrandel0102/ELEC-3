@@ -15,4 +15,8 @@ class WidgetLayoutResolverTest {
         assertEquals(WidgetSize.SMALL, WidgetLayoutResolver.resolve(300f, 220f, 1.5f))
         assertEquals(WidgetSize.COMPACT, WidgetLayoutResolver.resolve(120f, 64f, 2f))
     }
+    @Test fun invalidBoundsFallBackAndTallLargeTextRetainsUsefulContent() {
+        assertEquals(WidgetSize.COMPACT, WidgetLayoutResolver.resolve(Float.NaN, -1f, Float.NaN))
+        assertEquals(WidgetSize.SMALL, WidgetLayoutResolver.resolve(150f, 420f, 2f))
+    }
 }

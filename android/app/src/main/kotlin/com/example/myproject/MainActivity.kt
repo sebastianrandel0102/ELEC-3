@@ -2,9 +2,11 @@ package com.example.myproject
 
 import io.flutter.embedding.android.FlutterActivity
 import android.content.Intent
+import android.content.res.Configuration
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import com.example.myproject.widgets.WidgetBridge
+import com.example.myproject.widgets.WidgetRenderer
 
 class MainActivity : FlutterActivity() {
     private var widgets: WidgetBridge? = null
@@ -20,5 +22,10 @@ class MainActivity : FlutterActivity() {
         // widget navigation. Do not also feed this URI to Flutter deep linking.
         super.onNewIntent(if (intent.action == "savetrack.widget") Intent(intent).setData(null) else intent)
         widgets?.accept(intent)
+    }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        // Theme/font changes repaint saved snapshots; no network work is added.
+        WidgetRenderer.updateAll(this)
     }
 }

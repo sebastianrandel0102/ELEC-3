@@ -5,5 +5,5 @@
         android:orientation="horizontal" android:visibility="gone" />
     <TextView android:id="@id/st_updated" android:layout_width="match_parent"
         android:layout_height="wrap_content" android:layout_marginTop="8dp" android:maxLines="1"
-        android:ellipsize="end" android:textSize="11sp" android:visibility="gone" />
+        android:ellipsize="end" android:textSize="@dimen/st_widget_label" android:visibility="gone" />
 </LinearLayout>

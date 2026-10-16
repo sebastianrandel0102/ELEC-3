@@ -1,13 +1,13 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent" android:layout_height="wrap_content"
     android:gravity="center_vertical" android:orientation="horizontal">
-    <ImageView android:layout_width="24dp" android:layout_height="24dp"
-        android:src="@drawable/ic_launcher_monochrome" android:tint="#26B58E"
+    <ImageView android:id="@+id/st_brand_icon" android:layout_width="24dp" android:layout_height="24dp"
+        android:src="@drawable/ic_launcher_monochrome" android:tint="@color/st_night_accent"
         android:importantForAccessibility="no" />
     <TextView android:id="@id/st_brand" android:layout_width="0dp" android:layout_weight="1"
         android:layout_height="wrap_content" android:minHeight="24dp" android:maxLines="1"
         android:ellipsize="end" android:gravity="center_vertical" android:layout_marginStart="6dp"
-        android:text="SAVETRACK" android:textSize="11sp" android:textStyle="bold" />
+        android:text="SAVETRACK" android:textSize="@dimen/st_widget_label" android:textStyle="bold" />
     <ImageView android:id="@id/st_cover" android:layout_width="64dp" android:layout_height="36dp"
         android:visibility="gone" android:scaleType="centerCrop" android:importantForAccessibility="no" />
 </LinearLayout>

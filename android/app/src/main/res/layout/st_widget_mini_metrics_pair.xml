@@ -1,0 +1,9 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:orientation="horizontal" android:baselineAligned="false">
+<LinearLayout android:id="@+id/st_mini_first" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="12dp" android:orientation="vertical" android:background="@drawable/st_widget_secondary_light">
+<TextView android:id="@id/st_mini_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="@dimen/st_widget_label" android:text="REMAINING"/>
+<TextView android:id="@id/st_mini_value" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textSize="14sp" android:fontFeatureSettings="tnum" android:fontFamily="sans-serif-medium"/>
+</LinearLayout>
+<LinearLayout android:id="@+id/st_mini_second" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:padding="12dp" android:orientation="vertical" android:background="@drawable/st_widget_secondary_light">
+<TextView android:id="@+id/st_mini_second_label" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="@dimen/st_widget_label" android:text="DEADLINE"/>
+<TextView android:id="@+id/st_mini_second_value" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textSize="14sp" android:fontFamily="sans-serif-medium"/>
+</LinearLayout></LinearLayout>

@@ -7,30 +7,11 @@ import '../design_system.dart';
 import 'widget_controller.dart';
 import 'widget_host.dart';
 import 'widget_models.dart';
+import 'widget_preview.dart';
+import 'widget_visuals.dart';
 
-String widgetTypeName(HomeWidgetType type) => switch (type) {
-  HomeWidgetType.goal => 'Savings Goal',
-  HomeWidgetType.planner => "Today's Planner",
-  HomeWidgetType.quickSave => 'Quick Save',
-  HomeWidgetType.today => 'Today Overview',
-};
-String widgetPrivacyName(WidgetPrivacy privacy) => switch (privacy) {
-  WidgetPrivacy.full => 'Full Details',
-  WidgetPrivacy.progress => 'Progress Only',
-  WidgetPrivacy.hidden => 'Hide All Private Details',
-};
-String widgetThemeName(WidgetTheme theme) => switch (theme) {
-  WidgetTheme.emerald => 'Midnight Emerald',
-  WidgetTheme.mint => 'Mint Light',
-  WidgetTheme.white => 'Minimal White',
-  WidgetTheme.system => 'Follow System',
-};
-IconData widgetTypeIcon(HomeWidgetType type) => switch (type) {
-  HomeWidgetType.goal => Icons.savings_outlined,
-  HomeWidgetType.planner => Icons.event_note_rounded,
-  HomeWidgetType.quickSave => Icons.add_circle_outline,
-  HomeWidgetType.today => Icons.dashboard_outlined,
-};
+export 'widget_preview.dart' show WidgetPreviewCard;
+export 'widget_visuals.dart';
 
 class HomeWidgetsSettingsScreen extends StatefulWidget {
   const HomeWidgetsSettingsScreen({super.key});
@@ -83,6 +64,25 @@ class _HomeWidgetsSettingsScreenState extends State<HomeWidgetsSettingsScreen> {
             ),
             const SizedBox(height: 20),
             for (final type in HomeWidgetType.values) ...[
+              Text(
+                widgetTypeName(type),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: ink,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widgetTypeDescription(type),
+                style: const TextStyle(color: muted, height: 1.4),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '${type == HomeWidgetType.today ? '4 × 3' : '4 × 2'} starting size · Resizable',
+                style: const TextStyle(fontSize: 11, color: muted),
+              ),
+              const SizedBox(height: 12),
               WidgetPreviewCard(type: type),
               if (_canPin)
                 Align(
@@ -175,211 +175,6 @@ class _HomeWidgetsSettingsScreenState extends State<HomeWidgetsSettingsScreen> {
   }
 }
 
-class WidgetPreviewCard extends StatelessWidget {
-  const WidgetPreviewCard({
-    super.key,
-    required this.type,
-    this.theme,
-    this.privacy,
-    this.goal,
-  });
-  final HomeWidgetType type;
-  final WidgetTheme? theme;
-  final WidgetPrivacy? privacy;
-  final WidgetGoalFacts? goal;
-  @override
-  Widget build(BuildContext context) {
-    final light =
-        theme == WidgetTheme.mint ||
-        theme == WidgetTheme.white ||
-        theme == WidgetTheme.system &&
-            MediaQuery.platformBrightnessOf(context) == Brightness.light ||
-        theme == null && type == HomeWidgetType.planner;
-    final color = light ? ink : Colors.white;
-    final full = privacy == WidgetPrivacy.full;
-    final hidden = privacy == WidgetPrivacy.hidden;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: light
-            ? theme == WidgetTheme.white
-                  ? Colors.white
-                  : SaveTrackDesign.mist
-            : null,
-        gradient: light ? null : SaveTrackDesign.premium,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: light ? SaveTrackDesign.border : teal),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(widgetTypeIcon(type), color: SaveTrackDesign.premiumMint),
-              const SizedBox(width: 8),
-              Text(
-                'SAVETRACK',
-                style: TextStyle(
-                  color: color,
-                  fontSize: 11,
-                  letterSpacing: 1.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
-            hidden
-                ? 'Open SaveTrack'
-                : full && goal != null && type != HomeWidgetType.today
-                ? goal!.title
-                : widgetTypeName(type),
-            style: TextStyle(
-              color: color,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (type == HomeWidgetType.today && !hidden)
-            _TodayPreview(goal: goal, full: full, light: light, color: color)
-          else
-            Text(
-              hidden
-                  ? 'Private details are hidden.'
-                  : goal != null
-                  ? (full
-                        ? formatCurrency(goal!.saved, goal!.currency)
-                        : '${(goal!.progress * 100).round()}% completed')
-                  : switch (type) {
-                      HomeWidgetType.goal =>
-                        'A clear view of your savings progress.',
-                      HomeWidgetType.planner =>
-                        'Your tasks and progress for today.',
-                      HomeWidgetType.quickSave =>
-                        'Review and confirm every contribution in the app.',
-                      HomeWidgetType.today =>
-                        'Savings and daily plans, together.',
-                    },
-              style: TextStyle(
-                color: light ? muted : SaveTrackDesign.onHeroMuted,
-                height: 1.4,
-              ),
-            ),
-          if (!hidden && type != HomeWidgetType.today) ...[
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: goal?.progress ?? 0,
-                minHeight: 6,
-                color: SaveTrackDesign.premiumMint,
-                backgroundColor: light
-                    ? SaveTrackDesign.border
-                    : SaveTrackDesign.heroTrack,
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-class _TodayPreview extends StatelessWidget {
-  const _TodayPreview({
-    required this.goal,
-    required this.full,
-    required this.light,
-    required this.color,
-  });
-  final WidgetGoalFacts? goal;
-  final bool full;
-  final bool light;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    Widget summary(String label, String value, String detail, double progress) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: light ? Colors.white : const Color(0xFF124D40),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: light ? SaveTrackDesign.border : const Color(0xFF286655),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: TextStyle(color: color, fontSize: 11)),
-            const SizedBox(height: 6),
-            Text(
-              value,
-              style: TextStyle(
-                color: color,
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              detail,
-              style: TextStyle(
-                color: light ? muted : SaveTrackDesign.onHeroMuted,
-                fontSize: 12,
-              ),
-            ),
-            const SizedBox(height: 10),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 6,
-                color: SaveTrackDesign.premiumMint,
-                backgroundColor: light
-                    ? SaveTrackDesign.border
-                    : SaveTrackDesign.heroTrack,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    final savings = summary(
-      'Savings',
-      goal == null ? 'Goal progress' : '${(goal!.progress * 100).round()}%',
-      full && goal != null ? goal!.title : 'Your selected goal',
-      goal?.progress ?? 0,
-    );
-    final tasks = summary(
-      'Today’s tasks',
-      'Daily plans',
-      'Tasks and progress',
-      0,
-    );
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-        if (constraints.maxWidth / textScale < 240) {
-          return Column(children: [savings, const SizedBox(height: 8), tasks]);
-        }
-        return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(child: savings),
-            const SizedBox(width: 8),
-            Expanded(child: tasks),
-          ],
-        );
-      },
-    );
-  }
-}
-
 class WidgetConfigurationScreen extends StatefulWidget {
   const WidgetConfigurationScreen({
     super.key,
@@ -401,6 +196,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
   WidgetGoalFacts? _goal;
   late WidgetTheme _theme;
   late WidgetPrivacy _privacy;
+  WidgetPreviewSize _previewSize = WidgetPreviewSize.medium;
   bool _tasks = false,
       _cover = false,
       _busy = false,
@@ -551,16 +347,82 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  WidgetPreviewCard(
-                    type: widget.instance.type,
-                    theme: _theme,
-                    privacy: _privacy,
-                    goal: _goal,
+                  const Text(
+                    'Make it yours.',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: ink,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    widgetTypeDescription(widget.instance.type),
+                    style: const TextStyle(color: muted, height: 1.4),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE3EDE7),
+                      borderRadius: BorderRadius.circular(32),
+                    ),
+                    child: WidgetPreviewCard(
+                      type: widget.instance.type,
+                      theme: _theme,
+                      privacy: _privacy,
+                      goal: _goal,
+                      planner: _controller?.plannerFacts,
+                      showTaskTitles: _tasks,
+                      presets: _goal == null
+                          ? const []
+                          : [
+                              for (final field in _amounts)
+                                if (parseCurrencyAmount(
+                                      field.text.trim(),
+                                      _goal!.currency,
+                                    )?.positive ==
+                                    true)
+                                  field.text.trim(),
+                            ],
+                      size: _previewSize,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final size in WidgetPreviewSize.values)
+                        _StudioOption(
+                          label: switch (size) {
+                            WidgetPreviewSize.compact => 'Compact',
+                            WidgetPreviewSize.medium => 'Medium',
+                            WidgetPreviewSize.expanded => 'Expanded',
+                          },
+                          icon: switch (size) {
+                            WidgetPreviewSize.compact =>
+                              Icons.view_stream_outlined,
+                            WidgetPreviewSize.medium =>
+                              Icons.view_agenda_outlined,
+                            WidgetPreviewSize.expanded =>
+                              Icons.dashboard_outlined,
+                          },
+                          selected: _previewSize == size,
+                          onTap: () => setState(() => _previewSize = size),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Preview only. Resize the actual widget from your home screen; layouts vary by launcher.',
+                    style: TextStyle(fontSize: 12, color: muted, height: 1.4),
                   ),
                   const SizedBox(height: 24),
                   if (_loading)
                     const Center(child: CircularProgressIndicator()),
                   if (needsGoal && !_loading) ...[
+                    const _StudioHeading('Selected content'),
                     DropdownButtonFormField<String>(
                       key: ValueKey(_goal?.ref.key),
                       initialValue: _goal?.ref.key,
@@ -608,46 +470,109 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                       ),
                     const SizedBox(height: 20),
                   ],
-                  DropdownButtonFormField<WidgetTheme>(
-                    initialValue: _theme,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Choose Theme',
-                    ),
-                    items: [
-                      for (final theme in WidgetTheme.values)
-                        DropdownMenuItem(
-                          value: theme,
-                          child: Text(widgetThemeName(theme)),
+                  const _StudioHeading('Appearance'),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final theme in [
+                        WidgetTheme.mint,
+                        WidgetTheme.emerald,
+                        WidgetTheme.system,
+                      ])
+                        _StudioOption(
+                          label: widgetThemeName(theme),
+                          icon: switch (theme) {
+                            WidgetTheme.mint => Icons.light_mode_outlined,
+                            WidgetTheme.emerald => Icons.dark_mode_outlined,
+                            _ => Icons.smartphone_rounded,
+                          },
+                          selected:
+                              _theme == theme ||
+                              theme == WidgetTheme.mint &&
+                                  _theme == WidgetTheme.white,
+                          onTap: _busy
+                              ? null
+                              : () => setState(() => _theme = theme),
                         ),
                     ],
-                    onChanged: _busy
-                        ? null
-                        : (value) => setState(() => _theme = value!),
+                  ),
+                  if (_theme == WidgetTheme.mint || _theme == WidgetTheme.white)
+                    SwitchListTile.adaptive(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('White canvas'),
+                      subtitle: const Text('A clean white variation of Light.'),
+                      value: _theme == WidgetTheme.white,
+                      onChanged: _busy
+                          ? null
+                          : (white) => setState(
+                              () => _theme = white
+                                  ? WidgetTheme.white
+                                  : WidgetTheme.mint,
+                            ),
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _theme == WidgetTheme.system
+                        ? 'Follows your Android appearance.'
+                        : _theme == WidgetTheme.emerald
+                        ? 'Mint Aurora · Midnight Emerald'
+                        : 'Mint Aurora · Daylight',
+                    style: const TextStyle(fontSize: 12, color: muted),
                   ),
                   const SizedBox(height: 20),
-                  DropdownButtonFormField<WidgetPrivacy>(
-                    initialValue: _privacy,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Home-screen Privacy',
-                    ),
-                    items: [
-                      for (final privacy in WidgetPrivacy.values)
-                        DropdownMenuItem(
-                          value: privacy,
-                          child: Text(widgetPrivacyName(privacy)),
+                  const _StudioHeading('Privacy'),
+                  for (final privacy in WidgetPrivacy.values)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Material(
+                        color: _privacy == privacy
+                            ? const Color(0xFFE3F5EA)
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Semantics(
+                          selected: _privacy == privacy,
+                          child: ListTile(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            leading: Icon(
+                              privacy == WidgetPrivacy.full
+                                  ? Icons.visibility_outlined
+                                  : privacy == WidgetPrivacy.progress
+                                  ? Icons.shield_outlined
+                                  : Icons.lock_outline,
+                              color: teal,
+                            ),
+                            title: Text(widgetPrivacyName(privacy)),
+                            subtitle: Text(switch (privacy) {
+                              WidgetPrivacy.full =>
+                                'Goal names and exact amounts.',
+                              WidgetPrivacy.progress =>
+                                'Progress and counts. Names stay private.',
+                              WidgetPrivacy.hidden =>
+                                'A private shortcut to SaveTrack.',
+                            }),
+                            trailing: Icon(
+                              _privacy == privacy
+                                  ? Icons.check_circle_rounded
+                                  : Icons.circle_outlined,
+                              color: teal,
+                            ),
+                            onTap: _busy
+                                ? null
+                                : () => setState(() => _privacy = privacy),
+                          ),
                         ),
-                    ],
-                    onChanged: _busy
-                        ? null
-                        : (value) => setState(() => _privacy = value!),
-                  ),
+                      ),
+                    ),
                   const SizedBox(height: 8),
                   const Text(
                     'Full Details shows goal names and money amounts to anyone who can see your home screen. Progress Only hides names, amounts, and task titles. App lock does not hide widget content.',
                     style: TextStyle(fontSize: 12, color: muted, height: 1.5),
                   ),
+                  const SizedBox(height: 20),
+                  const _StudioHeading('Additional options'),
                   if (planner)
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
@@ -688,6 +613,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                         padding: const EdgeInsets.only(bottom: 12),
                         child: TextFormField(
                           controller: _amounts[index],
+                          onChanged: (_) => setState(() {}),
                           enabled: !_busy && _goal != null,
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
@@ -732,6 +658,10 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                         : const Icon(Icons.check),
                     label: const Text('Save Widget'),
                   ),
+                  TextButton(
+                    onPressed: _busy ? null : () => Navigator.maybePop(context),
+                    child: const Text('Cancel'),
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'Resize the widget from your Android home screen. The launcher controls the available sizes.',
@@ -745,4 +675,76 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
       ),
     );
   }
+}
+
+class _StudioHeading extends StatelessWidget {
+  const _StudioHeading(this.title);
+  final String title;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Text(
+      title,
+      style: const TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w800,
+        color: ink,
+      ),
+    ),
+  );
+}
+
+class _StudioOption extends StatelessWidget {
+  const _StudioOption({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback? onTap;
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: selected,
+    enabled: onTap != null,
+    child: Material(
+      color: selected ? const Color(0xFFDCF8EB) : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: BorderSide(color: selected ? teal : SaveTrackDesign.border),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 20, color: ink),
+                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: ink,
+                  ),
+                ),
+                if (selected) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.check_rounded, size: 18, color: ink),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
