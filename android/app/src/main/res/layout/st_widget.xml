@@ -1,0 +1,12 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@android:id/background" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="12dp" android:background="@drawable/st_widget_emerald">
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+<ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_launcher_monochrome" android:tint="#26B58E" android:importantForAccessibility="no"/>
+<TextView android:id="@+id/st_brand" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:minHeight="24dp" android:maxLines="1" android:ellipsize="end" android:gravity="center_vertical" android:layout_marginStart="6dp" android:text="SAVETRACK" android:textSize="11sp" android:textStyle="bold" android:textColor="#D9F6E9"/>
+<ImageView android:id="@+id/st_cover" android:layout_width="64dp" android:layout_height="36dp" android:visibility="gone" android:scaleType="centerCrop" android:importantForAccessibility="no"/>
+</LinearLayout>
+<LinearLayout android:id="@+id/st_body" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:gravity="center_vertical">
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/st_widget_setup" android:textColor="#FFFFFF" android:textSize="16sp"/>
+</LinearLayout>
+<LinearLayout android:id="@+id/st_actions" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="8dp" android:orientation="horizontal" android:visibility="gone"/>
+<TextView android:id="@+id/st_updated" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:maxLines="1" android:ellipsize="end" android:textSize="11sp" android:visibility="gone"/>
+</LinearLayout>

@@ -1,0 +1,23 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/st_today_tasks" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:orientation="vertical"
+    android:gravity="center_vertical" android:padding="10dp"
+    android:background="@drawable/st_widget_today_panel">
+    <TextView android:id="@+id/st_today_tasks_label" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:text="Today's tasks" android:textSize="11sp"
+        android:textStyle="bold" android:maxLines="1" android:ellipsize="end" />
+    <TextView android:id="@+id/st_today_tasks_value" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:textSize="26sp" android:textStyle="bold"
+        android:fontFamily="sans-serif-medium" android:maxLines="1" />
+    <TextView android:id="@+id/st_today_tasks_title" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:textSize="12sp"
+        android:maxLines="1" android:ellipsize="end" />
+    <ProgressBar android:id="@+id/st_today_tasks_progress" style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent" android:layout_height="6dp"
+        android:layout_marginTop="8dp" android:max="1000"
+        android:progressDrawable="@drawable/st_widget_progress_track_light"
+        android:importantForAccessibility="no" />
+    <TextView android:id="@+id/st_today_next_task" android:layout_width="match_parent"
+        android:layout_height="wrap_content" android:layout_marginTop="8dp"
+        android:textSize="12sp" android:maxLines="2" android:ellipsize="end" android:visibility="gone" />
+</LinearLayout>

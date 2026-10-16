@@ -32,11 +32,17 @@ import 'shared_savings_screens.dart';
 import 'shared_savings_repository.dart';
 import 'smart_suggestions.dart';
 import 'smart_task_recommendation_service.dart';
+import 'home_widgets/widget_controller.dart';
+import 'home_widgets/widget_host.dart';
+import 'home_widgets/widget_models.dart';
+import 'home_widgets/widget_settings_screen.dart';
+import 'shared_savings_models.dart';
 
 import 'design_system.dart';
 export 'design_system.dart';
 
 final _appNavigator = GlobalKey<NavigatorState>();
+final _homeShellKey = GlobalKey<_HomeShellState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,9 +72,12 @@ class SaveTrackApp extends StatelessWidget {
     debugShowCheckedModeBanner: false,
     theme: SaveTrackDesign.theme,
     builder: startupError == null
-        ? (context, child) => ReminderHost(
-            openTarget: _openReminderTarget,
-            child: CurrencyHost(child: child!),
+        ? (context, child) => HomeWidgetHost(
+            openTarget: _openHomeWidgetTarget,
+            child: ReminderHost(
+              openTarget: _openReminderTarget,
+              child: CurrencyHost(child: child!),
+            ),
           )
         : null,
     home: startupError != null
@@ -153,7 +162,7 @@ class AuthGate extends StatelessWidget {
                 key: ValueKey(snapshot.data!.uid),
                 child: GoalCoverSession(
                   uid: snapshot.data!.uid,
-                  child: const HomeShell(),
+                  child: HomeShell(key: _homeShellKey),
                 ),
               ),
       );
@@ -2429,6 +2438,30 @@ class ProfileContent extends StatelessWidget {
                 ),
               ),
               const Divider(indent: 20, endIndent: 20, height: 1),
+              if (HomeWidgetScope.maybeOf(context)?.bridge.supported ==
+                  true) ...[
+                ListTile(
+                  leading: const MintIcon(Icons.widgets_outlined),
+                  title: const Text('Home Screen Widgets'),
+                  subtitle: const Text(
+                    'Savings and daily plans on your Android home screen.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () {
+                    final owner = FirebaseAuth.instance.currentUser?.uid;
+                    if (owner == null) return;
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => WidgetAccountGuard(
+                          uid: owner,
+                          child: const HomeWidgetsSettingsScreen(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(indent: 20, endIndent: 20, height: 1),
+              ],
               const ListTile(
                 leading: MintIcon(Icons.info_outline),
                 title: Text('SaveTrack'),
@@ -3457,24 +3490,32 @@ Future<void> showCurrencySavingsForm(
   String uid,
   QueryDocumentSnapshot<Map<String, dynamic>> goal, {
   bool withdrawal = false,
+  String? initialAmount,
+  bool guardWidgetAccount = false,
 }) async {
   final requestId = goal.reference.collection('transactions').doc().id;
   final result = await showDialog<bool>(
     context: context,
     barrierDismissible: false,
-    builder: (_) => CurrencySavingsDialog(
-      initialGoal: goal.data(),
-      goalUpdates: goal.reference.snapshots(),
-      withdrawal: withdrawal,
-      onConfirm: (entry, note) => recordCurrencySavings(
-        goal: goal.reference,
-        uid: uid,
-        entry: entry,
-        note: note,
-        requestId: requestId,
+    builder: (_) {
+      final dialog = CurrencySavingsDialog(
+        initialGoal: goal.data(),
+        goalUpdates: goal.reference.snapshots(),
         withdrawal: withdrawal,
-      ),
-    ),
+        initialAmount: initialAmount,
+        onConfirm: (entry, note) => recordCurrencySavings(
+          goal: goal.reference,
+          uid: uid,
+          entry: entry,
+          note: note,
+          requestId: requestId,
+          withdrawal: withdrawal,
+        ),
+      );
+      return guardWidgetAccount
+          ? WidgetAccountGuard(uid: uid, child: dialog)
+          : dialog;
+    },
   );
   if (result == true && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -3493,6 +3534,7 @@ Future<void> showTaskForm(
   BuildContext context, {
   String? dateKey,
   QueryDocumentSnapshot<Map<String, dynamic>>? doc,
+  String? widgetAccount,
 }) async {
   final form = GlobalKey<FormState>();
   final reminderCoordinator = ReminderScope.maybeOf(context);
@@ -3515,238 +3557,244 @@ Future<void> showTaskForm(
   bool busy = false;
   await showDialog<void>(
     context: context,
-    builder: (ctx) => FormControllerScope(
-      controllers: [title, time],
-      child: StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          scrollable: true,
-          insetPadding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 24,
-          ),
-          title: FormHeading(
-            icon: Icons.edit_calendar_outlined,
-            title: doc == null ? 'Add a task' : 'Edit task',
-            detail: 'Make space for what matters in your day.',
-          ),
-          content: Form(
-            key: form,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const FieldCaption('The plan'),
-                TextFormField(
-                  controller: title,
-                  decoration: const InputDecoration(
-                    labelText: 'Task',
-                    prefixIcon: Icon(Icons.checklist_outlined),
+    builder: (ctx) => WidgetAccountGuard(
+      uid: widgetAccount,
+      child: FormControllerScope(
+        controllers: [title, time],
+        child: StatefulBuilder(
+          builder: (ctx, setState) => AlertDialog(
+            scrollable: true,
+            insetPadding: const EdgeInsets.symmetric(
+              horizontal: 24,
+              vertical: 24,
+            ),
+            title: FormHeading(
+              icon: Icons.edit_calendar_outlined,
+              title: doc == null ? 'Add a task' : 'Edit task',
+              detail: 'Make space for what matters in your day.',
+            ),
+            content: Form(
+              key: form,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const FieldCaption('The plan'),
+                  TextFormField(
+                    controller: title,
+                    decoration: const InputDecoration(
+                      labelText: 'Task',
+                      prefixIcon: Icon(Icons.checklist_outlined),
+                    ),
+                    validator: (v) =>
+                        v == null || v.trim().isEmpty ? 'Enter a task.' : null,
                   ),
-                  validator: (v) =>
-                      v == null || v.trim().isEmpty ? 'Enter a task.' : null,
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: time,
-                  decoration: const InputDecoration(
-                    labelText: 'Time (optional)',
-                    prefixIcon: Icon(Icons.schedule_outlined),
-                    hintText: 'e.g. 9:30 AM',
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: time,
+                    decoration: const InputDecoration(
+                      labelText: 'Time (optional)',
+                      prefixIcon: Icon(Icons.schedule_outlined),
+                      hintText: 'e.g. 9:30 AM',
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                const FieldCaption('When & how important'),
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  initialValue: priority,
-                  decoration: const InputDecoration(
-                    labelText: 'Priority',
-                    prefixIcon: Icon(Icons.low_priority),
+                  const SizedBox(height: 24),
+                  const FieldCaption('When & how important'),
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    initialValue: priority,
+                    decoration: const InputDecoration(
+                      labelText: 'Priority',
+                      prefixIcon: Icon(Icons.low_priority),
+                    ),
+                    items: priorities
+                        .map(
+                          (p) => DropdownMenuItem(
+                            value: p,
+                            child: Text(p, overflow: TextOverflow.ellipsis),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) => setState(() => priority = v ?? 'Normal'),
                   ),
-                  items: priorities
-                      .map(
-                        (p) => DropdownMenuItem(
-                          value: p,
-                          child: Text(p, overflow: TextOverflow.ellipsis),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (v) => setState(() => priority = v ?? 'Normal'),
-                ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: () async {
-                    final d = DateTime.tryParse(day) ?? DateTime.now();
-                    final chosen = await showDatePicker(
-                      context: ctx,
-                      firstDate: DateTime(2020),
-                      lastDate: DateTime(2100),
-                      initialDate: d,
-                    );
-                    if (chosen != null) setState(() => day = _dateKey(chosen));
-                  },
-                  icon: const Icon(Icons.calendar_today),
-                  label: Text(_shortDate(DateTime.parse(day))),
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.notifications_outlined),
-                  label: Text(
-                    reminderDraft == null
-                        ? 'Set Task Reminder'
-                        : reminderSummary(ctx, reminderDraft!),
+                  const SizedBox(height: 8),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      final d = DateTime.tryParse(day) ?? DateTime.now();
+                      final chosen = await showDatePicker(
+                        context: ctx,
+                        firstDate: DateTime(2020),
+                        lastDate: DateTime(2100),
+                        initialDate: d,
+                      );
+                      if (chosen != null) {
+                        setState(() => day = _dateKey(chosen));
+                      }
+                    },
+                    icon: const Icon(Icons.calendar_today),
+                    label: Text(_shortDate(DateTime.parse(day))),
                   ),
-                  onPressed: busy
-                      ? null
-                      : () async {
-                          if (account == null || taskReference == null) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Sign in to configure a task reminder.',
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.notifications_outlined),
+                    label: Text(
+                      reminderDraft == null
+                          ? 'Set Task Reminder'
+                          : reminderSummary(ctx, reminderDraft!),
+                    ),
+                    onPressed: busy
+                        ? null
+                        : () async {
+                            if (account == null || taskReference == null) {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Sign in to configure a task reminder.',
+                                  ),
                                 ),
-                              ),
+                              );
+                              return;
+                            }
+                            final target = ReminderTarget.fromData(
+                              ReminderTargetType.task,
+                              taskReference!.id,
+                              {
+                                'title': title.text.trim().isEmpty
+                                    ? 'Your task'
+                                    : title.text.trim(),
+                                'time': time.text.trim(),
+                                'dateKey': day,
+                                'completed': doc?.data()['completed'] == true,
+                              },
                             );
-                            return;
+                            final draft = await configureReminderDraft(
+                              ctx,
+                              uid: account,
+                              target: target,
+                              initial: reminderDraft,
+                            );
+                            if (draft != null && ctx.mounted) {
+                              setState(() {
+                                reminderDraft = draft;
+                                reminderChanged = true;
+                              });
+                            }
+                          },
+                  ),
+                  if (reminderDraft != null)
+                    const Text(
+                      'Reminder time is separate from the task schedule. Save the task to apply reminder changes.',
+                      style: TextStyle(color: muted, fontSize: 12),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: busy ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              GradientButton(
+                expand: false,
+                onPressed: busy
+                    ? null
+                    : () async {
+                        if (!form.currentState!.validate()) return;
+                        setState(() => busy = true);
+                        try {
+                          final activeAccount = reminderCoordinator != null
+                              ? reminderCoordinator.uid
+                              : doc == null
+                              ? FirebaseAuth.instance.currentUser!.uid
+                              : null;
+                          if (account != null && activeAccount != account) {
+                            throw const ReminderFailure(
+                              'Your account changed. Open the task again.',
+                            );
                           }
+                          taskReference ??= _tasks(activeAccount!).doc();
+                          final data = {
+                            'title': title.text.trim(),
+                            'time': time.text.trim(),
+                            'priority': priority,
+                            'dateKey': day,
+                            'updatedAt': FieldValue.serverTimestamp(),
+                          };
                           final target = ReminderTarget.fromData(
                             ReminderTargetType.task,
-                            taskReference!.id,
+                            doc?.id ?? taskReference!.id,
                             {
-                              'title': title.text.trim().isEmpty
-                                  ? 'Your task'
-                                  : title.text.trim(),
-                              'time': time.text.trim(),
-                              'dateKey': day,
+                              ...data,
                               'completed': doc?.data()['completed'] == true,
                             },
                           );
-                          final draft = await configureReminderDraft(
-                            ctx,
-                            uid: account,
-                            target: target,
-                            initial: reminderDraft,
-                          );
-                          if (draft != null && ctx.mounted) {
-                            setState(() {
-                              reminderDraft = draft;
-                              reminderChanged = true;
+                          if (reminderChanged &&
+                              reminderDraft?.enabled == true) {
+                            final zone = reminderCoordinator?.zone;
+                            if (zone == null ||
+                                const ReminderTimeCalculator().next(
+                                      reminderDraft!,
+                                      target,
+                                      zone,
+                                      DateTime.now(),
+                                    ) ==
+                                    null) {
+                              throw const ReminderFailure(
+                                'Choose a valid future reminder before saving.',
+                              );
+                            }
+                          }
+                          if (!taskSaved) {
+                            data.addAll({
+                              'completed': false,
+                              'createdAt': FieldValue.serverTimestamp(),
                             });
+                            await taskReference!.set(data);
+                          } else {
+                            await taskReference!.update(data);
                           }
-                        },
-                ),
-                if (reminderDraft != null)
-                  const Text(
-                    'Reminder time is separate from the task schedule. Save the task to apply reminder changes.',
-                    style: TextStyle(color: muted, fontSize: 12),
-                  ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: busy ? null : () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
-            ),
-            GradientButton(
-              expand: false,
-              onPressed: busy
-                  ? null
-                  : () async {
-                      if (!form.currentState!.validate()) return;
-                      setState(() => busy = true);
-                      try {
-                        final activeAccount = reminderCoordinator != null
-                            ? reminderCoordinator.uid
-                            : doc == null
-                            ? FirebaseAuth.instance.currentUser!.uid
-                            : null;
-                        if (account != null && activeAccount != account) {
-                          throw const ReminderFailure(
-                            'Your account changed. Open the task again.',
-                          );
-                        }
-                        taskReference ??= _tasks(activeAccount!).doc();
-                        final data = {
-                          'title': title.text.trim(),
-                          'time': time.text.trim(),
-                          'priority': priority,
-                          'dateKey': day,
-                          'updatedAt': FieldValue.serverTimestamp(),
-                        };
-                        final target = ReminderTarget.fromData(
-                          ReminderTargetType.task,
-                          doc?.id ?? taskReference!.id,
-                          {
-                            ...data,
-                            'completed': doc?.data()['completed'] == true,
-                          },
-                        );
-                        if (reminderChanged && reminderDraft?.enabled == true) {
-                          final zone = reminderCoordinator?.zone;
-                          if (zone == null ||
-                              const ReminderTimeCalculator().next(
-                                    reminderDraft!,
-                                    target,
-                                    zone,
-                                    DateTime.now(),
-                                  ) ==
-                                  null) {
-                            throw const ReminderFailure(
-                              'Choose a valid future reminder before saving.',
+                          taskSaved = true;
+                          savedThisSession = true;
+                          if (reminderChanged && reminderDraft != null) {
+                            if (reminderCoordinator == null) {
+                              throw const ReminderFailure(
+                                'Task saved. Reminder service unavailable.',
+                              );
+                            }
+                            await reminderCoordinator.save(
+                              reminderDraft!,
+                              target,
                             );
+                            if (ctx.mounted) {
+                              ScaffoldMessenger.of(ctx).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    reminderCoordinator
+                                        .status(reminderDraft!.key)
+                                        .message,
+                                  ),
+                                ),
+                              );
+                            }
                           }
-                        }
-                        if (!taskSaved) {
-                          data.addAll({
-                            'completed': false,
-                            'createdAt': FieldValue.serverTimestamp(),
-                          });
-                          await taskReference!.set(data);
-                        } else {
-                          await taskReference!.update(data);
-                        }
-                        taskSaved = true;
-                        savedThisSession = true;
-                        if (reminderChanged && reminderDraft != null) {
-                          if (reminderCoordinator == null) {
-                            throw const ReminderFailure(
-                              'Task saved. Reminder service unavailable.',
-                            );
-                          }
-                          await reminderCoordinator.save(
-                            reminderDraft!,
-                            target,
-                          );
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        } catch (e) {
+                          setState(() => busy = false);
                           if (ctx.mounted) {
                             ScaffoldMessenger.of(ctx).showSnackBar(
                               SnackBar(
                                 content: Text(
-                                  reminderCoordinator
-                                      .status(reminderDraft!.key)
-                                      .message,
+                                  '${savedThisSession && reminderChanged ? 'Task saved; reminder change could not be confirmed' : 'Could not save task'}: $e',
                                 ),
                               ),
                             );
                           }
                         }
-                        if (ctx.mounted) Navigator.pop(ctx);
-                      } catch (e) {
-                        setState(() => busy = false);
-                        if (ctx.mounted) {
-                          ScaffoldMessenger.of(ctx).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                '${savedThisSession && reminderChanged ? 'Task saved; reminder change could not be confirmed' : 'Could not save task'}: $e',
-                              ),
-                            ),
-                          );
-                        }
-                      }
-                    },
-              child: SaveActionLabel(busy: busy, label: 'Save'),
-            ),
-          ],
+                      },
+                child: SaveActionLabel(busy: busy, label: 'Save'),
+              ),
+            ],
+          ),
         ),
       ),
     ),
@@ -3855,4 +3903,205 @@ class _ReminderItemScreen extends StatelessWidget {
             ),
     ),
   );
+}
+
+/// All widget arguments are identifiers. Server authorization precedes the
+/// existing screens and confirmation workflows; this router performs no writes.
+Future<void> _openHomeWidgetTarget(
+  HomeWidgetController controller,
+  WidgetLaunch launch,
+) async {
+  final navigator = _appNavigator.currentState;
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (navigator == null || uid == null || uid != controller.uid) return;
+  void unavailable() {
+    final context = _appNavigator.currentContext;
+    if (context != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'This widget item is unavailable. Check your connection or reconfigure the widget.',
+          ),
+        ),
+      );
+    }
+  }
+
+  try {
+    await controller.reload();
+    if (FirebaseAuth.instance.currentUser?.uid != uid) return;
+    final instance = controller.instance(launch.id);
+    if (instance == null) {
+      unavailable();
+      return;
+    }
+    if (launch.action == WidgetLaunchAction.configure) {
+      await navigator.push(
+        MaterialPageRoute<void>(
+          builder: (_) => WidgetAccountGuard(
+            uid: uid,
+            child: WidgetConfigurationScreen(
+              instance: instance,
+              launcher: launch.launcher,
+            ),
+          ),
+        ),
+      );
+      return;
+    }
+    final config = instance.config;
+    if (config == null || config.uid != uid) {
+      unavailable();
+      return;
+    }
+    if (launch.action == WidgetLaunchAction.dashboard) {
+      navigator.popUntil((route) => route.isFirst);
+      _homeShellKey.currentState?.selectTab(0);
+      return;
+    }
+    if (launch.action == WidgetLaunchAction.planner ||
+        launch.action == WidgetLaunchAction.task) {
+      if (!config.needsPlanner) {
+        unavailable();
+        return;
+      }
+      if (launch.action == WidgetLaunchAction.task) {
+        final tasks = await _tasks(uid)
+            .where(FieldPath.documentId, isEqualTo: launch.taskId)
+            .get(const GetOptions(source: Source.server));
+        if (FirebaseAuth.instance.currentUser?.uid != uid ||
+            tasks.docs.isEmpty) {
+          unavailable();
+          return;
+        }
+        // Existing task form, opened for review; nothing is marked complete.
+        final context = navigator.context;
+        if (!context.mounted) return;
+        await showTaskForm(context, doc: tasks.docs.single, widgetAccount: uid);
+      } else {
+        navigator.popUntil((route) => route.isFirst);
+        unawaited(
+          navigator.push(
+            MaterialPageRoute<void>(
+              builder: (_) =>
+                  WidgetAccountGuard(uid: uid, child: const PlannerScreen()),
+            ),
+          ),
+        );
+      }
+      return;
+    }
+    if (launch.action == WidgetLaunchAction.coach) {
+      navigator.popUntil((route) => route.isFirst);
+      unawaited(
+        navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) =>
+                WidgetAccountGuard(uid: uid, child: const AiCoachScreen()),
+          ),
+        ),
+      );
+      return;
+    }
+    final ref = config.goal;
+    if (ref == null) {
+      unavailable();
+      return;
+    }
+    Map<String, dynamic> data;
+    QueryDocumentSnapshot<Map<String, dynamic>>? personal;
+    if (ref.shared) {
+      final repository = SharedSavingsRepository();
+      final goal = await repository
+          .goal(ref.id)
+          .get(const GetOptions(source: Source.server));
+      final member = await repository
+          .goal(ref.id)
+          .collection('members')
+          .doc(uid)
+          .get(const GetOptions(source: Source.server));
+      data = goal.data() ?? {};
+      if (member.data()?['status'] != 'active' ||
+          data['memberIds'] is! List ||
+          !(data['memberIds'] as List).contains(uid)) {
+        unavailable();
+        return;
+      }
+    } else {
+      final result = await _goals(uid)
+          .where(FieldPath.documentId, isEqualTo: ref.id)
+          .get(const GetOptions(source: Source.server));
+      if (result.docs.isEmpty) {
+        unavailable();
+        return;
+      }
+      personal = result.docs.single;
+      data = personal.data();
+    }
+    if (FirebaseAuth.instance.currentUser?.uid != uid ||
+        controller.uid != uid) {
+      return;
+    }
+    if (launch.action == WidgetLaunchAction.save) {
+      final currency = ref.shared ? 'PHP' : goalCurrency(data);
+      if (currency != config.currency ||
+          data['archived'] == true ||
+          data['status'] == 'archived') {
+        unavailable();
+        return;
+      }
+      String? initialAmount;
+      if (launch.preset != null) {
+        if (launch.preset! >= config.presets.length) {
+          unavailable();
+          return;
+        }
+        initialAmount = config.presets[launch.preset!];
+        if (parseCurrencyAmount(initialAmount, currency)?.positive != true) {
+          unavailable();
+          return;
+        }
+      }
+      if (ref.shared) {
+        await navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) => WidgetAccountGuard(
+              uid: uid,
+              child: SharedContributionScreen(
+                goal: SharedSavingsGoal(ref.id, data),
+                initialAmount: initialAmount,
+              ),
+            ),
+          ),
+        );
+      } else {
+        final context = navigator.context;
+        if (!context.mounted) return;
+        await showCurrencySavingsForm(
+          context,
+          uid,
+          personal!,
+          initialAmount: initialAmount,
+          guardWidgetAccount: true,
+        );
+      }
+      await controller.reload();
+    } else {
+      navigator.popUntil((route) => route.isFirst);
+      unawaited(
+        navigator.push(
+          MaterialPageRoute<void>(
+            builder: (_) => WidgetAccountGuard(
+              uid: uid,
+              child: ref.shared
+                  ? SharedGoalDetailsScreen(goalId: ref.id)
+                  : PersonalGoalDetailsScreen(uid: uid, goalId: ref.id),
+            ),
+          ),
+        ),
+      );
+    }
+  } catch (_) {
+    unavailable();
+  }
 }

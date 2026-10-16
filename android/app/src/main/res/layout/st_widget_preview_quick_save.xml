@@ -1,0 +1,11 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:padding="16dp" android:orientation="vertical" android:background="@drawable/st_widget_emerald">
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="SAVETRACK" android:textColor="#D9F6E9" android:textSize="11sp"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Quick Save" android:textColor="#FFFFFF" android:textSize="23sp" android:textStyle="bold"/>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="PHP | Motorcycle Fund" android:textColor="#D9F6E9" android:textSize="13sp"/>
+<LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="12dp" android:orientation="horizontal">
+<TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginEnd="3dp" android:gravity="center" android:text="+50.00" android:textSize="13sp" android:textColor="#052F28" android:background="@drawable/st_widget_button_bg"/>
+<TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginHorizontal="3dp" android:gravity="center" android:text="+100.00" android:textSize="13sp" android:textColor="#052F28" android:background="@drawable/st_widget_button_bg"/>
+<TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="48dp" android:layout_marginStart="3dp" android:gravity="center" android:text="+500.00" android:textSize="13sp" android:textColor="#052F28" android:background="@drawable/st_widget_button_bg"/>
+</LinearLayout>
+<TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Sample shortcuts. Confirm in SaveTrack." android:textColor="#D9F6E9" android:textSize="11sp"/>
+</LinearLayout>

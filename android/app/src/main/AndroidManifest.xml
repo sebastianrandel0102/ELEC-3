@@ -7,7 +7,45 @@
     <application
         android:label="SaveTrack"
         android:name="${applicationName}"
+        android:fullBackupContent="@xml/widget_backup_rules"
+        android:dataExtractionRules="@xml/widget_data_extraction_rules"
         android:icon="@mipmap/ic_launcher">
+        <activity android:name=".widgets.WidgetConfigurationActivity"
+            android:exported="true" android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Material.Light.NoActionBar">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+            </intent-filter>
+        </activity>
+        <receiver android:name=".widgets.SaveTrackGoalWidget" android:exported="false"
+            android:label="@string/st_widget_goal_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/st_widget_goal_info" />
+        </receiver>
+        <receiver android:name=".widgets.SaveTrackPlannerWidget" android:exported="false"
+            android:label="@string/st_widget_planner_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/st_widget_planner_info" />
+        </receiver>
+        <receiver android:name=".widgets.SaveTrackQuickSaveWidget" android:exported="false"
+            android:label="@string/st_widget_quick_save_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/st_widget_quick_save_info" />
+        </receiver>
+        <receiver android:name=".widgets.SaveTrackTodayWidget" android:exported="false"
+            android:label="@string/st_widget_today_name">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/st_widget_today_info" />
+        </receiver>
+        <receiver android:name=".widgets.WidgetCalendarReceiver" android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.DATE_CHANGED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".MainActivity"
             android:exported="true"
