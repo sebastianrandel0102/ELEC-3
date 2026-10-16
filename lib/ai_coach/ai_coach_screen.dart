@@ -823,17 +823,20 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                       ],
                     ),
                   )
-                else if (user || message.status == AiMessageStatus.streaming)
+                else if (user)
                   SelectableText(
                     message.text,
-                    style: TextStyle(
-                      color: user ? Colors.white : ink,
+                    style: const TextStyle(
+                      color: Colors.white,
                       fontSize: 15,
                       height: 1.7,
                     ),
                   )
                 else if (message.text.isNotEmpty)
-                  AiMarkdownResponse(text: message.text),
+                  AiMarkdownResponse(
+                    text: message.text,
+                    streaming: message.status == AiMessageStatus.streaming,
+                  ),
                 if (!user)
                   Row(
                     children: [

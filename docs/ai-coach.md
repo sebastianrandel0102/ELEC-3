@@ -42,6 +42,7 @@ patterns without another state-management framework.
 | `lib/ai_coach/firestore_ai_context_source.dart` | Authenticated server reads of selected subjects; permission/freshness checks |
 | `lib/ai_coach/ai_widgets.dart` | AI emblem, Dashboard card, welcome hero, segmented modes, prompt cards, fact cards and review sheet |
 | `lib/ai_coach/ai_response.dart` | Safe Markdown, fenced code, horizontal tables, copying and confirmed HTTP(S) links |
+| `lib/ai_coach/ai_math.dart` | Inline/display equation parsing, native math rendering, streaming placeholders and horizontal equation scrolling |
 | `lib/ai_coach/ai_coach_screen.dart` | Responsive conversation, composer, scrolling, quick actions and privacy flows |
 | `test/ai_coach_fixtures.dart` | Test-only provider/context doubles |
 | `test/ai_coach_test.dart` | Requests, streaming, financial edge cases, identity and privacy tests |
@@ -57,7 +58,8 @@ mechanism to `firebase_app_check` 0.4.8 and `firebase_ai` 4.0.0 for AGP 9 built-
 Kotlin. Pub-cache packages and the Flutter SDK are not modified.
 
 Added direct dependencies: `firebase_ai ^4.0.0`, `firebase_app_check ^0.4.8`, and
-`flutter_markdown_plus ^1.0.12`. Markdown Plus continues the discontinued original
+`flutter_markdown_plus ^1.0.12`, `flutter_math_fork ^0.7.4`, and `markdown ^7.3.1`.
+Markdown Plus continues the discontinued original
 Flutter Markdown package. Existing `url_launcher` handles confirmed safe links.
 
 ## Gemini and Spark compatibility
@@ -147,8 +149,17 @@ Large text and short landscape layouts use compact chrome; controls retain
 accessible labels and targets. Lazy message lists retain stable message IDs.
 
 Only the active bubble rebuilds for streamed text, batched at 40 ms. Streaming
-uses plain selectable text; completed answers use Markdown headings, lists,
-quotes, inline code and horizontally scrollable tables. Fenced code has exact
+uses Markdown headings, lists, quotes, inline code and horizontally scrollable
+tables, during generation and after completion. Inline `$...$` / `\(...\)` and
+display `$$...$$` / `\[...\]` equations render natively with bundled math fonts.
+Wide equations scroll horizontally and respect the user's text size. Incomplete
+streamed formulas show a formatting placeholder until their closing delimiter
+arrives. Ordinary currency, escaped dollars and code stay literal; unsupported
+TeX gets a readable fallback. Answer copying retains the original response.
+Both AI modes are instructed to answer directly, explain symbols in plain
+language and keep simple questions short. For integrals without bounds, the
+instructions prefer the indefinite integral and explain the constant C.
+Fenced code has exact
 whitespace, a language label and Copy. External images are omitted to avoid
 tracking/network loads. HTML and JavaScript are not executed. HTTP(S) links
 require user confirmation and reject embedded credentials and unsafe schemes.

@@ -4,6 +4,7 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../design_system.dart';
+import 'ai_math.dart';
 
 class AiResponsePart {
   const AiResponsePart(this.text, {this.language});
@@ -12,7 +13,7 @@ class AiResponsePart {
 }
 
 /// Split complete fenced blocks without changing their whitespace. Markdown
-/// runs only after streaming finishes; no HTML execution or external images.
+/// never changes code contents; no HTML execution or external images.
 List<AiResponsePart> aiResponseParts(String text) {
   final parts = <AiResponsePart>[];
   final lines = RegExp(r'[^\n]*\n|[^\n]+$')
@@ -121,25 +122,42 @@ class AiCodeBlock extends StatelessWidget {
 }
 
 class AiMarkdownResponse extends StatelessWidget {
-  const AiMarkdownResponse({super.key, required this.text});
+  const AiMarkdownResponse({
+    super.key,
+    required this.text,
+    this.streaming = false,
+  });
   final String text;
+  final bool streaming;
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch,
-    children: [
-      for (final part in aiResponseParts(text))
-        Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: part.language != null
-              ? AiCodeBlock(code: part.text, language: part.language!)
-              : _markdown(context, part.text),
-        ),
-    ],
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final part in aiResponseParts(text))
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: part.language != null
+                ? AiCodeBlock(code: part.text, language: part.language!)
+                : _markdown(context, part.text, constraints.maxWidth),
+          ),
+      ],
+    ),
   );
 
-  Widget _markdown(BuildContext context, String value) {
+  Widget _markdown(BuildContext context, String value, double maxWidth) {
     Widget body(String data) => MarkdownBody(
       data: data,
+      blockSyntaxes: [AiMathBlockSyntax(streaming: streaming)],
+      inlineSyntaxes: [
+        AiMathInlineSyntax(),
+        if (streaming) AiPendingMathSyntax(),
+      ],
+      builders: {
+        'ai-math': AiMathBuilder(maxWidth: maxWidth),
+        'ai-math-block': AiMathBuilder(maxWidth: maxWidth, block: true),
+        'ai-math-pending': AiPendingMathBuilder(),
+      },
       selectable: true,
       softLineBreak: false,
       imageBuilder: (_, _, _) =>

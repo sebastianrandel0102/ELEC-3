@@ -3,6 +3,22 @@ import 'dart:convert';
 
 import 'package:flutter/services.dart';
 
+Future<void> loadAiMathFontsForPreviews() async {
+  if (!const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;
+  final manifest = jsonDecode(
+    await rootBundle.loadString('FontManifest.json'),
+  ) as List<dynamic>;
+  for (final family in manifest.cast<Map<String, dynamic>>()) {
+    final name = family['family'] as String;
+    if (!name.startsWith('packages/flutter_math_fork/')) continue;
+    final loader = FontLoader(name);
+    for (final font in (family['fonts'] as List).cast<Map<String, dynamic>>()) {
+      loader.addFont(rootBundle.load(font['asset'] as String));
+    }
+    await loader.load();
+  }
+}
+
 /// Review captures use the same bundled typeface as the production app.
 Future<void> loadManropeForPreviews() async {
   if (!const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;

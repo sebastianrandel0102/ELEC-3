@@ -4,6 +4,16 @@ import 'package:myproject/ai_coach/ai_domain.dart';
 import 'package:myproject/ai_coach/ai_facts.dart';
 import 'package:myproject/ai_coach/ai_gateway.dart';
 
+const integralAnswer = r'''The integral of $x$ is:
+
+$$
+\int x\,dx = \frac{x^2}{2} + C
+$$
+
+Add 1 to the power of x, then divide by the new power (2).
+
+$C$ is any constant, because the derivative of a constant is zero.''';
+
 AiLocalFacts goalFixture({
   bool shared = false,
   num saved = 250,

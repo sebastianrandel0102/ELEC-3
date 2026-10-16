@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:myproject/ai_coach/ai_coach_screen.dart';
 import 'package:myproject/ai_coach/ai_controller.dart';
 import 'package:myproject/ai_coach/ai_domain.dart';
@@ -22,6 +23,7 @@ void main() {
   late DateTime time;
   setUpAll(() async {
     await loadManropeForPreviews();
+    await loadAiMathFontsForPreviews();
     // Flutter tests otherwise substitute Ahem for platform monospace. Load the
     // host's code font only for optional local review; never copy/distribute it.
     if (const bool.fromEnvironment('SAVE_UI_PREVIEWS') && Platform.isWindows) {
@@ -204,6 +206,66 @@ void main() {
     expect(controller.active.messages, isEmpty);
     expect(tester.takeException(), isNull);
   });
+  testWidgets(
+    'integral renders while streaming and keeps the copyable answer',
+    (tester) async {
+      final stream = gateway.pending = StreamController<String>();
+      await mount(tester);
+      await tester.enterText(
+        find.byType(TextField),
+        'What is integration of x?',
+      );
+      await tester.pump();
+      await tester.tap(find.byTooltip('Send question'));
+      await tester.pump();
+      stream.add(
+        r'The integral of $x$ is:'
+        '\n\n'
+        r'$$'
+        '\n'
+        r'\int x\,dx = \frac{x',
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('Formatting equation…'), findsOneWidget);
+      expect(find.byType(Math), findsWidgets);
+      expect(tester.takeException(), isNull);
+      stream.add(
+        '^2}{2} + C\n'
+        r'$$'
+        '\n\nAdd 1 to the power of x, then divide by the new power (2).\n\n'
+        r'$C$ is any constant, because the derivative of a constant is zero.',
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(find.text('Formatting equation…'), findsNothing);
+      expect(find.textContaining('Could not format'), findsNothing);
+      await stream.close();
+      await tester.pumpAndSettle();
+      expect(controller.active.messages.last.text, integralAnswer);
+      expect(tester.takeException(), isNull);
+      await preview.capture(tester, 'ai-integral-conversation');
+      String? copied;
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied = (call.arguments as Map)['text'] as String;
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      await tester.ensureVisible(find.byTooltip('Copy answer'));
+      await tester.tap(find.byTooltip('Copy answer'));
+      await tester.pump();
+      expect(copied, integralAnswer);
+    },
+  );
+
   testWidgets('first-use notice precedes every first provider request', (
     tester,
   ) async {
