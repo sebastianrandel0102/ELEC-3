@@ -39,6 +39,8 @@ Smart Reminders adds native Android/iOS scheduling for personal goals, each shar
 
 ## Checks
 
+Agent Studio's **Mint Aurora 7.0 — Agent Atelier** adds a coordinated home, chat, floating composer, voice artwork, typed workflow previews, mission timeline, live What-If editor, Autopilot surfaces, and filterable history. Appearance settings support Light, Dark, and System. See [implementation, validation, and device limitations](docs/agent-atelier.md).
+
 Agent Studio's **Mint Aurora 6.3 — Universal Intent Intelligence** adds shared, quote-aware title and purpose resolution across goals, tasks, reminders, missions and scenarios; contextual corrections; labelled financial roles; editable interpretation previews; and a 1,128-case multilingual synthetic benchmark. It preserves local parsing and explicit approval. See [implementation, before/after measurements, verification and limitations](docs/agent-universal-intelligence.md).
 
 Agent Studio's **Mint Aurora 6.1 — Language Intelligence** upgrade adds local English, Filipino/Tagalog, and Taglish interpretation, separate language/voice preferences, field-level clarification, editable transcript review, and persistent draft-only approval protection. See [implementation, synthetic evaluation, validation results, and limitations](docs/agent-language-intelligence.md).
