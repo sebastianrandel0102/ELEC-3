@@ -1,0 +1,445 @@
+{
+  "schema": 1,
+  "corpus": "agent_language_acceptance_v2",
+  "clock": "2026-10-17T10:00:00.000",
+  "scope": "Deterministic synthetic text only; no live AI or real speech benchmark",
+  "overall": {
+    "cases": 50,
+    "correctIntents": 50,
+    "macroF1": 1.0,
+    "intentMetrics": {
+      "createGoalDraft": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 14
+      },
+      "reminderPlanning": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 9
+      },
+      "prepareContribution": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 5
+      },
+      "taskPlanning": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 16
+      },
+      "simulateSavings": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "modifyMission": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "cancelMission": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "askQuestion": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      }
+    },
+    "annotatedFields": 48,
+    "matchedFields": 48,
+    "fieldMetrics": {
+      "goalName": {
+        "annotated": 10,
+        "matched": 10,
+        "exactMatch": 1.0
+      },
+      "date": {
+        "annotated": 14,
+        "matched": 14,
+        "exactMatch": 1.0
+      },
+      "amount": {
+        "annotated": 9,
+        "matched": 9,
+        "exactMatch": 1.0
+      },
+      "weekday": {
+        "annotated": 7,
+        "matched": 7,
+        "exactMatch": 1.0
+      },
+      "recurrence": {
+        "annotated": 7,
+        "matched": 7,
+        "exactMatch": 1.0
+      },
+      "currency": {
+        "annotated": 1,
+        "matched": 1,
+        "exactMatch": 1.0
+      }
+    },
+    "annotatedClarifications": 0,
+    "correctClarifications": 0,
+    "slotExactMatch": 1.0,
+    "negativeCases": 8,
+    "proposalOvertriggers": 0,
+    "proposalOvertriggerRate": 0.0
+  },
+  "groups": {
+    "non_fluent_english": {
+      "cases": 5,
+      "correctIntents": 5,
+      "macroF1": 1.0,
+      "intentMetrics": {
+        "createGoalDraft": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        },
+        "reminderPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "prepareContribution": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "taskPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "annotatedFields": 5,
+      "matchedFields": 5,
+      "fieldMetrics": {
+        "goalName": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "date": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "amount": {
+          "annotated": 1,
+          "matched": 1,
+          "exactMatch": 1.0
+        }
+      },
+      "annotatedClarifications": 0,
+      "correctClarifications": 0,
+      "slotExactMatch": 1.0,
+      "negativeCases": 0,
+      "proposalOvertriggers": 0,
+      "proposalOvertriggerRate": null
+    },
+    "non_fluent_filipino": {
+      "cases": 5,
+      "correctIntents": 5,
+      "macroF1": 1.0,
+      "intentMetrics": {
+        "createGoalDraft": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        },
+        "reminderPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "taskPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "prepareContribution": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "annotatedFields": 3,
+      "matchedFields": 3,
+      "fieldMetrics": {
+        "goalName": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "amount": {
+          "annotated": 1,
+          "matched": 1,
+          "exactMatch": 1.0
+        }
+      },
+      "annotatedClarifications": 0,
+      "correctClarifications": 0,
+      "slotExactMatch": 1.0,
+      "negativeCases": 1,
+      "proposalOvertriggers": 0,
+      "proposalOvertriggerRate": 0.0
+    },
+    "taglish": {
+      "cases": 11,
+      "correctIntents": 11,
+      "macroF1": 1.0,
+      "intentMetrics": {
+        "createGoalDraft": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 4
+        },
+        "taskPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "reminderPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        },
+        "simulateSavings": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "prepareContribution": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "modifyMission": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "cancelMission": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "annotatedFields": 10,
+      "matchedFields": 10,
+      "fieldMetrics": {
+        "goalName": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "weekday": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "recurrence": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "amount": {
+          "annotated": 4,
+          "matched": 4,
+          "exactMatch": 1.0
+        }
+      },
+      "annotatedClarifications": 0,
+      "correctClarifications": 0,
+      "slotExactMatch": 1.0,
+      "negativeCases": 3,
+      "proposalOvertriggers": 0,
+      "proposalOvertriggerRate": 0.0
+    },
+    "english": {
+      "cases": 17,
+      "correctIntents": 17,
+      "macroF1": 1.0,
+      "intentMetrics": {
+        "createGoalDraft": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "taskPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 9
+        },
+        "askQuestion": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "modifyMission": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "prepareContribution": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "reminderPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        }
+      },
+      "annotatedFields": 19,
+      "matchedFields": 19,
+      "fieldMetrics": {
+        "amount": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "goalName": {
+          "annotated": 3,
+          "matched": 3,
+          "exactMatch": 1.0
+        },
+        "currency": {
+          "annotated": 1,
+          "matched": 1,
+          "exactMatch": 1.0
+        },
+        "date": {
+          "annotated": 9,
+          "matched": 9,
+          "exactMatch": 1.0
+        },
+        "weekday": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        },
+        "recurrence": {
+          "annotated": 2,
+          "matched": 2,
+          "exactMatch": 1.0
+        }
+      },
+      "annotatedClarifications": 0,
+      "correctClarifications": 0,
+      "slotExactMatch": 1.0,
+      "negativeCases": 2,
+      "proposalOvertriggers": 0,
+      "proposalOvertriggerRate": 0.0
+    },
+    "filipino": {
+      "cases": 12,
+      "correctIntents": 12,
+      "macroF1": 1.0,
+      "intentMetrics": {
+        "createGoalDraft": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "taskPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 4
+        },
+        "reminderPlanning": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 3
+        },
+        "modifyMission": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        },
+        "prepareContribution": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 1
+        }
+      },
+      "annotatedFields": 11,
+      "matchedFields": 11,
+      "fieldMetrics": {
+        "date": {
+          "annotated": 3,
+          "matched": 3,
+          "exactMatch": 1.0
+        },
+        "goalName": {
+          "annotated": 1,
+          "matched": 1,
+          "exactMatch": 1.0
+        },
+        "weekday": {
+          "annotated": 3,
+          "matched": 3,
+          "exactMatch": 1.0
+        },
+        "recurrence": {
+          "annotated": 3,
+          "matched": 3,
+          "exactMatch": 1.0
+        },
+        "amount": {
+          "annotated": 1,
+          "matched": 1,
+          "exactMatch": 1.0
+        }
+      },
+      "annotatedClarifications": 0,
+      "correctClarifications": 0,
+      "slotExactMatch": 1.0,
+      "negativeCases": 2,
+      "proposalOvertriggers": 0,
+      "proposalOvertriggerRate": 0.0
+    }
+  },
+  "failures": []
+}

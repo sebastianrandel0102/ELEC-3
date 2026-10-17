@@ -126,9 +126,11 @@ class AiMarkdownResponse extends StatelessWidget {
     super.key,
     required this.text,
     this.streaming = false,
+    this.foregroundColor = ink,
   });
   final String text;
   final bool streaming;
+  final Color foregroundColor;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) => Column(
@@ -202,21 +204,21 @@ class AiMarkdownResponse extends StatelessWidget {
         }
       },
       styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-        p: const TextStyle(color: ink, fontSize: 15, height: 1.7),
-        h1: const TextStyle(
-          color: ink,
+        p: TextStyle(color: foregroundColor, fontSize: 15, height: 1.7),
+        h1: TextStyle(
+          color: foregroundColor,
           fontSize: 23,
           fontWeight: FontWeight.w700,
           height: 1.4,
         ),
-        h2: const TextStyle(
-          color: ink,
+        h2: TextStyle(
+          color: foregroundColor,
           fontSize: 20,
           fontWeight: FontWeight.w700,
           height: 1.4,
         ),
-        h3: const TextStyle(
-          color: ink,
+        h3: TextStyle(
+          color: foregroundColor,
           fontSize: 17,
           fontWeight: FontWeight.w700,
           height: 1.4,
@@ -228,7 +230,9 @@ class AiMarkdownResponse extends StatelessWidget {
           backgroundColor: SaveTrackDesign.mist,
         ),
         blockquoteDecoration: BoxDecoration(
-          color: SaveTrackDesign.mist,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Theme.of(context).colorScheme.surfaceContainerHigh
+              : SaveTrackDesign.mist,
           borderRadius: BorderRadius.circular(8),
         ),
         tableBorder: TableBorder.all(color: SaveTrackDesign.border),

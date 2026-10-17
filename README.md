@@ -39,6 +39,10 @@ Smart Reminders adds native Android/iOS scheduling for personal goals, each shar
 
 ## Checks
 
+Agent Studio's **Mint Aurora 6.3 — Universal Intent Intelligence** adds shared, quote-aware title and purpose resolution across goals, tasks, reminders, missions and scenarios; contextual corrections; labelled financial roles; editable interpretation previews; and a 1,128-case multilingual synthetic benchmark. It preserves local parsing and explicit approval. See [implementation, before/after measurements, verification and limitations](docs/agent-universal-intelligence.md).
+
+Agent Studio's **Mint Aurora 6.1 — Language Intelligence** upgrade adds local English, Filipino/Tagalog, and Taglish interpretation, separate language/voice preferences, field-level clarification, editable transcript review, and persistent draft-only approval protection. See [implementation, synthetic evaluation, validation results, and limitations](docs/agent-language-intelligence.md).
+
 SaveTrack AI Coach Lite is available from the Dashboard with separate Ask Anything and Coach sessions, real Gemini streaming, local financial facts and explicit context approval. See [implementation, privacy, Firebase AI Logic/App Check setup and validation](docs/ai-coach.md). Console configuration is required before live AI requests can succeed; the feature does not enable billing.
 
 Daily Planner includes local, time-aware **Smart Suggestions**, with a next-task card, recommended follow-ups, explainable ranking, explicit-window conflict warnings, and automatic clock/data updates. It uses existing task records and actions. See [Smart Suggestions rules, supported time formats and validation](docs/smart-suggestions.md).

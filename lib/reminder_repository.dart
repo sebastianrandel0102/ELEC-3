@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -149,6 +151,33 @@ class FirestoreReminderRepository implements ReminderRepository {
     await records(config.uid)
         .doc(config.key)
         .set({...config.toMap(), 'updatedAt': FieldValue.serverTimestamp()});
+    _session(config.uid);
+  }
+
+  /// Agent creation is conditional: never replace a reminder edited since review.
+  /// Exact replays reconcile the existing preference without another write.
+  Future<void> createReviewed(ReminderConfiguration config) async {
+    _session(config.uid);
+    config.validate();
+    final ref = records(config.uid).doc(config.key);
+    await db.runTransaction((tx) async {
+      _session(config.uid);
+      final current = await tx.get(ref);
+      _session(config.uid);
+      if (current.exists) {
+        final old = ReminderConfiguration.fromMap(current.data()!);
+        if (jsonEncode(old.toMap()) != jsonEncode(config.toMap())) {
+          throw const ReminderFailure(
+            'This reminder changed. Review it in Smart Reminders.',
+          );
+        }
+        return;
+      }
+      tx.set(ref, {
+        ...config.toMap(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
     _session(config.uid);
   }
 

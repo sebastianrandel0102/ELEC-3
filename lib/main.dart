@@ -7,6 +7,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 import 'auth_service.dart';
+import 'app_record_repository.dart';
+import 'agent_studio/agent_screen.dart';
 import 'ai_coach/ai_coach_screen.dart';
 import 'ai_coach/ai_widgets.dart';
 import 'ai_coach/firebase_ai_gateway.dart';
@@ -76,7 +78,7 @@ class SaveTrackApp extends StatelessWidget {
             openTarget: _openHomeWidgetTarget,
             child: ReminderHost(
               openTarget: _openReminderTarget,
-              child: CurrencyHost(child: child!),
+              child: CurrencyHost(child: SharedSavingsHost(child: child!)),
             ),
           )
         : null,
@@ -158,12 +160,10 @@ class AuthGate extends StatelessWidget {
         builder: (context, googleBusy, child) =>
             snapshot.data == null || googleBusy
             ? const AuthScreen()
-            : SharedSavingsHost(
+            : GoalCoverSession(
                 key: ValueKey(snapshot.data!.uid),
-                child: GoalCoverSession(
-                  uid: snapshot.data!.uid,
-                  child: HomeShell(key: _homeShellKey),
-                ),
+                uid: snapshot.data!.uid,
+                child: HomeShell(key: _homeShellKey),
               ),
       );
     },
@@ -599,6 +599,16 @@ class _HomeShellState extends State<HomeShell> {
         ),
         actions: [
           IconButton(
+            tooltip: 'Open Agent Studio',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    const AgentStudioScreen(onOpen: _openAgentDestination),
+              ),
+            ),
+            icon: const Icon(Icons.hub_outlined, color: teal),
+          ),
+          IconButton(
             tooltip: 'Open AI Coach',
             onPressed: () => Navigator.of(context).push(
               MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
@@ -847,10 +857,39 @@ class DashboardScreen extends StatelessWidget {
           ),
           onGoals: () => _openTab(context, 1),
           onPlanner: () => _openTab(context, 2),
-          ai: AiDashboardCard(
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
-            ),
+          ai: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AiDashboardCard(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) => const AiCoachScreen(),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Card(
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  leading: const MintIcon(Icons.hub_outlined),
+                  title: const Text(
+                    'Agent Studio',
+                    style: TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  subtitle: const Text(
+                    'Text or voice. Editable plans. Actions you approve.',
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_rounded),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const AgentStudioScreen(
+                        onOpen: _openAgentDestination,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -2837,6 +2876,64 @@ CollectionReference<Map<String, dynamic>> _goals(String uid) =>
     FirebaseFirestore.instance.collection('users').doc(uid).collection('goals');
 CollectionReference<Map<String, dynamic>> _tasks(String uid) =>
     FirebaseFirestore.instance.collection('users').doc(uid).collection('tasks');
+
+Future<void> _openAgentDestination(
+  BuildContext context,
+  String destination,
+  String? id,
+  String? amount,
+) async {
+  final uid = FirebaseAuth.instance.currentUser?.uid;
+  if (uid == null) return;
+  if (destination == 'contribution' && id != null) {
+    final snapshot = await _goals(uid)
+        .where(FieldPath.documentId, isEqualTo: id)
+        .get(const GetOptions(source: Source.server));
+    if (!context.mounted || FirebaseAuth.instance.currentUser?.uid != uid) {
+      return;
+    }
+    if (snapshot.docs.isEmpty) throw StateError('Goal unavailable');
+    await showCurrencySavingsForm(
+      context,
+      uid,
+      snapshot.docs.first,
+      initialAmount: amount,
+      guardWidgetAccount: true,
+    );
+    return;
+  }
+  final Widget page = switch (destination) {
+    'general' => const AiCoachScreen(),
+    'reminders' => const SmartRemindersScreen(),
+    'goal' when id != null => PersonalGoalDetailsScreen(uid: uid, goalId: id),
+    _ => Scaffold(
+      appBar: AppBar(
+        title: Text(
+          destination == 'planner'
+              ? 'Planner'
+              : destination == 'reports'
+              ? 'Reports'
+              : 'Savings goals',
+        ),
+      ),
+      body: PageSurface(
+        child: destination == 'planner'
+            ? const PlannerScreen()
+            : destination == 'reports'
+            ? const ReportsScreen()
+            : const GoalsScreen(),
+      ),
+    ),
+  };
+  if (context.mounted) {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => WidgetAccountGuard(uid: uid, child: page),
+      ),
+    );
+  }
+}
+
 double _number(dynamic v) => v is num ? v.toDouble() : 0;
 String _money(num v) => originalMoney(v);
 
@@ -3389,10 +3486,15 @@ Future<void> showGoalForm(
                                 'archived': false,
                                 'createdAt': FieldValue.serverTimestamp(),
                               });
-                              await goalDb.runTransaction((tx) async {
-                                final existing = await tx.get(goalRef);
-                                if (!existing.exists) tx.set(goalRef, data);
-                              });
+                              await AppRecordRepository(
+                                db: goalDb,
+                                auth: goalAuth,
+                              ).create(
+                                uid: uid,
+                                collection: 'goals',
+                                id: goalRef.id,
+                                data: data,
+                              );
                               if (ctx.mounted) setState(() => goalSaved = true);
                             } else if (doc != null) {
                               await doc.reference.update(data);
@@ -3749,7 +3851,12 @@ Future<void> showTaskForm(
                               'completed': false,
                               'createdAt': FieldValue.serverTimestamp(),
                             });
-                            await taskReference!.set(data);
+                            await AppRecordRepository().create(
+                              uid: activeAccount!,
+                              collection: 'tasks',
+                              id: taskReference!.id,
+                              data: data,
+                            );
                           } else {
                             await taskReference!.update(data);
                           }

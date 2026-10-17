@@ -179,22 +179,64 @@ class SharedSavingsScope extends InheritedNotifier<SharedSavingsController> {
       .notifier!;
 }
 
+/// Lives above Navigator so pushed reports share the signed-in user's listener.
+/// Account changes discard the previous controller before exposing a new scope.
 class SharedSavingsHost extends StatefulWidget {
-  const SharedSavingsHost({super.key, required this.child});
+  const SharedSavingsHost({
+    super.key,
+    required this.child,
+    this.auth,
+    this.repositoryForUser,
+  });
   final Widget child;
+  final FirebaseAuth? auth;
+  final SharedSavingsRepository Function(User user)? repositoryForUser;
   @override
   State<SharedSavingsHost> createState() => _SharedSavingsHostState();
 }
 
 class _SharedSavingsHostState extends State<SharedSavingsHost> {
-  late final _controller = SharedSavingsController(SharedSavingsRepository());
+  SharedSavingsController? _controller;
+  StreamSubscription<User?>? _authSubscription;
+  String? _uid;
+  FirebaseAuth get _auth => widget.auth ?? FirebaseAuth.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    _switchAccount(_auth.currentUser);
+    _authSubscription = _auth.authStateChanges().listen(
+      (user) {
+        if (!mounted || user?.uid == _uid) return;
+        setState(() => _switchAccount(user));
+      },
+      onError: (Object _) {
+        if (mounted) setState(() => _switchAccount(null));
+      },
+    );
+  }
+
+  void _switchAccount(User? user) {
+    _controller?.dispose();
+    _controller = null;
+    _uid = user?.uid;
+    if (user != null) {
+      _controller = SharedSavingsController(
+        widget.repositoryForUser?.call(user) ??
+            SharedSavingsRepository(auth: _auth),
+      );
+    }
+  }
+
   @override
   void dispose() {
-    _controller.dispose();
+    _authSubscription?.cancel();
+    _controller?.dispose();
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) =>
-      SharedSavingsScope(controller: _controller, child: widget.child);
+  Widget build(BuildContext context) => _controller == null
+      ? widget.child
+      : SharedSavingsScope(controller: _controller!, child: widget.child);
 }
