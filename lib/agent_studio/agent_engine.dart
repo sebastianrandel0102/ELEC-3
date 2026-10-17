@@ -8,6 +8,9 @@ import 'agent_store.dart';
 import 'agent_planner.dart';
 import 'intelligence/agent_interpretation.dart';
 import 'intelligence/agent_language.dart';
+import 'autopilot/autopilot_settings.dart';
+import 'autopilot/auto_execution_policy.dart';
+import 'autopilot/execution_ledger.dart';
 
 /// Only this application service can mint approvals. They are process-local,
 /// single use, and bound to an exact snapshot, identity, permission revision,
@@ -33,12 +36,23 @@ class AgentEngine extends ChangeNotifier {
     required this.currentUid,
     required this.backend,
     required this.store,
+    AgentExecutionLedger? ledger,
     DateTime Function()? clock,
-  }) : clock = clock ?? DateTime.now;
+  }) : clock = clock ?? DateTime.now,
+       ledger = ledger ?? PreferenceAgentExecutionLedger();
   final String uid;
   final String? Function() currentUid;
   final AgentBackend backend;
   final AgentStore store;
+  final AgentExecutionLedger ledger;
+  final String sessionId = agentId();
+  final _activity = <AgentExecutionRecord>[];
+  List<AgentExecutionRecord> get automaticActivity =>
+      List.unmodifiable(_activity);
+  AgentPolicyDecision? autoDecision;
+  bool foreground = true, _handlingRequest = false, _ledgerReady = false;
+  int _settingsRevision = 0;
+  static const _policy = AgentAutoExecutionPolicyEngine();
   final DateTime Function() clock;
   final Object _issuer = Object();
   AgentSettings settings = AgentSettings();
@@ -83,6 +97,17 @@ class AgentEngine extends ChangeNotifier {
       final loaded = await store.settings(uid);
       _session();
       settings = loaded;
+      try {
+        final records = await ledger.load(uid);
+        _session();
+        _activity.addAll(records);
+        _ledgerReady = true;
+      } catch (_) {
+        settings = settings.change({
+          'autopilot': const AgentAutopilotSettings().toJson(),
+        });
+        error = 'Autopilot recovery metadata could not be loaded. Manual review remains available.';
+      }
       if (settings.history) {
         final saved = await store.history(uid);
         _session();
@@ -106,15 +131,337 @@ class AgentEngine extends ChangeNotifier {
   Future<void> updateSettings(AgentSettings value) async {
     _session();
     _epoch++;
+    _settingsRevision++;
     settings = value;
     if (busy) _cancel = true;
     _notify();
     if (!value.history) history.clear();
-    await _persist(() async {
-      await store.saveSettings(uid, value);
-      if (!value.history) await store.clear(uid);
-    });
+    try {
+      await _persist(() async {
+        await store.saveSettings(uid, value);
+        if (!value.history) await store.clear(uid);
+      });
+    } catch (_) {
+      // A failed opt-in save must never leave live automatic permissions active.
+      settings = settings.change({
+        'autopilot': const AgentAutopilotSettings().toJson(),
+      });
+      _epoch++;
+      _settingsRevision++;
+      _notify();
+      rethrow;
+    }
     _notify();
+  }
+
+  Future<void> pauseAutopilot() => updateSettings(
+    settings.change({
+      'autopilot': settings.autopilot.change({
+        'mode': AgentExecutionMode.paused.name,
+      }).toJson(),
+    }),
+  );
+
+  void setForeground(bool value) {
+    if (foreground == value) return;
+    foreground = value;
+    if (!value) {
+      _epoch++;
+      if (busy) _cancel = true;
+    }
+    _notify();
+  }
+
+  AgentPolicyDecision _evaluateAutomatic(
+    AgentRequestOrigin origin, {
+    required bool resolved,
+    required bool checked,
+    int? units,
+  }) => _policy.evaluate(
+    mission: mission!,
+    settings: settings,
+    context: AgentExecutionContext(
+      uid: active ? currentUid() : null,
+      origin: origin,
+      now: clock(),
+      foreground: foreground,
+      resolved: resolved,
+      serverChecked: checked,
+      sessionActions: _activity
+          .where((r) => r.sessionId == sessionId && r.countsTowardsLimit)
+          .length,
+      // Future timestamps count too: a clock rollback cannot reset the quota.
+      hourActions: _activity
+          .where(
+            (r) =>
+                r.countsTowardsLimit &&
+                r.createdAt.isAfter(clock().subtract(const Duration(hours: 1))),
+          )
+          .length,
+      units: units,
+    ),
+  );
+
+  /// This entry point is reserved for the active local user interaction. Drafts,
+  /// model guidance, history, and editor callbacks still use applyPlan/draft.
+  Future<void> handleUserPlan(
+    LocalAgentPlan plan, {
+    AgentRequestOrigin origin = AgentRequestOrigin.userText,
+  }) async {
+    _session();
+    if (_handlingRequest || busy || loading) {
+      throw const AgentFailure('Wait for the current request.');
+    }
+    _handlingRequest = true;
+    final revision = _settingsRevision;
+    autoDecision = null;
+    try {
+      await applyPlan(plan);
+      if (!active ||
+          revision != _settingsRevision ||
+          mission == null ||
+          (plan.actions.isEmpty && plan.replacement == null)) {
+        return;
+      }
+      final understanding = activeInterpretation;
+      final resolved =
+          understanding != null &&
+          understanding.status == UnderstandingStatus.resolved &&
+          understanding.uncertain.isEmpty &&
+          understanding.negated.isEmpty &&
+          !understanding.draftOnly;
+      final snapshot = mission!.snapshot, epoch = _epoch;
+      // A local preflight can rule out review/clarification without server reads.
+      autoDecision = _evaluateAutomatic(
+        origin,
+        resolved: resolved,
+        checked: false,
+      );
+      final needsServerCheck = autoDecision!.reasonCode == 'server_check';
+      if (!autoDecision!.mayRun && !needsServerCheck) {
+        if (autoDecision!.reasonCode == 'session_limit' ||
+            autoDecision!.reasonCode == 'hour_limit') {
+          await pauseAutopilot();
+        }
+        _notify();
+        return;
+      }
+      final readOnly = autoDecision!.decision == AgentAutoDecision.readOnly;
+      if (!readOnly && !_ledgerReady) {
+        autoDecision = const AgentPolicyDecision(
+          AgentAutoDecision.blocked,
+          'ledger',
+          'Recovery metadata is unavailable. Use manual review.',
+        );
+        _notify();
+        return;
+      }
+      var serverChecked = readOnly;
+      void authorize({int units = 0}) {
+        _session();
+        if (_cancel || epoch != _epoch || snapshot != mission?.snapshot) {
+          throw const AgentFailure(
+            'The request, session, or permissions changed. Review again.',
+          );
+        }
+        final decision = _evaluateAutomatic(
+          origin,
+          resolved: resolved,
+          checked: serverChecked,
+          units: units,
+        );
+        if (!decision.mayRun &&
+            !(decision.reasonCode == 'server_check' &&
+                !serverChecked &&
+                units == 0)) {
+          throw AgentFailure(decision.message);
+        }
+      }
+
+      _cancel = false;
+      await _executeAuthorized(
+        () => authorize(),
+        automaticOrigin: readOnly ? null : origin,
+        reserveAuthorization: () => authorize(units: 1),
+        verificationPassed: () {
+          serverChecked = true;
+          autoDecision = _evaluateAutomatic(
+            origin,
+            resolved: resolved,
+            checked: true,
+            units: 0,
+          );
+        },
+      );
+    } finally {
+      _handlingRequest = false;
+      _notify();
+    }
+  }
+
+  Future<void> _saveLedger() async {
+    final records = List<AgentExecutionRecord>.of(_activity);
+    await _persist(() => ledger.save(uid, records));
+  }
+
+  Future<void> _reserve(AgentStep step) async {
+    final m = mission!;
+    if (_activity.any((r) => r.missionId == m.id && r.stepId == step.id)) {
+      throw const AgentFailure(
+        'This operation was already dispatched. Review it to reconcile the result.',
+      );
+    }
+    _activity.insert(
+      0,
+      AgentExecutionRecord(
+        uid: uid,
+        missionId: m.id,
+        stepId: step.id,
+        sessionId: sessionId,
+        action: step.action,
+        createdAt: clock(),
+        mode: settings.autopilot.mode,
+        recordId: switch (step.action) {
+          GoalDraft() || TaskDraft() => 'agent_${m.id}_${step.id}',
+          final ReminderDraft a =>
+            a.targetStep.isEmpty ? a.targetId : 'agent_${m.id}_${a.targetStep}',
+          final ContributionDraft a => a.goalId,
+          _ => '',
+        },
+      ),
+    );
+    if (_activity.length > 500) _activity.removeRange(500, _activity.length);
+    await _saveLedger(); // Fail closed BEFORE dispatch, even with history off.
+  }
+
+  Future<void> _finishRecord(
+    AgentStep step,
+    AgentOperationStatus status,
+    String message,
+    String recordId,
+  ) async {
+    final index = _activity.indexWhere(
+      (r) => r.missionId == mission?.id && r.stepId == step.id,
+    );
+    if (index < 0) return;
+    _activity[index] = _activity[index].finish(
+      status,
+      message,
+      recordId.isEmpty ? _activity[index].recordId : recordId,
+    );
+    await _saveLedger();
+    _notify();
+  }
+
+  bool canUndoAutomaticTask(AgentExecutionRecord record) =>
+      active &&
+      backend is AgentTaskUndoBackend &&
+      record.uid == uid &&
+      record.status == AgentOperationStatus.completed &&
+      record.action is TaskDraft &&
+      record.recordId == 'agent_${record.missionId}_${record.stepId}' &&
+      !clock().isBefore(record.createdAt) &&
+      clock().difference(record.createdAt) <= const Duration(minutes: 10);
+
+  bool canReconcileAutomaticRecord(AgentExecutionRecord record) =>
+      active &&
+      record.uid == uid &&
+      backend is AgentOperationReconciler &&
+      (record.status == AgentOperationStatus.dispatched ||
+          record.status == AgentOperationStatus.uncertain) &&
+      (record.action is GoalDraft ||
+          record.action is TaskDraft ||
+          record.action is ReminderDraft);
+
+  Future<void> reconcileAutomaticRecord(AgentExecutionRecord record) async {
+    _session();
+    if (busy ||
+        !canReconcileAutomaticRecord(record) ||
+        !_activity.contains(record)) {
+      throw const AgentFailure(
+        'This result is unavailable for reconciliation.',
+      );
+    }
+    final epoch = _epoch;
+    busy = true;
+    _notify();
+    try {
+      final result = await (backend as AgentOperationReconciler)
+          .reconcileAutomaticRecord(record)
+          .timeout(AgentLimits.requestTimeout);
+      _session();
+      if (epoch != _epoch) {
+        throw const AgentFailure(
+          'Your session changed. Check the result again.',
+        );
+      }
+      final index = _activity.indexOf(record);
+      _activity[index] = record.finish(
+        result == null
+            ? AgentOperationStatus.uncertain
+            : AgentOperationStatus.completed,
+        result?.message ?? 'No server record was found. No action was replayed. Inspect SaveTrack before a manual retry.',
+        result?.recordId ?? record.recordId,
+      );
+      await _saveLedger();
+      if (result != null &&
+          mission?.id == record.missionId &&
+          mission!.steps.any((s) => s.id == record.stepId)) {
+        _step(
+          record.stepId,
+          status: StepStatus.completed,
+          result: result.message,
+          recordId: result.recordId,
+        );
+        mission = mission!.copyWith(
+          status: mission!.pending.isEmpty
+              ? MissionStatus.completed
+              : MissionStatus.partiallyCompleted,
+        );
+        await save();
+      }
+    } finally {
+      busy = false;
+      _notify();
+    }
+  }
+
+  Future<void> undoAutomaticTask(AgentExecutionRecord record) async {
+    _session();
+    if (busy ||
+        !canUndoAutomaticTask(record) ||
+        !_activity.any((r) => identical(r, record))) {
+      throw const AgentFailure(
+        'Undo is unavailable. Open the task in Planner.',
+      );
+    }
+    final epoch = _epoch;
+    busy = true;
+    _notify();
+    try {
+      await (backend as AgentTaskUndoBackend).undoCreatedTask(
+        record.recordId,
+        record.action as TaskDraft,
+        beforeWrite: () {
+          _session();
+          if (epoch != _epoch || !foreground) {
+            throw const AgentFailure('Your session changed. Undo stopped.');
+          }
+        },
+      );
+      final index = _activity.indexOf(record);
+      if (active && index >= 0) {
+        _activity[index] = record.finish(
+          AgentOperationStatus.reversed,
+          'Task creation reversed by your Undo action.',
+          record.recordId,
+        );
+        await _saveLedger();
+      }
+    } finally {
+      busy = false;
+      _notify();
+    }
   }
 
   void draft(
@@ -522,21 +869,41 @@ class AgentEngine extends ChangeNotifier {
     _cancel = false;
     _approval(approval);
     approval._used = true;
+    await _executeAuthorized(() => _approval(approval), manuallyApproved: true);
+  }
+
+  /// Shared validated executor. Policy authority is never minted as a manual
+  /// approval, and both paths retain the same repository and dependency checks.
+  Future<void> _executeAuthorized(
+    void Function() authorize, {
+    bool manuallyApproved = false,
+    AgentRequestOrigin? automaticOrigin,
+    void Function()? reserveAuthorization,
+    void Function()? verificationPassed,
+  }) async {
+    authorize();
     busy = true;
     error = null;
-    mission = mission!.copyWith(status: MissionStatus.approved);
+    mission = mission!.copyWith(
+      status: manuallyApproved
+          ? MissionStatus.approved
+          : MissionStatus.executing,
+    );
     _notify();
+    Future<List<String>> check() =>
+        automaticOrigin != null && backend is GuardedAgentBackend
+        ? (backend as GuardedAgentBackend).checkAutomatic(mission!)
+        : backend.check(mission!);
     try {
-      final issues = await backend
-          .check(mission!)
-          .timeout(AgentLimits.requestTimeout);
-      _approval(approval);
+      final issues = await check().timeout(AgentLimits.requestTimeout);
       if (issues.isNotEmpty) throw AgentFailure(issues.join('\n'));
+      verificationPassed?.call();
+      authorize();
       mission = mission!.copyWith(status: MissionStatus.executing);
       await save();
       final remaining = mission!.pending.map((s) => s.id).toSet();
       while (remaining.isNotEmpty && !_cancel) {
-        _approval(approval);
+        authorize();
         final ready = mission!.steps
             .where(
               (s) =>
@@ -563,18 +930,29 @@ class AgentEngine extends ChangeNotifier {
           attempts: ready.attempts + 1,
         );
         await save(); // Recovery state is durable before a write when enabled.
-        _approval(approval);
+        authorize();
         try {
           // Repeat server checks immediately before each mutation; recheck the
           // local approval after the asynchronous authorization read.
-          final currentIssues = await backend
-              .check(mission!)
-              .timeout(AgentLimits.requestTimeout);
-          _approval(approval);
+          final currentIssues = await check().timeout(
+            AgentLimits.requestTimeout,
+          );
+          authorize();
           if (currentIssues.isNotEmpty) {
             throw AgentFailure(currentIssues.join('\n'));
           }
-          final result = await backend.perform(mission!, ready);
+          if (automaticOrigin != null) {
+            reserveAuthorization!();
+            await _reserve(ready);
+            authorize();
+          }
+          final result = backend is GuardedAgentBackend
+              ? await (backend as GuardedAgentBackend).performGuarded(
+                  mission!,
+                  ready,
+                  beforeWrite: authorize,
+                )
+              : await backend.perform(mission!, ready);
           if (active) {
             _step(
               ready.id,
@@ -582,6 +960,25 @@ class AgentEngine extends ChangeNotifier {
               result: result.message,
               recordId: result.recordId,
             );
+            if (automaticOrigin != null ||
+                _activity.any(
+                  (r) => r.missionId == mission!.id && r.stepId == ready.id,
+                )) {
+              try {
+                await _finishRecord(
+                  ready,
+                  AgentOperationStatus.completed,
+                  result.message,
+                  result.recordId,
+                );
+              } catch (_) {
+                // The service already confirmed the result. A local storage
+                // failure cannot turn that known success into an unknown write.
+                _ledgerReady = false;
+                _cancel = true;
+                error = 'The operation was confirmed, but recovery metadata could not be saved. Remaining actions stopped.';
+              }
+            }
           }
         } catch (e) {
           if (active) {
@@ -590,6 +987,23 @@ class AgentEngine extends ChangeNotifier {
               status: StepStatus.failed,
               result: e is AgentFailure ? e.message : 'Could not verify this operation. Review and retry to reconcile its stable record ID.',
             );
+            if (automaticOrigin != null ||
+                _activity.any(
+                  (r) => r.missionId == mission!.id && r.stepId == ready.id,
+                )) {
+              try {
+                await _finishRecord(
+                  ready,
+                  AgentOperationStatus.uncertain,
+                  e is AgentFailure ? e.message : 'Outcome unverified. Inspect the existing record before retrying.',
+                  '',
+                );
+              } catch (_) {
+                _ledgerReady = false;
+                _cancel = true;
+                error = 'Recovery metadata could not be updated. Remaining automatic actions stopped.';
+              }
+            }
           }
         }
         if (!active) break;
@@ -682,6 +1096,7 @@ class AgentEngine extends ChangeNotifier {
     _epoch++;
     mission = value;
     interpretation = null;
+    autoDecision = null;
     _interpretedSnapshot = null;
     error = null;
     _notify();
@@ -709,6 +1124,7 @@ class AgentEngine extends ChangeNotifier {
     _epoch++;
     messages.clear();
     interpretation = null;
+    autoDecision = null;
     sessionLanguage = AgentLanguage.automatic;
     mission = null;
     error = null;
@@ -724,6 +1140,10 @@ class AgentEngine extends ChangeNotifier {
     interpretation = null;
     sessionLanguage = AgentLanguage.automatic;
     settings = AgentSettings();
+    _activity.clear();
+    _ledgerReady = false;
+    _settingsRevision++;
+    autoDecision = null;
     error = null;
     _notify();
   }

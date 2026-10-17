@@ -156,7 +156,10 @@ class FirestoreReminderRepository implements ReminderRepository {
 
   /// Agent creation is conditional: never replace a reminder edited since review.
   /// Exact replays reconcile the existing preference without another write.
-  Future<void> createReviewed(ReminderConfiguration config) async {
+  Future<void> createReviewed(
+    ReminderConfiguration config, {
+    void Function()? beforeWrite,
+  }) async {
     _session(config.uid);
     config.validate();
     final ref = records(config.uid).doc(config.key);
@@ -173,6 +176,7 @@ class FirestoreReminderRepository implements ReminderRepository {
         }
         return;
       }
+      beforeWrite?.call();
       tx.set(ref, {
         ...config.toMap(),
         'updatedAt': FieldValue.serverTimestamp(),

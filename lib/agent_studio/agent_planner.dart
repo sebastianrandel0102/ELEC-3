@@ -149,6 +149,23 @@ class LocalAgentPlanner {
     );
     final uncertain = plans.expand((p) => p.interpretation!.uncertain).toSet();
     final questions = plans.expand((p) => p.interpretation!.questions).toSet();
+    final unsupported = plans.any(
+      (p) => p.interpretation!.status == UnderstandingStatus.unsupported,
+    );
+    final unhandled = plans.any(
+      (p) =>
+          p.actions.isEmpty &&
+          p.missionTitle == null &&
+          p.replacement == null &&
+          !p.cancel &&
+          p.interpretation!.intent == AgentIntent.unknown,
+    );
+    if (unsupported || unhandled) {
+      uncertain.add(Uncertainty.intent);
+      questions.add(
+        'Part of this request is unsupported or sensitive. Clarify it or use the existing SaveTrack screen before automatic execution.',
+      );
+    }
     final intent = missionTitle != null
         ? AgentIntent.missionPlanning
         : plans
@@ -184,7 +201,9 @@ class LocalAgentPlanner {
                 e.end + scopes[i].start,
               ),
         ],
-        status: uncertain.isNotEmpty
+        status: unsupported
+            ? UnderstandingStatus.unsupported
+            : uncertain.isNotEmpty
             ? UnderstandingStatus.needsClarification
             : UnderstandingStatus.resolved,
         uncertain: uncertain,
@@ -692,6 +711,28 @@ class LocalAgentPlanner {
       }
     }
     var actionText = positive.join(' ').trim();
+    if (RegExp(
+      r'\b(?:transfer|send money|send cash|send funds|magpadala|ilipat|reschedule)\b',
+    ).hasMatch(actionText)) {
+      return result(
+        s.choose(
+          'This request includes an unsupported transfer or existing-record change. Use the dedicated SaveTrack workflow; no part will execute automatically.',
+          'May transfer o pagbabago ng kasalukuyang record na hindi suportado rito. Gamitin ang nakalaang SaveTrack screen.',
+        ),
+        unsupported: true,
+      );
+    }
+    if (RegExp(
+      r'\b(?:shared\s+(?:savings\s+)?(?:goal|fund)|save together|shared\s+(?:member|role|permission)s?)\b',
+    ).hasMatch(actionText)) {
+      return result(
+        s.choose(
+          'Use Save Together for shared goals and membership changes. These operations keep their dedicated review and role checks.',
+          'Gamitin ang Save Together para sa shared goals at pagbabago ng mga miyembro. Kailangan pa rin ang pagsusuri at pahintulot.',
+        ),
+        unsupported: true,
+      );
+    }
     var money = const MoneyExpressionParser().parse(
       roleText.replaceAllMapped(
         RegExp(r'\bhow\s+about\b', caseSensitive: false),
