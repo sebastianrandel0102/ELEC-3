@@ -5,6 +5,9 @@ import 'package:flutter/foundation.dart';
 import 'agent_backend.dart';
 import 'agent_domain.dart';
 import 'agent_store.dart';
+import 'agent_planner.dart';
+import 'intelligence/agent_interpretation.dart';
+import 'intelligence/agent_language.dart';
 
 /// Only this application service can mint approvals. They are process-local,
 /// single use, and bound to an exact snapshot, identity, permission revision,
@@ -42,6 +45,11 @@ class AgentEngine extends ChangeNotifier {
   AgentMission? mission;
   final List<AgentMission> history = [];
   final List<AgentMessage> messages = [];
+  AgentInterpretation? interpretation;
+  String? _interpretedSnapshot;
+  AgentInterpretation? get activeInterpretation =>
+      _interpretedSnapshot == mission?.snapshot ? interpretation : null;
+  AgentLanguage sessionLanguage = AgentLanguage.automatic;
   bool loading = true, busy = false, _disposed = false, _cancel = false;
   int _epoch = 0;
   String? _reviewedSnapshot;
@@ -109,7 +117,12 @@ class AgentEngine extends ChangeNotifier {
     _notify();
   }
 
-  void draft(List<AgentAction> actions, {String title = 'Your next steps'}) {
+  void draft(
+    List<AgentAction> actions, {
+    String title = 'Your next steps',
+    bool planOnly = false,
+    List<String> languageIssues = const [],
+  }) {
     _session();
     if (busy) throw const AgentFailure('Wait for the current operation.');
     if (actions.isEmpty || actions.length > AgentLimits.steps) {
@@ -136,6 +149,8 @@ class AgentEngine extends ChangeNotifier {
       title: title,
       createdAt: clock(),
       steps: steps,
+      planOnly: planOnly,
+      languageIssues: List.unmodifiable(languageIssues),
     );
     _revalidate();
     _notify();
@@ -148,6 +163,137 @@ class AgentEngine extends ChangeNotifier {
           ? MissionStatus.readyForReview
           : MissionStatus.needsClarification,
     );
+  }
+
+  /// Interpretations can only change proposals. They cannot mint approvals.
+  Future<void> applyPlan(LocalAgentPlan plan) async {
+    _session();
+    if (busy) throw const AgentFailure('Wait for the current operation.');
+    _epoch++;
+    final understanding = plan.interpretation;
+    interpretation = understanding;
+    if (understanding?.language != null &&
+        understanding!.language != AgentLanguage.automatic) {
+      sessionLanguage = understanding.language;
+    }
+    final issues = understanding?.uncertain.isNotEmpty == true
+        ? understanding!.questions.toSet().toList()
+        : <String>[];
+    if (plan.cancel) {
+      cancel();
+    } else if (plan.replacement != null) {
+      final previous = mission!.steps.firstWhere(
+        (s) => s.id == plan.replaceStep,
+      );
+      edit(plan.replaceStep!, action: plan.replacement);
+      final remaining = {...previous.uncertainFields};
+      final fields = plan.replacement!.toJson();
+      final oldFields = previous.action.toJson();
+      remaining.removeWhere(
+        (key, _) =>
+            fields[key] != oldFields[key] &&
+            fields[key] != null &&
+            fields[key] != '',
+      );
+      remaining.addAll(_uncertainSlots(plan.replacement!, understanding));
+      mission = mission!.copyWith(
+        planOnly: mission!.planOnly || understanding?.draftOnly == true,
+        steps: [
+          for (final step in mission!.steps)
+            step.id == previous.id
+                ? step.copyWith(uncertainFields: remaining)
+                : step,
+        ],
+        languageIssues:
+            understanding?.uncertain.contains(Uncertainty.target) == true
+            ? issues
+            : const [],
+      );
+      _revalidate();
+    } else if (plan.actions.isNotEmpty) {
+      await save();
+      _session();
+      draft(
+        plan.actions,
+        planOnly: understanding?.draftOnly == true,
+        languageIssues:
+            understanding?.uncertain.contains(Uncertainty.target) == true
+            ? issues
+            : const [],
+      );
+      mission = mission!.copyWith(
+        steps: [
+          for (final step in mission!.steps)
+            step.copyWith(
+              uncertainFields: _uncertainSlots(step.action, understanding),
+            ),
+        ],
+      );
+      _revalidate();
+    } else if (mission != null &&
+        editable &&
+        (understanding?.draftOnly == true ||
+            understanding?.negated.isNotEmpty == true ||
+            issues.isNotEmpty)) {
+      mission = mission!.copyWith(
+        version: mission!.version + 1,
+        planOnly:
+            mission!.planOnly ||
+            understanding?.draftOnly == true ||
+            understanding?.negated.isNotEmpty == true,
+        languageIssues: issues.isEmpty ? mission!.languageIssues : issues,
+      );
+      _revalidate();
+    }
+    _interpretedSnapshot = mission?.snapshot;
+    _notify();
+  }
+
+  Map<String, String> _uncertainSlots(
+    AgentAction action,
+    AgentInterpretation? interpretation,
+  ) {
+    if (interpretation == null) return const {};
+    final fields = action.toJson();
+    final strings = AgentStrings(settings.interfaceLanguage);
+    final result = <String, String>{};
+    for (final issue in interpretation.uncertain) {
+      final key = switch (issue) {
+        Uncertainty.amount =>
+          action is ScenarioDraft
+              ? 'target'
+              : action is AllocationDraft
+              ? 'budget'
+              : 'amount',
+        Uncertainty.date =>
+          action is GoalDraft || action is ScenarioDraft ? 'deadline' : 'day',
+        Uncertainty.recurrence => 'frequency',
+        _ => issue.name,
+      };
+      if (fields.containsKey(key)) {
+        result[key] = switch (issue) {
+          Uncertainty.amount => strings.amount,
+          Uncertainty.currency => strings.currency,
+          Uncertainty.date => strings.date,
+          Uncertainty.time => strings.time,
+          _ => strings.choose(
+            'Review the schedule for this step.',
+            'Suriin ang iskedyul ng hakbang na ito.',
+          ),
+        };
+      }
+    }
+    return result;
+  }
+
+  /// Dedicated on-screen choice; enabling review still does not approve anything.
+  void enableDraftReview() {
+    _session();
+    if (!editable || mission == null) return;
+    _epoch++;
+    mission = mission!.copyWith(planOnly: false, version: mission!.version + 1);
+    _revalidate();
+    _notify();
   }
 
   void edit(
@@ -185,6 +331,14 @@ class AgentEngine extends ChangeNotifier {
         selected: selected,
         status: StepStatus.waiting,
         result: '',
+        uncertainFields: action == null
+            ? null
+            : {
+                for (final entry in step.uncertainFields.entries)
+                  if (action.toJson()[entry.key] == null ||
+                      action.toJson()[entry.key] == '')
+                    entry.key: entry.value,
+              },
       );
     }
     if (move != null && !remove) {
@@ -192,7 +346,11 @@ class AgentEngine extends ChangeNotifier {
       steps.insert(destination, steps.removeAt(index));
     }
     _epoch++;
-    mission = m.copyWith(steps: steps, version: m.version + 1);
+    mission = m.copyWith(
+      steps: steps,
+      version: m.version + 1,
+      languageIssues: action == null ? m.languageIssues : const [],
+    );
     _revalidate();
     _notify();
   }
@@ -480,6 +638,8 @@ class AgentEngine extends ChangeNotifier {
     }
     _epoch++;
     mission = value;
+    interpretation = null;
+    _interpretedSnapshot = null;
     error = null;
     _notify();
   }
@@ -505,6 +665,8 @@ class AgentEngine extends ChangeNotifier {
     if (busy) return;
     _epoch++;
     messages.clear();
+    interpretation = null;
+    sessionLanguage = AgentLanguage.automatic;
     mission = null;
     error = null;
     _notify();
@@ -516,6 +678,8 @@ class AgentEngine extends ChangeNotifier {
     mission = null;
     history.clear();
     messages.clear();
+    interpretation = null;
+    sessionLanguage = AgentLanguage.automatic;
     settings = AgentSettings();
     error = null;
     _notify();
@@ -526,6 +690,8 @@ class AgentEngine extends ChangeNotifier {
     _cancel = true;
     _epoch++;
     _disposed = true;
+    interpretation = null;
+    messages.clear();
     super.dispose();
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../ai_coach/ai_response.dart';
 import '../design_system.dart';
+import '../currency_widgets.dart';
 import '../reminder_widgets.dart';
 import 'agent_ai_gateway.dart';
 import 'agent_backend.dart';
@@ -15,6 +16,9 @@ import 'agent_store.dart';
 import 'agent_voice.dart';
 import 'agent_step_editor.dart';
 import 'agent_settings_screen.dart';
+import 'agent_language_settings.dart';
+import 'intelligence/agent_language.dart';
+import 'intelligence/agent_interpretation.dart';
 
 typedef AgentOpen = Future<void> Function(
   BuildContext context,
@@ -51,6 +55,8 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   DateTime? _lastAi;
   String _lastTranscript = '';
   bool _voiceDisclosed = false;
+  bool _submitting = false;
+  AgentStrings get _strings => AgentStrings(_engine.settings.interfaceLanguage);
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -164,47 +170,55 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   }
 
   Future<void> _send() async {
-    if (_engine.busy ||
+    if (_submitting ||
+        _engine.busy ||
         _aiBusy ||
         _input.text.trim().isEmpty ||
         _voice.recording) {
       return;
     }
     final text = _input.text.trim();
-    await _voice.silence();
-    if (!mounted || !_engine.active) return;
-    await _run(() async {
-      final plan = LocalAgentPlanner().plan(
-        text,
-        mission: _engine.editable ? _engine.mission : null,
-        language: _engine.settings.language,
-        memory: _engine.settings.useMemory ? _engine.settings.memory : const {},
-      );
-      _engine.say(text, user: true, voice: _voiceMode);
-      _input.clear();
-      _lastTranscript = '';
-      _voice.transcript = '';
-      if (plan.cancel) {
-        _engine.cancel();
-      } else if (plan.replacement != null) {
-        _engine.edit(plan.replaceStep!, action: plan.replacement);
-      } else if (plan.actions.isNotEmpty) {
-        // Keep a previous mission recoverable before replacing its draft.
-        await _engine.save();
-        _engine.draft(plan.actions);
-      }
-      _engine.say(plan.reply);
-      unawaited(_voice.speak(plan.reply, _engine.settings));
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _scroll.hasClients) {
-          _scroll.animateTo(
-            _scroll.position.maxScrollExtent,
-            duration: SaveTrackDesign.motion,
-            curve: Curves.easeOut,
-          );
-        }
+    _submitting = true;
+    try {
+      await _voice.silence();
+      if (!mounted || !_engine.active) return;
+      await _run(() async {
+        final plan = LocalAgentPlanner().plan(
+          text,
+          mission: _engine.editable ? _engine.mission : null,
+          language: _engine.settings.language,
+          previousLanguage: _engine.sessionLanguage,
+          previous: _engine.activeInterpretation,
+          now: _engine.clock(),
+          defaultCurrency: CurrencyScope.maybeOf(context)?.preferred ?? '',
+          memory: _engine.settings.useMemory
+              ? _engine.settings.memory
+              : const {},
+        );
+        _engine.say(text, user: true, voice: _voiceMode);
+        _input.clear();
+        _lastTranscript = '';
+        _voice.transcript = '';
+        _voice.originalTranscript = '';
+        _voice.alternatives = const [];
+        await _engine.applyPlan(plan);
+        _engine.say(plan.reply);
+        unawaited(_voice.speak(plan.reply, _engine.settings));
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted &&
+              _scroll.hasClients &&
+              _engine.interpretation?.uncertain.isEmpty != false) {
+            _scroll.animateTo(
+              _scroll.position.maxScrollExtent,
+              duration: SaveTrackDesign.motion,
+              curve: Curves.easeOut,
+            );
+          }
+        });
       });
-    });
+    } finally {
+      _submitting = false;
+    }
   }
 
   Future<void> _mic() async {
@@ -323,13 +337,16 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           scrollable: true,
-          title: const Text('Approve selected actions'),
+          title: Text(_strings.confirm),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'SaveTrack will perform only the actions listed below. Review every value.',
+              Text(
+                _strings.choose(
+                  'SaveTrack will perform only the actions listed below. Review every value.',
+                  'Ang mga nakalistang hakbang lang ang isasagawa. Suriin ang bawat detalye.',
+                ),
               ),
               const SizedBox(height: 16),
               for (final s in reviewed.pending)
@@ -339,30 +356,36 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        s.action.label,
+                        _strings.action(s.action),
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
-                      Text(s.action.summary),
+                      Text(_strings.summary(s.action)),
                       if (s.dependsOn.isNotEmpty)
                         Text('After: ${s.dependsOn.join(', ')}'),
                     ],
                   ),
                 ),
-              const Text(
-                'Contributions open the existing Add Savings form for a separate confirmation. Calculations do not move money. Reminder delivery depends on this device’s notification permission. Already completed operations will remain if another step fails.',
+              Text(
+                _strings.choose(
+                  'Contributions open the existing Add Savings form for a separate confirmation. Calculations do not move money. Reminder delivery depends on this device’s notification permission. Already completed operations will remain if another step fails.',
+                  'Bubuksan ang Add Savings para sa hiwalay na kumpirmasyon ng dagdag ipon. Walang perang gagalawin sa pagkukuwenta. Kailangan ng pahintulot sa notification para sa paalala. Mananatili ang mga natapos na pagbabago kung may ibang hakbang na pumalya.',
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Keep editing'),
+              child: Text(_strings.text('Keep editing')),
             ),
             FilledButton(
               key: const Key('agent-confirm'),
               onPressed: () => Navigator.pop(ctx, true),
               child: Text(
-                'Approve ${reviewed.pending.length} selected actions',
+                _strings.choose(
+                  'Approve ${reviewed.pending.length} selected actions',
+                  'Kumpirmahin ang ${reviewed.pending.length} napiling hakbang',
+                ),
               ),
             ),
           ],
@@ -385,6 +408,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     final request = AgentSafeRequest(
       _engine.mission!.steps.map((s) => s.action.type),
       _engine.settings.language,
+      detectedLanguage: _engine.sessionLanguage,
     );
     final accepted = await showDialog<bool>(
       context: context,
@@ -620,6 +644,9 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                                     ),
                                   for (final message in _engine.messages)
                                     _bubble(context, message),
+                                  if (_engine.activeInterpretation != null &&
+                                      _engine.editable)
+                                    _clarification(context),
                                   if (_aiBusy)
                                     Padding(
                                       padding: const EdgeInsets.all(16),
@@ -675,6 +702,184 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     ),
     child: child,
   );
+  Widget _languageChip(
+    BuildContext context, {
+    bool recognition = false,
+  }) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Wrap(
+      spacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ActionChip(
+          avatar: const Icon(Icons.translate, size: 18),
+          label: Text(
+            recognition
+                ? '${_strings.choose('Recognition', 'Pagkilala')}: ${_voice.recognitionLocale.isEmpty ? _strings.choose('Device default', 'Default ng device') : _voice.recognitionLocale}'
+                : '${agentLanguageLabel(_engine.settings.language)} · Mint Aurora 6.1',
+          ),
+          onPressed: () async {
+            await _voice.silence();
+            await _voice.initialize();
+            if (!context.mounted) return;
+            await Navigator.push(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    AgentLanguageSettingsScreen(engine: _engine, voice: _voice),
+              ),
+            );
+          },
+        ),
+        if (recognition &&
+            _engine.settings.speechLanguage == AgentLanguage.taglish)
+          const Text('Taglish · Best effort'),
+      ],
+    ),
+  );
+
+  Widget _clarification(BuildContext context) {
+    final understanding = _engine.activeInterpretation!;
+    final choices = (understanding.slots['amountCandidates'] as List? ?? [])
+        .cast<String>()
+        .toSet();
+    final needsGoal =
+        _engine.mission?.steps.any(
+          (s) =>
+              s.action is ContributionDraft &&
+                  (s.action as ContributionDraft).goalId.isEmpty ||
+              s.action is ReminderDraft &&
+                  (s.action as ReminderDraft).targetId.isEmpty &&
+                  (s.action as ReminderDraft).targetStep.isEmpty,
+        ) ??
+        false;
+    if (understanding.questions.isEmpty && !needsGoal) {
+      return const SizedBox.shrink();
+    }
+    return _panel(
+      context,
+      Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            _strings.choose('Let’s confirm the details', 'Linawin muna natin'),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 8),
+          for (final q in understanding.questions.toSet().take(2)) Text(q),
+          if (understanding.uncertain.contains(Uncertainty.amount) &&
+              choices.length <= 5)
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: [
+                for (final amount in choices)
+                  ActionChip(
+                    label: Text(amount),
+                    onPressed: () {
+                      _prefill(amount);
+                      _send();
+                    },
+                  ),
+              ],
+            ),
+          if (needsGoal)
+            TextButton.icon(
+              key: const Key('agent-choose-goal'),
+              onPressed: () => _run(_chooseGoal),
+              icon: const Icon(Icons.flag_outlined),
+              label: Text(
+                _strings.choose(
+                  'Choose a personal goal',
+                  'Pumili ng personal na goal',
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _chooseGoal() async {
+    if (!_engine.settings.permissions.contains(
+      AgentPermission.privateContext,
+    )) {
+      _notice(
+        _strings.choose(
+          'Enable Private context access in Agent settings to choose local goals.',
+          'Payagan ang Private context access sa Agent settings para pumili ng goal.',
+        ),
+      );
+      return;
+    }
+    final snapshot = _engine.mission?.snapshot;
+    final goals = await _engine.backend.goals();
+    if (!mounted ||
+        !_engine.active ||
+        snapshot != _engine.mission?.snapshot ||
+        !_engine.settings.permissions.contains(
+          AgentPermission.privateContext,
+        )) {
+      return;
+    }
+    final goal = await showDialog<AgentRecord>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: Text(_strings.goal),
+        children: [
+          if (goals.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text(
+                _strings.choose(
+                  'No active personal goals.',
+                  'Walang aktibong personal na goal.',
+                ),
+              ),
+            ),
+          for (final g in goals)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, g),
+              child: Text('${g.title} · ${g.currency}'),
+            ),
+        ],
+      ),
+    );
+    if (goal == null ||
+        !_engine.active ||
+        snapshot != _engine.mission?.snapshot ||
+        !_engine.settings.permissions.contains(
+          AgentPermission.privateContext,
+        )) {
+      return;
+    }
+    final candidates = _engine.mission!.steps
+        .where(
+          (st) =>
+              st.selected &&
+              !st.done &&
+              st.attempts == 0 &&
+              (st.action is ContributionDraft &&
+                      (st.action as ContributionDraft).goalId.isEmpty ||
+                  st.action is ReminderDraft &&
+                      (st.action as ReminderDraft).targetId.isEmpty &&
+                      (st.action as ReminderDraft).targetStep.isEmpty),
+        )
+        .toList();
+    if (candidates.length != 1) {
+      _notice(_strings.step);
+      return;
+    }
+    final step = candidates.single, values = candidates.single.action.toJson();
+    if (step.action is ContributionDraft) {
+      values['goalId'] = goal.id;
+      if (values['currency'] == '') values['currency'] = goal.currency;
+    } else {
+      values['targetId'] = goal.id;
+    }
+    _engine.edit(step.id, action: AgentAction.fromJson(values));
+  }
+
   Widget _welcome(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
@@ -684,7 +889,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           gradient: SaveTrackDesign.premium,
           borderRadius: BorderRadius.circular(28),
         ),
-        child: const Column(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(Icons.auto_awesome_rounded, color: mint, size: 32),
@@ -700,7 +905,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             ),
             SizedBox(height: 12),
             Text(
-              'A little intention.\nA clear next step.',
+              _strings.welcome,
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 30,
@@ -710,13 +915,17 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             ),
             SizedBox(height: 16),
             Text(
-              'Tell me what you want to accomplish. We’ll shape it into a plan you can edit and approve.',
+              _strings.choose(
+                'Tell me what you want to accomplish. We’ll shape it into a plan you can edit and approve.',
+                'Sabihin ang gusto mong gawin. Bubuo tayo ng planong puwedeng i-edit at suriin.',
+              ),
               style: TextStyle(color: SaveTrackDesign.onHeroMuted, height: 1.6),
             ),
           ],
         ),
       ),
       const SizedBox(height: 16),
+      _languageChip(context),
       _panel(
         context,
         Column(
@@ -762,18 +971,27 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             for (final item in [
               (
                 Icons.flag_outlined,
-                'Plan a goal',
-                'Create a savings goal for a laptop worth PHP 30000',
+                _strings.choose('Plan a goal', 'Gumawa ng Goal'),
+                _strings.choose(
+                  'Create a savings goal for a laptop worth PHP 30000',
+                  'Gawa ka ng goal para sa laptop target PHP 30000',
+                ),
               ),
               (
                 Icons.checklist_rounded,
-                'Organize tasks',
-                'Create three tasks for tomorrow',
+                _strings.choose('Organize tasks', 'Ayusin ang Araw Ko'),
+                _strings.choose(
+                  'Create three tasks for tomorrow',
+                  'Gawa ng task para bukas',
+                ),
               ),
               (
                 Icons.notifications_outlined,
-                'Draft a reminder',
-                'Remind me every Saturday',
+                _strings.choose('Draft a reminder', 'Mag-set ng Paalala'),
+                _strings.choose(
+                  'Remind me every Saturday',
+                  'Pa-remind ako tuwing Sabado',
+                ),
               ),
               (
                 Icons.route_outlined,
@@ -782,8 +1000,11 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ),
               (
                 Icons.savings_outlined,
-                'Prepare savings',
-                'Prepare PHP 200 for my goal',
+                _strings.choose('Prepare savings', 'Magplano ng Ipon'),
+                _strings.choose(
+                  'Prepare PHP 200 for my goal',
+                  'Pa-add PHP 200 sa goal ko',
+                ),
               ),
               (
                 Icons.calculate_outlined,
@@ -906,7 +1127,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   );
   Widget _mission(BuildContext context) {
     final m = _engine.mission!;
-    final errors = m.validate(DateTime.now());
+    final errors = m.validate(_engine.clock());
     return Padding(
       padding: const EdgeInsets.only(top: 20),
       child: Column(
@@ -918,7 +1139,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Mission builder',
+                  _strings.choose('Mission builder', 'Mga hakbang ng mission'),
                   style: Theme.of(context).textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w800),
                 ),
@@ -930,6 +1151,39 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             '${_status(m.status)} · ${m.steps.length} steps · Version ${m.version}',
           ),
           const SizedBox(height: 16),
+          if (m.planOnly)
+            _panel(
+              context,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _strings.choose(
+                      'Draft only · Review is paused',
+                      'Draft pa lang · Hindi pa puwedeng aprubahan',
+                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w800),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _strings.choose(
+                      'You asked to keep this as a plan. Enable review when you are ready; approval is still required.',
+                      'Hiniling mong plano lang muna. Puwedeng paganahin ang review kapag handa ka na. Kailangan pa rin ng kumpirmasyon.',
+                    ),
+                  ),
+                  TextButton(
+                    key: const Key('agent-enable-review'),
+                    onPressed: _engine.enableDraftReview,
+                    child: Text(
+                      _strings.choose(
+                        'Allow mission review',
+                        'Payagan ang pagsusuri ng mission',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           for (var i = 0; i < m.steps.length; i++)
             _step(context, m.steps[i], i),
           if (errors.isNotEmpty && !_engine.busy)
@@ -938,8 +1192,8 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'A few details first',
+                  Text(
+                    _strings.text('A few details first'),
                     style: TextStyle(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 8),
@@ -963,12 +1217,12 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               m.status != MissionStatus.canceled) ...[
             FilledButton.icon(
               key: const Key('agent-review'),
-              onPressed: _review,
+              onPressed: m.planOnly ? null : _review,
               icon: const Icon(Icons.fact_check_outlined),
               label: Text(
                 m.steps.any((s) => s.attempts > 0)
                     ? 'Review & retry unfinished steps'
-                    : 'Review mission',
+                    : _strings.review,
               ),
             ),
             Wrap(
@@ -985,7 +1239,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                           if (action != null && mounted) _engine.add(action);
                         }),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add step'),
+                  label: Text(_strings.text('Add step')),
                 ),
                 TextButton(
                   onPressed: () => _run(() async {
@@ -998,11 +1252,11 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                     await _engine.save();
                     _notice('Draft saved on this device.');
                   }),
-                  child: const Text('Save draft'),
+                  child: Text(_strings.text('Save draft')),
                 ),
                 TextButton(
                   onPressed: _engine.cancel,
-                  child: const Text('Cancel mission'),
+                  child: Text(_strings.text('Cancel mission')),
                 ),
               ],
             ),
@@ -1038,7 +1292,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
 
   Widget _step(BuildContext context, AgentStep step, int index) {
     final locked = step.attempts > 0 || !_engine.editable;
-    final errors = step.action.validate(DateTime.now());
+    final errors = step.action.validate(_engine.clock());
     return _panel(
       context,
       Column(
@@ -1060,7 +1314,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ),
               Expanded(
                 child: Text(
-                  step.action.label,
+                  _strings.action(step.action),
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
@@ -1079,7 +1333,10 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ),
             ],
           ),
-          Text(step.action.summary, style: const TextStyle(height: 1.6)),
+          Text(
+            _strings.summary(step.action),
+            style: const TextStyle(height: 1.6),
+          ),
           if (step.dependsOn.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -1130,7 +1387,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                 TextButton.icon(
                   onPressed: () => _edit(step),
                   icon: const Icon(Icons.edit_outlined, size: 16),
-                  label: const Text('Edit details'),
+                  label: Text(_strings.text('Edit details')),
                 ),
                 IconButton(
                   tooltip: 'Move step up',
@@ -1157,6 +1414,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
 
   Widget _voicePanel(BuildContext context) => Column(
     children: [
+      _languageChip(context, recognition: true),
       const Text(
         'SPEAK NATURALLY',
         style: TextStyle(
@@ -1175,8 +1433,11 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             _voice.usingSystemDialog
                 ? 'Android speech dialog open'
                 : 'Starting microphone…',
-          AgentVoiceState.listening => 'Microphone active · Listening',
-          AgentVoiceState.reviewing => 'Review your transcript below',
+          AgentVoiceState.listening => _strings.choose(
+            'Microphone active · Listening',
+            'Nakikinig · Naka-on ang mikropono',
+          ),
+          AgentVoiceState.reviewing => _strings.transcript,
           AgentVoiceState.speaking => 'Speaking · Tap stop to interrupt',
           AgentVoiceState.error => 'Voice needs attention',
         },
@@ -1280,6 +1541,61 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (!_voice.recording && _voice.originalTranscript.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _strings.transcript,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                Text(
+                  _strings.choose(
+                    'Check amounts, names, and dates. Edit the text below before sending.',
+                    'Suriin ang halaga, pangalan, at petsa. I-edit ang teksto bago ipadala.',
+                  ),
+                  style: const TextStyle(fontSize: 12),
+                ),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    TextButton(
+                      onPressed: () => _run(_mic),
+                      child: Text(_strings.choose('Try again', 'Subukan Ulit')),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        await _voice.silence();
+                        _voice.originalTranscript = '';
+                        _voice.transcript = '';
+                        _lastTranscript = '';
+                        _input.clear();
+                        if (mounted) setState(() {});
+                      },
+                      child: Text(
+                        _strings.choose(
+                          'Cancel transcript',
+                          'Kanselahin ang teksto',
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (_voice.alternatives.toSet().length > 1)
+                  Text(
+                    _strings.choose(
+                      'The recognizer returned alternatives. Verify the intended amount on screen.',
+                      'May ibang narinig ang recognizer. Suriin ang tamang halaga sa screen.',
+                    ),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                  ),
+              ],
+            ),
+          ),
         if (_voice.recording)
           const Padding(
             padding: EdgeInsets.only(bottom: 6),
@@ -1312,8 +1628,8 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                 minLines: 1,
                 maxLines: 4,
                 maxLength: AgentLimits.input,
-                decoration: const InputDecoration(
-                  hintText: 'What would you like to accomplish?',
+                decoration: InputDecoration(
+                  hintText: _strings.hint,
                   counterText: '',
                   border: InputBorder.none,
                   filled: false,

@@ -1,0 +1,498 @@
+{
+  "schema": 2,
+  "clock": "2026-10-17T10:00:00",
+  "synthetic": true,
+  "description": "Direct specification examples plus conservative boundary cases; separate from template-expanded v1 fixtures.",
+  "cases": [
+    {
+      "id": "acceptance-001",
+      "group": "non_fluent_english",
+      "input": "Me want save laptop.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "goalName": "laptop"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-002",
+      "group": "non_fluent_english",
+      "input": "Make goal my phone.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "goalName": "phone"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-003",
+      "group": "non_fluent_english",
+      "input": "Tomorrow remind me saving.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-004",
+      "group": "non_fluent_english",
+      "input": "I saving five hundred every week.",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-005",
+      "group": "non_fluent_english",
+      "input": "Help my task tomorrow schedule.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-006",
+      "group": "non_fluent_filipino",
+      "input": "Ako gusto ipon laptop.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "goalName": "laptop"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-007",
+      "group": "non_fluent_filipino",
+      "input": "Gawa goal phone twenty thousand.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "20000",
+        "goalName": "phone"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-008",
+      "group": "non_fluent_filipino",
+      "input": "Pa reminder ako next Friday.",
+      "intent": "reminderPlanning",
+      "slots": {},
+      "noActions": false,
+      "uncertain": "date"
+    },
+    {
+      "id": "acceptance-009",
+      "group": "non_fluent_filipino",
+      "input": "Yung task ko bukas ayusin.",
+      "intent": "taskPlanning",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "acceptance-010",
+      "group": "non_fluent_filipino",
+      "input": "May goal ako motor pa add.",
+      "intent": "prepareContribution",
+      "slots": {},
+      "noActions": false
+    },
+    {
+      "id": "acceptance-011",
+      "group": "taglish",
+      "input": "Make mo ako goal sa phone.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "goalName": "phone"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-012",
+      "group": "taglish",
+      "input": "Yung task ko tomorrow pakiayos.",
+      "intent": "taskPlanning",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "acceptance-013",
+      "group": "taglish",
+      "input": "Add mo yung reminder every Friday.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "recurrence": "weekly"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-014",
+      "group": "taglish",
+      "input": "Create savings ko laptop target 30k.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "goalName": "laptop"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-015",
+      "group": "taglish",
+      "input": "Pa-plan naman ng savings weekly.",
+      "intent": "simulateSavings",
+      "slots": {},
+      "noActions": false
+    },
+    {
+      "id": "acceptance-016",
+      "group": "english",
+      "input": "Create a savings target for mountain bike worth PHP 12000.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "12000",
+        "goalName": "mountain bike",
+        "currency": "PHP"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-017",
+      "group": "filipino",
+      "input": "Mag-set tayo ng savings goal.",
+      "intent": "createGoalDraft",
+      "slots": {},
+      "noActions": false
+    },
+    {
+      "id": "acceptance-018",
+      "group": "filipino",
+      "input": "Gawan mo ako ng ipon.",
+      "intent": "createGoalDraft",
+      "slots": {},
+      "noActions": false
+    },
+    {
+      "id": "acceptance-019",
+      "group": "filipino",
+      "input": "Pakilagay ng gawain bukas.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-020",
+      "group": "english",
+      "input": "Create a to-do for tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-021",
+      "group": "english",
+      "input": "Make an activity tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-022",
+      "group": "filipino",
+      "input": "Patulong sa aral bukas.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-023",
+      "group": "english",
+      "input": "I want to save for laptop.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "goalName": "laptop"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-024",
+      "group": "english",
+      "input": "Create a savings fund for laptop.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "goalName": "laptop"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-025",
+      "group": "filipino",
+      "input": "Gawa ka ng goal para sa laptop.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "goalName": "laptop"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-026",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Friday.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "recurrence": "weekly"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-027",
+      "group": "filipino",
+      "input": "Yung task ko bukas ayusin mo.",
+      "intent": "taskPlanning",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "acceptance-028",
+      "group": "taglish",
+      "input": "Save ako five hundred weekly.",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-029",
+      "group": "taglish",
+      "input": "Plan lang muna, wag mo i-save.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true,
+      "draftOnly": true
+    },
+    {
+      "id": "acceptance-030",
+      "group": "taglish",
+      "input": "Make mo ako savings goal target 20k.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "20000"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-031",
+      "group": "english",
+      "input": "Help me organize my assignment tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-032",
+      "group": "english",
+      "input": "Explain what a savings withdrawal means.",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "acceptance-033",
+      "group": "english",
+      "input": "Don't create a savings target.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "acceptance-034",
+      "group": "filipino",
+      "input": "Hindi ko gustong gumawa ng bagong goal.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "acceptance-035",
+      "group": "taglish",
+      "input": "Gawa goal na twenty thousand. Actually wag na.",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "acceptance-036",
+      "group": "english",
+      "input": "Add PHP 500 to my goal only if I get a bonus.",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500"
+      },
+      "noActions": false,
+      "draftOnly": true
+    },
+    {
+      "id": "acceptance-037",
+      "group": "filipino",
+      "input": "Kung may bonus, dagdagan ng PHP 500 ang goal.",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500"
+      },
+      "noActions": false,
+      "draftOnly": true
+    },
+    {
+      "id": "acceptance-038",
+      "group": "taglish",
+      "input": "Kapag may bonus, create goal para sa phone target PHP 20000.",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "20000"
+      },
+      "noActions": false,
+      "draftOnly": true
+    },
+    {
+      "id": "acceptance-039",
+      "group": "english",
+      "input": "Create a task for savings tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-040",
+      "group": "english",
+      "input": "Create a savings reminder every Friday.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "recurrence": "weekly"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-041",
+      "group": "english",
+      "input": "Create a reminder for my laptop goal every Friday.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "recurrence": "weekly"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-042",
+      "group": "english",
+      "input": "Create a task for my savings target tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-043",
+      "group": "filipino",
+      "input": "Gawa ng paalala para sa ipon tuwing Biyernes.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "recurrence": "weekly"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-044",
+      "group": "english",
+      "input": "Make an activity for my laptop fund tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-045",
+      "group": "taglish",
+      "input": "Create reminder sa goal ko every Saturday.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 6,
+        "recurrence": "weekly"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-046",
+      "group": "filipino",
+      "input": "Gawa ng gawain para sa goal bukas.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-047",
+      "group": "english",
+      "input": "Create a task for a new laptop goal tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-048",
+      "group": "filipino",
+      "input": "Gawa ng paalala para sa bagong goal tuwing Lunes.",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 1,
+        "recurrence": "weekly"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-049",
+      "group": "english",
+      "input": "Create a task to make a savings target tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "acceptance-050",
+      "group": "english",
+      "input": "Create a task called \"Make a savings target\" tomorrow.",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    }
+  ]
+}

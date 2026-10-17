@@ -1,0 +1,4024 @@
+{
+  "schema": 1,
+  "clock": "2026-10-17T10:00:00",
+  "synthetic": true,
+  "cases": [
+    {
+      "id": "lang-0001",
+      "group": "english",
+      "input": "Create a goal for laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0002",
+      "group": "english",
+      "input": "Create a goal for laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0003",
+      "group": "english",
+      "input": "Create a goal for laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0004",
+      "group": "english",
+      "input": "Create a goal for laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0005",
+      "group": "english",
+      "input": "Create a goal for laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0006",
+      "group": "english",
+      "input": "Create a goal for laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0007",
+      "group": "english",
+      "input": "Make a savings goal for laptop worth PHP 500 by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0008",
+      "group": "english",
+      "input": "Make a savings goal for laptop worth PHP 2.5k by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0009",
+      "group": "english",
+      "input": "Make a savings goal for laptop worth PHP thirty thousand by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0010",
+      "group": "english",
+      "input": "Make a savings goal for laptop worth PHP limang daan by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0011",
+      "group": "english",
+      "input": "Make a savings goal for laptop worth PHP dalawang libo't limang daan by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0012",
+      "group": "english",
+      "input": "Make a savings goal for laptop worth PHP 1,500.50 by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0013",
+      "group": "english",
+      "input": "Create a laptop savings goal target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0014",
+      "group": "english",
+      "input": "Create a laptop savings goal target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0015",
+      "group": "english",
+      "input": "Create a laptop savings goal target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0016",
+      "group": "english",
+      "input": "Create a laptop savings goal target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0017",
+      "group": "english",
+      "input": "Create a laptop savings goal target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0018",
+      "group": "english",
+      "input": "Create a laptop savings goal target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0019",
+      "group": "english",
+      "input": "Please create a goal for laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0020",
+      "group": "english",
+      "input": "Please create a goal for laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0021",
+      "group": "english",
+      "input": "Please create a goal for laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0022",
+      "group": "english",
+      "input": "Please create a goal for laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0023",
+      "group": "english",
+      "input": "Please create a goal for laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0024",
+      "group": "english",
+      "input": "Please create a goal for laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0025",
+      "group": "filipino",
+      "input": "Gawa ka ng goal para sa laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0026",
+      "group": "filipino",
+      "input": "Gawa ka ng goal para sa laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0027",
+      "group": "filipino",
+      "input": "Gawa ka ng goal para sa laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0028",
+      "group": "filipino",
+      "input": "Gawa ka ng goal para sa laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0029",
+      "group": "filipino",
+      "input": "Gawa ka ng goal para sa laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0030",
+      "group": "filipino",
+      "input": "Gawa ka ng goal para sa laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0031",
+      "group": "filipino",
+      "input": "Gawan mo ako ng ipon para sa laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0032",
+      "group": "filipino",
+      "input": "Gawan mo ako ng ipon para sa laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0033",
+      "group": "filipino",
+      "input": "Gawan mo ako ng ipon para sa laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0034",
+      "group": "filipino",
+      "input": "Gawan mo ako ng ipon para sa laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0035",
+      "group": "filipino",
+      "input": "Gawan mo ako ng ipon para sa laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0036",
+      "group": "filipino",
+      "input": "Gawan mo ako ng ipon para sa laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0037",
+      "group": "filipino",
+      "input": "Gusto ko ng ipon para sa laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0038",
+      "group": "filipino",
+      "input": "Gusto ko ng ipon para sa laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0039",
+      "group": "filipino",
+      "input": "Gusto ko ng ipon para sa laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0040",
+      "group": "filipino",
+      "input": "Gusto ko ng ipon para sa laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0041",
+      "group": "filipino",
+      "input": "Gusto ko ng ipon para sa laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0042",
+      "group": "filipino",
+      "input": "Gusto ko ng ipon para sa laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0043",
+      "group": "filipino",
+      "input": "Paki gawa ng goal para sa laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0044",
+      "group": "filipino",
+      "input": "Paki gawa ng goal para sa laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0045",
+      "group": "filipino",
+      "input": "Paki gawa ng goal para sa laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0046",
+      "group": "filipino",
+      "input": "Paki gawa ng goal para sa laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0047",
+      "group": "filipino",
+      "input": "Paki gawa ng goal para sa laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0048",
+      "group": "filipino",
+      "input": "Paki gawa ng goal para sa laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0049",
+      "group": "taglish",
+      "input": "Make mo ako goal sa laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0050",
+      "group": "taglish",
+      "input": "Make mo ako goal sa laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0051",
+      "group": "taglish",
+      "input": "Make mo ako goal sa laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0052",
+      "group": "taglish",
+      "input": "Make mo ako goal sa laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0053",
+      "group": "taglish",
+      "input": "Make mo ako goal sa laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0054",
+      "group": "taglish",
+      "input": "Make mo ako goal sa laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0055",
+      "group": "taglish",
+      "input": "Pa-create naman ng goal para sa laptop target PHP 500 by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0056",
+      "group": "taglish",
+      "input": "Pa-create naman ng goal para sa laptop target PHP 2.5k by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0057",
+      "group": "taglish",
+      "input": "Pa-create naman ng goal para sa laptop target PHP thirty thousand by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0058",
+      "group": "taglish",
+      "input": "Pa-create naman ng goal para sa laptop target PHP limang daan by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0059",
+      "group": "taglish",
+      "input": "Pa-create naman ng goal para sa laptop target PHP dalawang libo't limang daan by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0060",
+      "group": "taglish",
+      "input": "Pa-create naman ng goal para sa laptop target PHP 1,500.50 by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0061",
+      "group": "taglish",
+      "input": "Create savings goal ko laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0062",
+      "group": "taglish",
+      "input": "Create savings goal ko laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0063",
+      "group": "taglish",
+      "input": "Create savings goal ko laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0064",
+      "group": "taglish",
+      "input": "Create savings goal ko laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0065",
+      "group": "taglish",
+      "input": "Create savings goal ko laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0066",
+      "group": "taglish",
+      "input": "Create savings goal ko laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0067",
+      "group": "taglish",
+      "input": "Gawa goal sa laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0068",
+      "group": "taglish",
+      "input": "Gawa goal sa laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0069",
+      "group": "taglish",
+      "input": "Gawa goal sa laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0070",
+      "group": "taglish",
+      "input": "Gawa goal sa laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0071",
+      "group": "taglish",
+      "input": "Gawa goal sa laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0072",
+      "group": "taglish",
+      "input": "Gawa goal sa laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0073",
+      "group": "non_fluent_english",
+      "input": "Me want save laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0074",
+      "group": "non_fluent_english",
+      "input": "Me want save laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0075",
+      "group": "non_fluent_english",
+      "input": "Me want save laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0076",
+      "group": "non_fluent_english",
+      "input": "Me want save laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0077",
+      "group": "non_fluent_english",
+      "input": "Me want save laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0078",
+      "group": "non_fluent_english",
+      "input": "Me want save laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0079",
+      "group": "non_fluent_english",
+      "input": "Make goal my laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0080",
+      "group": "non_fluent_english",
+      "input": "Make goal my laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0081",
+      "group": "non_fluent_english",
+      "input": "Make goal my laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0082",
+      "group": "non_fluent_english",
+      "input": "Make goal my laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0083",
+      "group": "non_fluent_english",
+      "input": "Make goal my laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0084",
+      "group": "non_fluent_english",
+      "input": "Make goal my laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0085",
+      "group": "non_fluent_english",
+      "input": "Me want goal laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0086",
+      "group": "non_fluent_english",
+      "input": "Me want goal laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0087",
+      "group": "non_fluent_english",
+      "input": "Me want goal laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0088",
+      "group": "non_fluent_english",
+      "input": "Me want goal laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0089",
+      "group": "non_fluent_english",
+      "input": "Me want goal laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0090",
+      "group": "non_fluent_english",
+      "input": "Me want goal laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0091",
+      "group": "non_fluent_english",
+      "input": "Create goal laptop 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0092",
+      "group": "non_fluent_english",
+      "input": "Create goal laptop 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0093",
+      "group": "non_fluent_english",
+      "input": "Create goal laptop thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0094",
+      "group": "non_fluent_english",
+      "input": "Create goal laptop limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0095",
+      "group": "non_fluent_english",
+      "input": "Create goal laptop dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0096",
+      "group": "non_fluent_english",
+      "input": "Create goal laptop 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0097",
+      "group": "non_fluent_filipino",
+      "input": "Ako gusto ipon laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0098",
+      "group": "non_fluent_filipino",
+      "input": "Ako gusto ipon laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0099",
+      "group": "non_fluent_filipino",
+      "input": "Ako gusto ipon laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0100",
+      "group": "non_fluent_filipino",
+      "input": "Ako gusto ipon laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0101",
+      "group": "non_fluent_filipino",
+      "input": "Ako gusto ipon laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0102",
+      "group": "non_fluent_filipino",
+      "input": "Ako gusto ipon laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0103",
+      "group": "non_fluent_filipino",
+      "input": "Gawa goal laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0104",
+      "group": "non_fluent_filipino",
+      "input": "Gawa goal laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0105",
+      "group": "non_fluent_filipino",
+      "input": "Gawa goal laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0106",
+      "group": "non_fluent_filipino",
+      "input": "Gawa goal laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0107",
+      "group": "non_fluent_filipino",
+      "input": "Gawa goal laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0108",
+      "group": "non_fluent_filipino",
+      "input": "Gawa goal laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0109",
+      "group": "non_fluent_filipino",
+      "input": "Ako gawa ipon laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0110",
+      "group": "non_fluent_filipino",
+      "input": "Ako gawa ipon laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0111",
+      "group": "non_fluent_filipino",
+      "input": "Ako gawa ipon laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0112",
+      "group": "non_fluent_filipino",
+      "input": "Ako gawa ipon laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0113",
+      "group": "non_fluent_filipino",
+      "input": "Ako gawa ipon laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0114",
+      "group": "non_fluent_filipino",
+      "input": "Ako gawa ipon laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0115",
+      "group": "non_fluent_filipino",
+      "input": "Gusto ako goal laptop 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0116",
+      "group": "non_fluent_filipino",
+      "input": "Gusto ako goal laptop 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0117",
+      "group": "non_fluent_filipino",
+      "input": "Gusto ako goal laptop thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0118",
+      "group": "non_fluent_filipino",
+      "input": "Gusto ako goal laptop limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0119",
+      "group": "non_fluent_filipino",
+      "input": "Gusto ako goal laptop dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0120",
+      "group": "non_fluent_filipino",
+      "input": "Gusto ako goal laptop 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0121",
+      "group": "voice_transcribed",
+      "input": "Ah gawa goal para sa laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0122",
+      "group": "voice_transcribed",
+      "input": "Ah gawa goal para sa laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0123",
+      "group": "voice_transcribed",
+      "input": "Ah gawa goal para sa laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0124",
+      "group": "voice_transcribed",
+      "input": "Ah gawa goal para sa laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0125",
+      "group": "voice_transcribed",
+      "input": "Ah gawa goal para sa laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0126",
+      "group": "voice_transcribed",
+      "input": "Ah gawa goal para sa laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0127",
+      "group": "voice_transcribed",
+      "input": "Uhm create goal for laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0128",
+      "group": "voice_transcribed",
+      "input": "Uhm create goal for laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0129",
+      "group": "voice_transcribed",
+      "input": "Uhm create goal for laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0130",
+      "group": "voice_transcribed",
+      "input": "Uhm create goal for laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0131",
+      "group": "voice_transcribed",
+      "input": "Uhm create goal for laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0132",
+      "group": "voice_transcribed",
+      "input": "Uhm create goal for laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0133",
+      "group": "voice_transcribed",
+      "input": "Bale gawa goal para sa laptop target 500 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0134",
+      "group": "voice_transcribed",
+      "input": "Bale gawa goal para sa laptop target 2.5k piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0135",
+      "group": "voice_transcribed",
+      "input": "Bale gawa goal para sa laptop target thirty thousand piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0136",
+      "group": "voice_transcribed",
+      "input": "Bale gawa goal para sa laptop target limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0137",
+      "group": "voice_transcribed",
+      "input": "Bale gawa goal para sa laptop target dalawang libo't limang daan piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0138",
+      "group": "voice_transcribed",
+      "input": "Bale gawa goal para sa laptop target 1,500.50 piso by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0139",
+      "group": "voice_transcribed",
+      "input": "Actually create goal for laptop target 500 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0140",
+      "group": "voice_transcribed",
+      "input": "Actually create goal for laptop target 2.5k pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0141",
+      "group": "voice_transcribed",
+      "input": "Actually create goal for laptop target thirty thousand pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0142",
+      "group": "voice_transcribed",
+      "input": "Actually create goal for laptop target limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0143",
+      "group": "voice_transcribed",
+      "input": "Actually create goal for laptop target dalawang libo't limang daan pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0144",
+      "group": "voice_transcribed",
+      "input": "Actually create goal for laptop target 1,500.50 pesos by 2027-01-31",
+      "intent": "createGoalDraft",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP",
+        "date": "2027-01-31",
+        "goalName": "laptop"
+      },
+      "noActions": false,
+      "clarificationExpected": false
+    },
+    {
+      "id": "lang-0145",
+      "group": "english",
+      "input": "Prepare PHP 500 for my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0146",
+      "group": "english",
+      "input": "Prepare PHP 2.5k for my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0147",
+      "group": "english",
+      "input": "Prepare PHP thirty thousand for my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0148",
+      "group": "english",
+      "input": "Prepare PHP limang daan for my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0149",
+      "group": "english",
+      "input": "Prepare PHP dalawang libo't limang daan for my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0150",
+      "group": "english",
+      "input": "Prepare PHP 1,500.50 for my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0151",
+      "group": "english",
+      "input": "Add 500 pesos to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0152",
+      "group": "english",
+      "input": "Add 2.5k pesos to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0153",
+      "group": "english",
+      "input": "Add thirty thousand pesos to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0154",
+      "group": "english",
+      "input": "Add limang daan pesos to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0155",
+      "group": "english",
+      "input": "Add dalawang libo't limang daan pesos to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0156",
+      "group": "english",
+      "input": "Add 1,500.50 pesos to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0157",
+      "group": "english",
+      "input": "Deposit PHP 500 to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0158",
+      "group": "english",
+      "input": "Deposit PHP 2.5k to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0159",
+      "group": "english",
+      "input": "Deposit PHP thirty thousand to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0160",
+      "group": "english",
+      "input": "Deposit PHP limang daan to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0161",
+      "group": "english",
+      "input": "Deposit PHP dalawang libo't limang daan to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0162",
+      "group": "english",
+      "input": "Deposit PHP 1,500.50 to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0163",
+      "group": "filipino",
+      "input": "Dagdagan mo ng 500 piso yung ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0164",
+      "group": "filipino",
+      "input": "Dagdagan mo ng 2.5k piso yung ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0165",
+      "group": "filipino",
+      "input": "Dagdagan mo ng thirty thousand piso yung ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0166",
+      "group": "filipino",
+      "input": "Dagdagan mo ng limang daan piso yung ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0167",
+      "group": "filipino",
+      "input": "Dagdagan mo ng dalawang libo't limang daan piso yung ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0168",
+      "group": "filipino",
+      "input": "Dagdagan mo ng 1,500.50 piso yung ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0169",
+      "group": "filipino",
+      "input": "Magtabi ng 500 piso",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0170",
+      "group": "filipino",
+      "input": "Magtabi ng 2.5k piso",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0171",
+      "group": "filipino",
+      "input": "Magtabi ng thirty thousand piso",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0172",
+      "group": "filipino",
+      "input": "Magtabi ng limang daan piso",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0173",
+      "group": "filipino",
+      "input": "Magtabi ng dalawang libo't limang daan piso",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0174",
+      "group": "filipino",
+      "input": "Magtabi ng 1,500.50 piso",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0175",
+      "group": "filipino",
+      "input": "Maghulog ng 500 piso sa goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0176",
+      "group": "filipino",
+      "input": "Maghulog ng 2.5k piso sa goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0177",
+      "group": "filipino",
+      "input": "Maghulog ng thirty thousand piso sa goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0178",
+      "group": "filipino",
+      "input": "Maghulog ng limang daan piso sa goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0179",
+      "group": "filipino",
+      "input": "Maghulog ng dalawang libo't limang daan piso sa goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0180",
+      "group": "filipino",
+      "input": "Maghulog ng 1,500.50 piso sa goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0181",
+      "group": "taglish",
+      "input": "Pa-add PHP 500 sa goal ko",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0182",
+      "group": "taglish",
+      "input": "Pa-add PHP 2.5k sa goal ko",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0183",
+      "group": "taglish",
+      "input": "Pa-add PHP thirty thousand sa goal ko",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0184",
+      "group": "taglish",
+      "input": "Pa-add PHP limang daan sa goal ko",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0185",
+      "group": "taglish",
+      "input": "Pa-add PHP dalawang libo't limang daan sa goal ko",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0186",
+      "group": "taglish",
+      "input": "Pa-add PHP 1,500.50 sa goal ko",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0187",
+      "group": "taglish",
+      "input": "Add mo 500 pesos sa ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0188",
+      "group": "taglish",
+      "input": "Add mo 2.5k pesos sa ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0189",
+      "group": "taglish",
+      "input": "Add mo thirty thousand pesos sa ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0190",
+      "group": "taglish",
+      "input": "Add mo limang daan pesos sa ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0191",
+      "group": "taglish",
+      "input": "Add mo dalawang libo't limang daan pesos sa ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0192",
+      "group": "taglish",
+      "input": "Add mo 1,500.50 pesos sa ipon",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0193",
+      "group": "taglish",
+      "input": "Save ako 500 pesos weekly",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0194",
+      "group": "taglish",
+      "input": "Save ako 2.5k pesos weekly",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0195",
+      "group": "taglish",
+      "input": "Save ako thirty thousand pesos weekly",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "30000",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0196",
+      "group": "taglish",
+      "input": "Save ako limang daan pesos weekly",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0197",
+      "group": "taglish",
+      "input": "Save ako dalawang libo't limang daan pesos weekly",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0198",
+      "group": "taglish",
+      "input": "Save ako 1,500.50 pesos weekly",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "1500.50",
+        "currency": "PHP"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0199",
+      "group": "english",
+      "input": "Remind me every Monday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 1,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0200",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Lunes alas siyete ng gabi",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 1,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0201",
+      "group": "taglish",
+      "input": "Add mo reminder every Monday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 1,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0202",
+      "group": "english",
+      "input": "Remind me every Tuesday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 2,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0203",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Martes alas siyete ng gabi",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 2,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0204",
+      "group": "taglish",
+      "input": "Add mo reminder every Tuesday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 2,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0205",
+      "group": "english",
+      "input": "Remind me every Wednesday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 3,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0206",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Miyerkules alas siyete ng gabi",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 3,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0207",
+      "group": "taglish",
+      "input": "Add mo reminder every Wednesday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 3,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0208",
+      "group": "english",
+      "input": "Remind me every Thursday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 4,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0209",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Huwebes alas siyete ng gabi",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 4,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0210",
+      "group": "taglish",
+      "input": "Add mo reminder every Thursday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 4,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0211",
+      "group": "english",
+      "input": "Remind me every Friday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0212",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Biyernes alas siyete ng gabi",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0213",
+      "group": "taglish",
+      "input": "Add mo reminder every Friday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 5,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0214",
+      "group": "english",
+      "input": "Remind me every Saturday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 6,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0215",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Sabado alas siyete ng gabi",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 6,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0216",
+      "group": "taglish",
+      "input": "Add mo reminder every Saturday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 6,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0217",
+      "group": "english",
+      "input": "Remind me every Sunday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 7,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0218",
+      "group": "filipino",
+      "input": "Pa-remind ako tuwing Linggo alas siyete ng gabi",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 7,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0219",
+      "group": "taglish",
+      "input": "Add mo reminder every Sunday at 7 pm",
+      "intent": "reminderPlanning",
+      "slots": {
+        "weekday": 7,
+        "time": "19:00",
+        "recurrence": "weekly"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0220",
+      "group": "english",
+      "input": "Create a task to compare prices tomorrow",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0221",
+      "group": "english",
+      "input": "Help me organize my assignment tomorrow",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0222",
+      "group": "english",
+      "input": "Create a task called Read tomorrow",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0223",
+      "group": "english",
+      "input": "Create three study tasks tomorrow",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0224",
+      "group": "filipino",
+      "input": "Gawa gawain bukas",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0225",
+      "group": "filipino",
+      "input": "Gawa task para bukas",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0226",
+      "group": "filipino",
+      "input": "Paki gawa ng gawain bukas",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0227",
+      "group": "filipino",
+      "input": "Gawan ako ng task bukas",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0228",
+      "group": "taglish",
+      "input": "Add mo task tomorrow",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0229",
+      "group": "taglish",
+      "input": "Create task ko bukas",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0230",
+      "group": "taglish",
+      "input": "Gawa ka task tomorrow",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0231",
+      "group": "taglish",
+      "input": "Make mo task bukas",
+      "intent": "taskPlanning",
+      "slots": {
+        "date": "2026-10-18"
+      },
+      "noActions": false
+    },
+    {
+      "id": "lang-0232",
+      "group": "english",
+      "input": "Do not add PHP 500 to my goal",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0233",
+      "group": "english",
+      "input": "Do not add PHP 500 to my goal.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0234",
+      "group": "english",
+      "input": "Do not add PHP 500 to my goal!",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0235",
+      "group": "english",
+      "input": "Don't create a goal",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0236",
+      "group": "english",
+      "input": "Don't create a goal.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0237",
+      "group": "english",
+      "input": "Don't create a goal!",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0238",
+      "group": "filipino",
+      "input": "Hindi ko gustong gumawa ng bagong goal",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0239",
+      "group": "filipino",
+      "input": "Hindi ko gustong gumawa ng bagong goal.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0240",
+      "group": "filipino",
+      "input": "Hindi ko gustong gumawa ng bagong goal!",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0241",
+      "group": "filipino",
+      "input": "Wag mong bawasan yung ipon ko",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0242",
+      "group": "filipino",
+      "input": "Wag mong bawasan yung ipon ko.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0243",
+      "group": "filipino",
+      "input": "Wag mong bawasan yung ipon ko!",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0244",
+      "group": "filipino",
+      "input": "Huwag mo akong i-remind sa Friday",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0245",
+      "group": "filipino",
+      "input": "Huwag mo akong i-remind sa Friday.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0246",
+      "group": "filipino",
+      "input": "Huwag mo akong i-remind sa Friday!",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0247",
+      "group": "taglish",
+      "input": "Wag mag-create ng task bukas",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0248",
+      "group": "taglish",
+      "input": "Wag mag-create ng task bukas.",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0249",
+      "group": "taglish",
+      "input": "Wag mag-create ng task bukas!",
+      "intent": "modifyMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0250",
+      "group": "english",
+      "input": "Explain what a savings withdrawal means",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0251",
+      "group": "english",
+      "input": "Explain what a savings withdrawal means.",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0252",
+      "group": "english",
+      "input": "Explain what a savings withdrawal means!",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0253",
+      "group": "filipino",
+      "input": "Ano ang savings goal",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0254",
+      "group": "filipino",
+      "input": "Ano ang savings goal.",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0255",
+      "group": "filipino",
+      "input": "Ano ang savings goal!",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0256",
+      "group": "english",
+      "input": "yes",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0257",
+      "group": "english",
+      "input": "yes.",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0258",
+      "group": "english",
+      "input": "yes!",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0259",
+      "group": "filipino",
+      "input": "opo",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0260",
+      "group": "filipino",
+      "input": "opo.",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0261",
+      "group": "filipino",
+      "input": "opo!",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0262",
+      "group": "taglish",
+      "input": "sige",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0263",
+      "group": "taglish",
+      "input": "sige.",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0264",
+      "group": "taglish",
+      "input": "sige!",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0265",
+      "group": "english",
+      "input": "approve",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0266",
+      "group": "english",
+      "input": "approve.",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0267",
+      "group": "english",
+      "input": "approve!",
+      "intent": "askQuestion",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0268",
+      "group": "english",
+      "input": "Withdraw PHP 500",
+      "intent": "unknown",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0269",
+      "group": "english",
+      "input": "Withdraw PHP 500.",
+      "intent": "unknown",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0270",
+      "group": "english",
+      "input": "Withdraw PHP 500!",
+      "intent": "unknown",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0271",
+      "group": "filipino",
+      "input": "Burahin yung goal",
+      "intent": "unknown",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0272",
+      "group": "filipino",
+      "input": "Burahin yung goal.",
+      "intent": "unknown",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0273",
+      "group": "filipino",
+      "input": "Burahin yung goal!",
+      "intent": "unknown",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0274",
+      "group": "taglish",
+      "input": "Gawa goal na twenty thousand. Actually wag na.",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0275",
+      "group": "taglish",
+      "input": "Gawa goal na twenty thousand. Actually wag na..",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0276",
+      "group": "taglish",
+      "input": "Gawa goal na twenty thousand. Actually wag na.!",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0277",
+      "group": "english",
+      "input": "Cancel mission",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0278",
+      "group": "english",
+      "input": "Cancel mission.",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0279",
+      "group": "english",
+      "input": "Cancel mission!",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0280",
+      "group": "filipino",
+      "input": "Kanselahin",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0281",
+      "group": "filipino",
+      "input": "Kanselahin.",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0282",
+      "group": "filipino",
+      "input": "Kanselahin!",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0283",
+      "group": "english",
+      "input": "Never mind",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0284",
+      "group": "english",
+      "input": "Never mind.",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0285",
+      "group": "english",
+      "input": "Never mind!",
+      "intent": "cancelMission",
+      "slots": {},
+      "noActions": true
+    },
+    {
+      "id": "lang-0286",
+      "group": "english",
+      "input": "Add five hundred or five thousand pesos to my goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": ""
+      },
+      "noActions": false,
+      "uncertain": "amount",
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0287",
+      "group": "filipino",
+      "input": "Dagdag mga 20k piso siguro",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": ""
+      },
+      "noActions": false,
+      "uncertain": "amount",
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0288",
+      "group": "taglish",
+      "input": "Pa-add PHP one fifty sa goal",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": ""
+      },
+      "noActions": false,
+      "uncertain": "amount",
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0289",
+      "group": "english",
+      "input": "Add five hundred, actually two hundred lang",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "200"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0290",
+      "group": "filipino",
+      "input": "Dagdag limang daan, ay dalawang daan lang",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "200"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0291",
+      "group": "voice_transcribed",
+      "input": "Add 50 thousand, sorry 500 lang",
+      "intent": "prepareContribution",
+      "slots": {
+        "amount": "500"
+      },
+      "noActions": false,
+      "clarificationExpected": true
+    },
+    {
+      "id": "lang-0292",
+      "group": "taglish",
+      "input": "Gawa goal para sa laptop pero huwag mo muna i-save",
+      "intent": "createGoalDraft",
+      "slots": {},
+      "noActions": false,
+      "draftOnly": true
+    },
+    {
+      "id": "lang-0293",
+      "group": "taglish",
+      "input": "Create a goal for laptop but do not save",
+      "intent": "createGoalDraft",
+      "slots": {},
+      "noActions": false,
+      "draftOnly": true
+    },
+    {
+      "id": "lang-0294",
+      "group": "taglish",
+      "input": "Gawa goal para sa laptop plan lang muna",
+      "intent": "createGoalDraft",
+      "slots": {},
+      "noActions": false,
+      "draftOnly": true
+    },
+    {
+      "id": "lang-0295",
+      "noActions": false,
+      "slots": {
+        "amount": "1000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Create a goal called \"Tablet Fund\" target PHP 1k",
+      "group": "english"
+    },
+    {
+      "id": "lang-0296",
+      "noActions": false,
+      "slots": {
+        "amount": "2000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Create a goal called \"Tablet Fund\" target PHP 2k",
+      "group": "english"
+    },
+    {
+      "id": "lang-0297",
+      "noActions": false,
+      "slots": {
+        "amount": "10000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Create a goal called \"Tablet Fund\" target PHP 10k",
+      "group": "english"
+    },
+    {
+      "id": "lang-0298",
+      "noActions": false,
+      "slots": {
+        "amount": "1500000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Create a goal called \"Tablet Fund\" target PHP 1.5 million",
+      "group": "english"
+    },
+    {
+      "id": "lang-0299",
+      "noActions": false,
+      "slots": {
+        "amount": "20000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Create a goal called \"Tablet Fund\" target PHP dalawampung libo",
+      "group": "english"
+    },
+    {
+      "id": "lang-0300",
+      "noActions": false,
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Create a goal called \"Tablet Fund\" target PHP two thousand five hundred",
+      "group": "english"
+    },
+    {
+      "id": "lang-0301",
+      "noActions": false,
+      "slots": {
+        "amount": "1000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Gawa goal \"Tablet Fund\" target 1k piso",
+      "group": "filipino"
+    },
+    {
+      "id": "lang-0302",
+      "noActions": false,
+      "slots": {
+        "amount": "2000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Gawa goal \"Tablet Fund\" target 2k piso",
+      "group": "filipino"
+    },
+    {
+      "id": "lang-0303",
+      "noActions": false,
+      "slots": {
+        "amount": "10000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Gawa goal \"Tablet Fund\" target 10k piso",
+      "group": "filipino"
+    },
+    {
+      "id": "lang-0304",
+      "noActions": false,
+      "slots": {
+        "amount": "1500000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Gawa goal \"Tablet Fund\" target 1.5 million piso",
+      "group": "filipino"
+    },
+    {
+      "id": "lang-0305",
+      "noActions": false,
+      "slots": {
+        "amount": "20000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Gawa goal \"Tablet Fund\" target dalawampung libo piso",
+      "group": "filipino"
+    },
+    {
+      "id": "lang-0306",
+      "noActions": false,
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Gawa goal \"Tablet Fund\" target two thousand five hundred piso",
+      "group": "filipino"
+    },
+    {
+      "id": "lang-0307",
+      "noActions": false,
+      "slots": {
+        "amount": "1000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Pa-create goal \"Tablet Fund\" target PHP 1k",
+      "group": "taglish"
+    },
+    {
+      "id": "lang-0308",
+      "noActions": false,
+      "slots": {
+        "amount": "2000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Pa-create goal \"Tablet Fund\" target PHP 2k",
+      "group": "taglish"
+    },
+    {
+      "id": "lang-0309",
+      "noActions": false,
+      "slots": {
+        "amount": "10000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Pa-create goal \"Tablet Fund\" target PHP 10k",
+      "group": "taglish"
+    },
+    {
+      "id": "lang-0310",
+      "noActions": false,
+      "slots": {
+        "amount": "1500000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Pa-create goal \"Tablet Fund\" target PHP 1.5 million",
+      "group": "taglish"
+    },
+    {
+      "id": "lang-0311",
+      "noActions": false,
+      "slots": {
+        "amount": "20000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Pa-create goal \"Tablet Fund\" target PHP dalawampung libo",
+      "group": "taglish"
+    },
+    {
+      "id": "lang-0312",
+      "noActions": false,
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Pa-create goal \"Tablet Fund\" target PHP two thousand five hundred",
+      "group": "taglish"
+    },
+    {
+      "id": "lang-0313",
+      "noActions": false,
+      "slots": {
+        "amount": "1000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Me want goal \"Tablet Fund\" target 1k pesos",
+      "group": "non_fluent_english"
+    },
+    {
+      "id": "lang-0314",
+      "noActions": false,
+      "slots": {
+        "amount": "2000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Me want goal \"Tablet Fund\" target 2k pesos",
+      "group": "non_fluent_english"
+    },
+    {
+      "id": "lang-0315",
+      "noActions": false,
+      "slots": {
+        "amount": "10000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Me want goal \"Tablet Fund\" target 10k pesos",
+      "group": "non_fluent_english"
+    },
+    {
+      "id": "lang-0316",
+      "noActions": false,
+      "slots": {
+        "amount": "1500000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Me want goal \"Tablet Fund\" target 1.5 million pesos",
+      "group": "non_fluent_english"
+    },
+    {
+      "id": "lang-0317",
+      "noActions": false,
+      "slots": {
+        "amount": "20000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Me want goal \"Tablet Fund\" target dalawampung libo pesos",
+      "group": "non_fluent_english"
+    },
+    {
+      "id": "lang-0318",
+      "noActions": false,
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Me want goal \"Tablet Fund\" target two thousand five hundred pesos",
+      "group": "non_fluent_english"
+    },
+    {
+      "id": "lang-0319",
+      "noActions": false,
+      "slots": {
+        "amount": "1000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Ako gusto ipon \"Tablet Fund\" target 1k piso",
+      "group": "non_fluent_filipino"
+    },
+    {
+      "id": "lang-0320",
+      "noActions": false,
+      "slots": {
+        "amount": "2000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Ako gusto ipon \"Tablet Fund\" target 2k piso",
+      "group": "non_fluent_filipino"
+    },
+    {
+      "id": "lang-0321",
+      "noActions": false,
+      "slots": {
+        "amount": "10000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Ako gusto ipon \"Tablet Fund\" target 10k piso",
+      "group": "non_fluent_filipino"
+    },
+    {
+      "id": "lang-0322",
+      "noActions": false,
+      "slots": {
+        "amount": "1500000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Ako gusto ipon \"Tablet Fund\" target 1.5 million piso",
+      "group": "non_fluent_filipino"
+    },
+    {
+      "id": "lang-0323",
+      "noActions": false,
+      "slots": {
+        "amount": "20000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Ako gusto ipon \"Tablet Fund\" target dalawampung libo piso",
+      "group": "non_fluent_filipino"
+    },
+    {
+      "id": "lang-0324",
+      "noActions": false,
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Ako gusto ipon \"Tablet Fund\" target two thousand five hundred piso",
+      "group": "non_fluent_filipino"
+    },
+    {
+      "id": "lang-0325",
+      "noActions": false,
+      "slots": {
+        "amount": "1000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Uhm make goal \"Tablet Fund\" target 1k pesos",
+      "group": "voice_transcribed"
+    },
+    {
+      "id": "lang-0326",
+      "noActions": false,
+      "slots": {
+        "amount": "2000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Uhm make goal \"Tablet Fund\" target 2k pesos",
+      "group": "voice_transcribed"
+    },
+    {
+      "id": "lang-0327",
+      "noActions": false,
+      "slots": {
+        "amount": "10000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Uhm make goal \"Tablet Fund\" target 10k pesos",
+      "group": "voice_transcribed"
+    },
+    {
+      "id": "lang-0328",
+      "noActions": false,
+      "slots": {
+        "amount": "1500000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Uhm make goal \"Tablet Fund\" target 1.5 million pesos",
+      "group": "voice_transcribed"
+    },
+    {
+      "id": "lang-0329",
+      "noActions": false,
+      "slots": {
+        "amount": "20000",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Uhm make goal \"Tablet Fund\" target dalawampung libo pesos",
+      "group": "voice_transcribed"
+    },
+    {
+      "id": "lang-0330",
+      "noActions": false,
+      "slots": {
+        "amount": "2500",
+        "currency": "PHP",
+        "goalName": "Tablet Fund"
+      },
+      "intent": "createGoalDraft",
+      "input": "Uhm make goal \"Tablet Fund\" target two thousand five hundred pesos",
+      "group": "voice_transcribed"
+    }
+  ]
+}

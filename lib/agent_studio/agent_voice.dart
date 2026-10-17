@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'agent_domain.dart';
+import 'intelligence/voice_locale_repository.dart';
+import 'intelligence/agent_language.dart';
 
 enum AgentVoiceState { ready, starting, listening, reviewing, speaking, error }
 
@@ -129,6 +131,9 @@ class AgentVoiceController extends ChangeNotifier {
   late final StreamSubscription<Map<String, dynamic>> _events;
   AgentVoiceState state = AgentVoiceState.ready;
   String transcript = '', error = '', _session = '';
+  String originalTranscript = '', recognitionLocale = '';
+  List<String> alternatives = const [];
+  List<double?> confidences = const [];
   int? nativeErrorCode;
   bool usingSystemDialog = false;
   bool _startingSystem = false;
@@ -167,6 +172,15 @@ class AgentVoiceController extends ChangeNotifier {
       case 'final':
         if (!recording) return;
         transcript = event['text'] as String? ?? '';
+        originalTranscript = transcript;
+        alternatives = List.unmodifiable(
+          (event['alternatives'] as List? ?? []).whereType<String>().take(5),
+        );
+        confidences = List.unmodifiable(
+          (event['confidences'] as List? ?? [])
+              .take(5)
+              .map((n) => n is num && n >= 0 && n <= 1 ? n.toDouble() : null),
+        );
         usingSystemDialog = false;
         error = '';
         nativeErrorCode = null;
@@ -223,10 +237,24 @@ class AgentVoiceController extends ChangeNotifier {
       _notify();
       return;
     }
+    final locale = const VoiceLocaleRepository().recognition(
+      settings,
+      availability,
+    );
+    if (locale == null) {
+      error = 'The selected recognition language is not reported by this speech service. Choose an available language in Voice settings, or type.';
+      state = AgentVoiceState.error;
+      _notify();
+      return;
+    }
+    recognitionLocale = locale;
     _session = agentId();
     final session = _session;
     state = AgentVoiceState.starting;
     transcript = '';
+    originalTranscript = '';
+    alternatives = const [];
+    confidences = const [];
     error = '';
     nativeErrorCode = null;
     amplitude = 0;
@@ -240,7 +268,7 @@ class AgentVoiceController extends ChangeNotifier {
       }
       await adapter.start(
         session: session,
-        locale: settings.locale,
+        locale: locale,
         onDevice: settings.onDevice,
       );
     } on PlatformException catch (failure) {
@@ -272,6 +300,17 @@ class AgentVoiceController extends ChangeNotifier {
       _notify();
       return;
     }
+    final locale = const VoiceLocaleRepository().recognition(
+      settings,
+      availability,
+    );
+    if (locale == null) {
+      error = 'The selected recognition language is unavailable. Choose a reported language or use text.';
+      state = AgentVoiceState.error;
+      _notify();
+      return;
+    }
+    recognitionLocale = locale;
     _startingSystem = true;
     String? session;
     try {
@@ -284,10 +323,12 @@ class AgentVoiceController extends ChangeNotifier {
       error = '';
       nativeErrorCode = null;
       transcript = '';
+      originalTranscript = '';
+      alternatives = const [];
       state = AgentVoiceState.starting;
       usingSystemDialog = true;
       _notify();
-      await adapter.startSystem(session: session, locale: settings.locale);
+      await adapter.startSystem(session: session, locale: locale);
     } catch (failure) {
       if (!_disposed && _session == session) {
         usingSystemDialog = false;
@@ -354,20 +395,43 @@ class AgentVoiceController extends ChangeNotifier {
       _notify();
       return;
     }
+    final ttsLocale = const VoiceLocaleRepository().speech(
+      settings,
+      availability,
+    );
+    if (ttsLocale == null) {
+      error = 'No compatible installed TTS language was reported. Keep reading the response or choose another spoken-response language.';
+      state = AgentVoiceState.error;
+      _notify();
+      return;
+    }
     _session = agentId();
     state = AgentVoiceState.speaking;
     error = '';
     nativeErrorCode = null;
     _notify();
     // With privacy enabled, no dynamic record or conversation text reaches TTS.
+    final selectedVoice = (availability['voiceDetails'] as List? ?? [])
+        .whereType<Map>()
+        .where((v) => v['name'] == settings.voice)
+        .firstOrNull;
+    var spokenLocale = ttsLocale;
+    if (spokenLocale.isEmpty) {
+      spokenLocale = settings.voice.isNotEmpty && selectedVoice != null
+          ? (selectedVoice['locale'] as String? ?? '')
+          : (availability['ttsDefaultLocale'] as String? ?? '');
+    }
+    final noticeLanguage = VoiceLocaleRepository.filipino(spokenLocale)
+        ? AgentLanguage.filipino
+        : AgentLanguage.english;
     final spoken = settings.hideSpokenDetails
-        ? 'Your SaveTrack response is ready. Review the details privately on your screen. Changes require on-screen approval.'
+        ? AgentStrings(noticeLanguage).privateSpokenNotice
         : text.substring(0, text.length.clamp(0, 1200));
     try {
       await adapter.speak(
         session: _session,
         text: spoken,
-        locale: settings.locale,
+        locale: ttsLocale,
         voice: settings.voice,
         rate: settings.rate,
       );

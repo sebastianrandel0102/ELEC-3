@@ -51,7 +51,7 @@ enum AgentPermission {
   privateContext,
 }
 
-enum AgentLanguage { english, filipino }
+enum AgentLanguage { automatic, english, filipino, taglish }
 
 class AgentFailure implements Exception {
   const AgentFailure(this.message);
@@ -440,13 +440,16 @@ class AgentStep {
     this.result = '',
     this.recordId = '',
     this.attempts = 0,
-  }) : dependsOn = List.unmodifiable(dependsOn);
+    Map<String, String> uncertainFields = const {},
+  }) : dependsOn = List.unmodifiable(dependsOn),
+       uncertainFields = Map.unmodifiable(uncertainFields);
   final String id, result, recordId;
   final AgentAction action;
   final List<String> dependsOn;
   final bool selected;
   final StepStatus status;
   final int attempts;
+  final Map<String, String> uncertainFields;
   bool get done => status == StepStatus.completed;
   AgentStep copyWith({
     AgentAction? action,
@@ -456,6 +459,7 @@ class AgentStep {
     String? result,
     String? recordId,
     int? attempts,
+    Map<String, String>? uncertainFields,
   }) => AgentStep(
     id: id,
     action: action ?? this.action,
@@ -465,6 +469,7 @@ class AgentStep {
     result: result ?? this.result,
     recordId: recordId ?? this.recordId,
     attempts: attempts ?? this.attempts,
+    uncertainFields: uncertainFields ?? this.uncertainFields,
   );
   Map<String, Object?> toJson() => {
     'id': id,
@@ -475,6 +480,7 @@ class AgentStep {
     'result': result,
     'recordId': recordId,
     'attempts': attempts,
+    'uncertainFields': uncertainFields,
   };
   factory AgentStep.fromJson(Map<String, dynamic> m) => AgentStep(
     id: m['id'] as String,
@@ -485,6 +491,8 @@ class AgentStep {
     result: m['result'] as String,
     recordId: m['recordId'] as String,
     attempts: m['attempts'] as int,
+    uncertainFields: (m['uncertainFields'] as Map? ?? {})
+        .cast<String, String>(),
   );
 }
 
@@ -497,17 +505,24 @@ class AgentMission {
     required List<AgentStep> steps,
     this.version = 1,
     this.status = MissionStatus.draft,
-  }) : steps = List.unmodifiable(steps);
+    this.planOnly = false,
+    List<String> languageIssues = const [],
+  }) : steps = List.unmodifiable(steps),
+       languageIssues = List.unmodifiable(languageIssues);
   final String id, uid, title;
   final DateTime createdAt;
   final int version;
   final MissionStatus status;
+  final bool planOnly;
+  final List<String> languageIssues;
   final List<AgentStep> steps;
   Iterable<AgentStep> get pending => steps.where((s) => s.selected && !s.done);
   String get snapshot => jsonEncode({
     'id': id,
     'uid': uid,
     'version': version,
+    'planOnly': planOnly,
+    'languageIssues': languageIssues,
     'steps': [
       for (final s in steps)
         {
@@ -515,6 +530,7 @@ class AgentMission {
           'selected': s.selected,
           'dependsOn': s.dependsOn,
           'action': s.action.toJson(),
+          'uncertainFields': s.uncertainFields,
         },
     ],
   });
@@ -522,6 +538,8 @@ class AgentMission {
     List<AgentStep>? steps,
     MissionStatus? status,
     int? version,
+    bool? planOnly,
+    List<String>? languageIssues,
   }) => AgentMission(
     id: id,
     uid: uid,
@@ -530,9 +548,15 @@ class AgentMission {
     steps: steps ?? this.steps,
     status: status ?? this.status,
     version: version ?? this.version,
+    planOnly: planOnly ?? this.planOnly,
+    languageIssues: languageIssues ?? this.languageIssues,
   );
   List<String> validate(DateTime now) {
     final errors = <String>[];
+    if (planOnly) {
+      errors.add('Draft only. Enable review on screen when you are ready.');
+    }
+    errors.addAll(languageIssues);
     if (!agentRecordId(id) ||
         uid.isEmpty ||
         steps.isEmpty ||
@@ -575,6 +599,7 @@ class AgentMission {
     for (final step in steps) {
       visit(step);
       if (step.selected && !step.done) {
+        errors.addAll(step.uncertainFields.values);
         errors.addAll(
           step.action.validate(now).map((e) => '${step.action.label}: $e'),
         );
@@ -620,6 +645,8 @@ class AgentMission {
     'createdAt': createdAt.toIso8601String(),
     'version': version,
     'status': status.name,
+    'planOnly': planOnly,
+    'languageIssues': languageIssues,
     'steps': steps.map((s) => s.toJson()).toList(),
   };
   factory AgentMission.fromJson(Map<String, dynamic> m) {
@@ -633,6 +660,10 @@ class AgentMission {
       createdAt: DateTime.parse(m['createdAt'] as String),
       version: m['version'] as int,
       status: MissionStatus.values.byName(m['status'] as String),
+      planOnly: m['planOnly'] == true,
+      languageIssues: List<String>.unmodifiable(
+        (m['languageIssues'] as List? ?? []).cast<String>(),
+      ),
       steps: (m['steps'] as List)
           .map((s) => AgentStep.fromJson(s as Map<String, dynamic>))
           .toList(),
@@ -648,8 +679,11 @@ class AgentSettings {
     this.spoken = false,
     this.hideSpokenDetails = true,
     this.onDevice = false,
-    this.language = AgentLanguage.english,
+    this.language = AgentLanguage.automatic,
+    this.interfaceLanguage = AgentLanguage.automatic,
+    this.speechLanguage = AgentLanguage.automatic,
     this.locale = '',
+    this.ttsLocale = '',
     this.voice = '',
     this.rate = .9,
     Map<String, String> memory = const {},
@@ -658,8 +692,8 @@ class AgentSettings {
        memory = Map.unmodifiable(memory);
   final Set<AgentPermission> permissions;
   final bool execute, history, spoken, hideSpokenDetails, onDevice, useMemory;
-  final AgentLanguage language;
-  final String locale, voice;
+  final AgentLanguage language, interfaceLanguage, speechLanguage;
+  final String locale, ttsLocale, voice;
   final double rate;
   final Map<String, String> memory;
   Map<String, Object?> toJson() => {
@@ -670,7 +704,10 @@ class AgentSettings {
     'hideSpokenDetails': hideSpokenDetails,
     'onDevice': onDevice,
     'language': language.name,
+    'interfaceLanguage': interfaceLanguage.name,
+    'speechLanguage': speechLanguage.name,
     'locale': locale,
+    'ttsLocale': ttsLocale,
     'voice': voice,
     'rate': rate,
     'memory': memory,
@@ -686,9 +723,16 @@ class AgentSettings {
     hideSpokenDetails: m['hideSpokenDetails'] != false,
     onDevice: m['onDevice'] == true,
     language: AgentLanguage.values.byName(
-      m['language'] as String? ?? 'english',
+      m['language'] as String? ?? 'automatic',
+    ),
+    interfaceLanguage: AgentLanguage.values.byName(
+      m['interfaceLanguage'] as String? ?? 'automatic',
+    ),
+    speechLanguage: AgentLanguage.values.byName(
+      m['speechLanguage'] as String? ?? 'automatic',
     ),
     locale: m['locale'] as String? ?? '',
+    ttsLocale: m['ttsLocale'] as String? ?? '',
     voice: m['voice'] as String? ?? '',
     rate: ((m['rate'] as num?)?.toDouble() ?? .9).clamp(.5, 1.5),
     memory: (m['memory'] as Map? ?? {}).cast<String, String>(),

@@ -160,11 +160,15 @@ class AgentVoiceBridgeTest {
         val launched=shadowOf(host.get()).nextStartedActivityForResult
         assertEquals(RecognizerIntent.ACTION_RECOGNIZE_SPEECH,launched.intent.action)
         bridge.foreground(false)
-        val words=Intent().putStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS,arrayListOf("Prepare PHP 50"))
+        assertEquals(5,launched.intent.getIntExtra(RecognizerIntent.EXTRA_MAX_RESULTS,0))
+        val words=Intent().putStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS,arrayListOf("Prepare PHP 50","Prepare PHP 500"))
+            .putExtra(RecognizerIntent.EXTRA_CONFIDENCE_SCORES,floatArrayOf(.8f,-1f))
         assertTrue(bridge.activityResult(launched.requestCode,Activity.RESULT_OK,words))
         shadowOf(Looper.getMainLooper()).idle()
         val result=messenger.events.last { (it.arguments as Map<*,*>)["type"] == "final" }.arguments as Map<*,*>
         assertEquals("Prepare PHP 50",result["text"]); assertEquals("system",result["session"])
+        assertEquals(listOf("Prepare PHP 50","Prepare PHP 500"),result["alternatives"])
+        assertEquals(2,(result["confidences"] as List<*>).size)
         bridge.dispose(); host.pause().stop().destroy()
     }
 

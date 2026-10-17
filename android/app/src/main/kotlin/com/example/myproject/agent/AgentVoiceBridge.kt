@@ -34,6 +34,7 @@ class AgentVoiceBridge(private val activity: Activity, private val channel: Meth
     private var recognizer: SpeechRecognizer? = null
     private var tts: TextToSpeech? = null
     private var ttsReady = false
+    private var defaultTtsLocale = Locale.getDefault()
     private var session = ""
     private var generation = 0
     private var foreground = true
@@ -48,7 +49,10 @@ class AgentVoiceBridge(private val activity: Activity, private val channel: Meth
     init { channel.setMethodCallHandler(::call) }
     private fun initializeTts() {
         if (tts != null) return
-        tts = TextToSpeech(activity.applicationContext) { status -> ttsReady = status == TextToSpeech.SUCCESS }
+        tts = TextToSpeech(activity.applicationContext) { status ->
+            ttsReady = status == TextToSpeech.SUCCESS
+            if (ttsReady) defaultTtsLocale = tts?.defaultVoice?.locale ?: Locale.getDefault()
+        }
         tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(id: String?) { event("speaking", id ?: "") }
             override fun onDone(id: String?) { handler.post { if (id == session) abandonFocus(); event("done", id ?: "") } }
@@ -114,8 +118,10 @@ class AgentVoiceBridge(private val activity: Activity, private val channel: Meth
         if (requestCode != systemRequest) return false
         val token = systemToken ?: return false
         systemRequest = null; systemToken = null
-        val words = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.firstOrNull().orEmpty()
-        if (resultCode == Activity.RESULT_OK && words.isNotBlank()) event("final", token, "text" to words)
+        val hypotheses = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)?.take(5).orEmpty()
+        val words = hypotheses.firstOrNull().orEmpty()
+        if (resultCode == Activity.RESULT_OK && words.isNotBlank()) event("final", token, "text" to words,
+            "alternatives" to hypotheses, "confidences" to (data?.getFloatArrayExtra(RecognizerIntent.EXTRA_CONFIDENCE_SCORES)?.take(5)?.map { it.toDouble() } ?: emptyList<Double>()))
         else event("systemCanceled", token)
         return true
     }
@@ -141,6 +147,10 @@ class AgentVoiceBridge(private val activity: Activity, private val channel: Meth
                     "onDevice" to (Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(activity)),
                     "systemRecognition" to (activity.packageManager.resolveActivity(Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH), PackageManager.MATCH_DEFAULT_ONLY) != null),
                     "tts" to ttsReady,
+                    "ttsDefaultLocale" to defaultTtsLocale.toLanguageTag(),
+                    "defaultLocale" to Locale.getDefault().toLanguageTag(),
+                    "ttsLanguages" to (if (ttsReady) tts?.availableLanguages?.map { it.toLanguageTag() }?.sorted() ?: emptyList<String>() else emptyList<String>()),
+                    "voiceDetails" to (if (ttsReady) tts?.voices?.map { mapOf("name" to it.name, "locale" to it.locale.toLanguageTag(), "network" to it.isNetworkConnectionRequired) } ?: emptyList<Map<String, Any>>() else emptyList<Map<String, Any>>()),
                     "voices" to (if (ttsReady) tts?.voices?.map { it.name }?.sorted() ?: emptyList<String>() else emptyList<String>())
                 )
                 var returned = false
@@ -213,14 +223,19 @@ class AgentVoiceBridge(private val activity: Activity, private val channel: Meth
                     event("error", token, "code" to failure.code, "nativeCode" to error, "message" to failure.message)
                     cancelRecognition()
                 }
-                override fun onResults(results: Bundle?) { if (valid()) { event("final", token, "text" to text(results)); cancelRecognition() } }
+                override fun onResults(results: Bundle?) { if (valid()) {
+                    event("final", token, "text" to text(results),
+                        "alternatives" to (results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)?.take(5) ?: emptyList<String>()),
+                        "confidences" to (results?.getFloatArray(SpeechRecognizer.CONFIDENCE_SCORES)?.take(5)?.map { it.toDouble() } ?: emptyList<Double>()))
+                    cancelRecognition()
+                } }
                 override fun onPartialResults(partialResults: Bundle?) { if (valid()) { lastTranscript = text(partialResults); event("partial", token, "text" to lastTranscript) } }
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             })
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
                 .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 .putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+                .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
             val locale = call.argument<String>("locale") ?: ""
             if (locale.isNotEmpty()) intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale)
             if (onDevice && Build.VERSION.SDK_INT >= 33) checkOnDeviceSupport(intent, token, current)
@@ -293,7 +308,7 @@ class AgentVoiceBridge(private val activity: Activity, private val channel: Meth
         systemRequest = request; systemToken = session
         val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
             .putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
+            .putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
             .putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak your SaveTrack request")
         val locale = call.argument<String>("locale").orEmpty()
         if (locale.isNotEmpty()) intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, locale)
@@ -306,13 +321,17 @@ class AgentVoiceBridge(private val activity: Activity, private val channel: Meth
         if (!acquireFocus()) { result.error("focus", "Audio is in use", null); return }
         session = call.argument<String>("session") ?: ""
         val language = call.argument<String>("locale") ?: ""
-        if (language.isNotEmpty() && (tts?.setLanguage(Locale.forLanguageTag(language)) ?: -1) < 0) {
+        val selectedLocale = if (language.isEmpty()) defaultTtsLocale else Locale.forLanguageTag(language)
+        if ((tts?.setLanguage(selectedLocale) ?: -1) < 0) {
             abandonFocus(); result.error("language", "Install a voice for this language", null); return
         }
         val voice = call.argument<String>("voice") ?: ""
         if (voice.isNotEmpty()) {
             val chosen = tts?.voices?.firstOrNull { it.name == voice }
             if (chosen == null) { abandonFocus(); result.error("voice", "Selected voice is no longer installed", null); return }
+            if (language.isNotEmpty() && !agentInstalledLanguageMatches(language, listOf(chosen.locale.toLanguageTag()))) {
+                abandonFocus(); result.error("language", "Selected voice does not match the spoken-response language. Choose a compatible voice.", null); return
+            }
             tts?.voice = chosen
         }
         tts?.setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_ASSISTANT).setContentType(AudioAttributes.CONTENT_TYPE_SPEECH).build())

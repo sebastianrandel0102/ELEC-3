@@ -10,8 +10,14 @@ import 'agent_domain.dart';
 /// The provider request cannot carry free-form user input, record values, IDs,
 /// dates, financial amounts, chat history, transcripts, or preference memory.
 class AgentSafeRequest {
-  AgentSafeRequest(Iterable<AgentActionType> actions, this.language)
-    : actions = Set.unmodifiable(actions);
+  AgentSafeRequest(
+    Iterable<AgentActionType> actions,
+    AgentLanguage language, {
+    AgentLanguage detectedLanguage = AgentLanguage.automatic,
+  }) : actions = Set.unmodifiable(actions),
+       language = language == AgentLanguage.automatic
+           ? detectedLanguage
+           : language;
   final Set<AgentActionType> actions;
   final AgentLanguage language;
   String get payload => jsonEncode({
@@ -77,7 +83,9 @@ class FirebaseAgentAiGateway implements AgentAiGateway {
           .generativeModel(
             model: AiConfig.model,
             systemInstruction: Content.system(
-              'You advise on an abstract SaveTrack workflow. You have no records, money values, dates, names, or authorization. Explain a useful order and what details to review. Do not claim any action has executed. Only return the supplied action types. You cannot approve, execute, or request tools. Reply in the specified language. No numeric financial advice.',
+              'You advise on an abstract SaveTrack workflow. You have no records, money values, dates, names, transcripts, or authorization. Explain a useful order and what details to review. Do not claim any action has executed. Only return the supplied action types. You cannot approve, execute, or request tools. No numeric financial advice. '
+              'English, Filipino/Tagalog, and natural Taglish are first-class response styles. Use the requested language; automatic means simple English if no language is specified. Never criticize grammar. Be concise and respectful. Negation, tentative amounts, missing dates, similar goal names, and self-corrections require local clarification and review, never guesses. '
+              'Synthetic examples: "Gawa goal, wag muna i-save" means draft only; "Five hundred, ay three hundred lang" means review the corrected amount; "Pa-remind tuwing Friday" requires an explicit time and target. These are examples only, never add their values to output. Return only the strict JSON explanation and order fields.',
             ),
             generationConfig: GenerationConfig(
               maxOutputTokens: 1024,

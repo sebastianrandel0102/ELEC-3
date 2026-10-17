@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'agent_domain.dart';
 import 'agent_engine.dart';
 import 'agent_voice.dart';
+import 'agent_language_settings.dart';
+import 'intelligence/agent_language.dart';
 
 class AgentSettingsScreen extends StatelessWidget {
   const AgentSettingsScreen({
@@ -35,8 +37,9 @@ class AgentSettingsScreen extends StatelessWidget {
     listenable: Listenable.merge([engine, voice]),
     builder: (ctx, _) {
       final settings = engine.settings;
+      final strings = AgentStrings(settings.interfaceLanguage);
       return Scaffold(
-        appBar: AppBar(title: const Text('Agent settings')),
+        appBar: AppBar(title: Text(strings.text('Agent settings'))),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 780),
@@ -53,7 +56,7 @@ class AgentSettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
                 SwitchListTile(
-                  title: const Text('Execute approved actions'),
+                  title: Text(strings.text('Execute approved actions')),
                   subtitle: const Text(
                     'Explicitly enable reviewed goal, task, reminder, and contribution preparation workflows.',
                   ),
@@ -68,7 +71,7 @@ class AgentSettingsScreen extends StatelessWidget {
                   (AgentPermission.privateContext, 'Private context access'),
                 ])
                   SwitchListTile(
-                    title: Text(item.$2),
+                    title: Text(strings.text(item.$2)),
                     subtitle: item.$1 == AgentPermission.privateContext
                         ? const Text(
                             'Locally read personal goals for selection and allocation. No records are sent to Gemini.',
@@ -84,8 +87,30 @@ class AgentSettingsScreen extends StatelessWidget {
                     },
                   ),
                 const Divider(height: 32),
-                const Text(
-                  'Voice & audio privacy',
+                ListTile(
+                  leading: const Icon(Icons.translate_rounded),
+                  title: Text(
+                    AgentStrings(settings.interfaceLanguage).languageSettings,
+                  ),
+                  subtitle: Text(
+                    '${agentLanguageLabel(settings.language)} · Text, recognition, and spoken responses',
+                  ),
+                  onTap: () async {
+                    await voice.initialize();
+                    if (!context.mounted) return;
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute<void>(
+                        builder: (_) => AgentLanguageSettingsScreen(
+                          engine: engine,
+                          voice: voice,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                Text(
+                  strings.text('Voice & audio privacy'),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 12),
@@ -93,7 +118,7 @@ class AgentSettingsScreen extends StatelessWidget {
                   'Tap-to-talk and turn-based responses use Android speech services and installed TTS voices. Recognition and some TTS engines may process data remotely. SaveTrack keeps no raw recordings. Text remains available on unsupported platforms.',
                 ),
                 SwitchListTile(
-                  title: const Text('Spoken replies'),
+                  title: Text(strings.text('Spoken replies')),
                   subtitle: const Text(
                     'Off by default. Stops when you leave or background the app.',
                   ),
@@ -101,7 +126,7 @@ class AgentSettingsScreen extends StatelessWidget {
                   onChanged: (v) => _change(context, {'spoken': v}),
                 ),
                 SwitchListTile(
-                  title: const Text('Hide financial details in speech'),
+                  title: Text(strings.text('Hide financial details in speech')),
                   subtitle: const Text(
                     'Speak a generic notice instead of amounts, task titles, or conversation text.',
                   ),
@@ -109,7 +134,7 @@ class AgentSettingsScreen extends StatelessWidget {
                   onChanged: (v) => _change(context, {'hideSpokenDetails': v}),
                 ),
                 SwitchListTile(
-                  title: const Text('Require on-device recognition'),
+                  title: Text(strings.text('Require on-device recognition')),
                   subtitle: Text(
                     voice.availability['onDevice'] == true
                         ? 'Requires a downloaded local language model as well as the recognizer. If speech fails immediately, choose an installed model or turn this off to explicitly allow the device speech provider.'
@@ -119,7 +144,7 @@ class AgentSettingsScreen extends StatelessWidget {
                   onChanged: (v) => _change(context, {'onDevice': v}),
                 ),
                 ListTile(
-                  title: const Text('Recognition & speech language'),
+                  title: const Text('Recognition locale override'),
                   subtitle: Text(
                     settings.locale.isEmpty
                         ? 'Device default'
@@ -222,12 +247,14 @@ class AgentSettingsScreen extends StatelessWidget {
                   label: const Text('Preview voice'),
                 ),
                 const Divider(height: 32),
-                const Text(
-                  'Local history & memory',
+                Text(
+                  strings.text('Local history & memory'),
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                 ),
                 SwitchListTile(
-                  title: const Text('Save mission history on this device'),
+                  title: Text(
+                    strings.text('Save mission history on this device'),
+                  ),
                   subtitle: const Text(
                     'Stores draft values and actual results for recovery. Retained for 30 days, up to 50 missions. App-local storage is not an encrypted vault. Chat and audio are never persisted. Turning this off deletes saved missions.',
                   ),
@@ -237,7 +264,7 @@ class AgentSettingsScreen extends StatelessWidget {
                       : (v) => _change(context, {'history': v}),
                 ),
                 ListTile(
-                  title: const Text('Clear mission history'),
+                  title: Text(strings.text('Clear mission history')),
                   leading: const Icon(Icons.delete_outline),
                   onTap: engine.busy
                       ? null
@@ -253,7 +280,7 @@ class AgentSettingsScreen extends StatelessWidget {
                         },
                 ),
                 SwitchListTile(
-                  title: const Text('Use approved preference memory'),
+                  title: Text(strings.text('Use approved preference memory')),
                   subtitle: const Text(
                     'Only preferences you explicitly save below. Nothing is sent to external AI.',
                   ),
@@ -276,19 +303,17 @@ class AgentSettingsScreen extends StatelessWidget {
                   ),
                 ),
                 DropdownButtonFormField<AgentLanguage>(
+                  isExpanded: true,
                   initialValue: settings.language,
                   decoration: const InputDecoration(
                     labelText: 'Local reply language',
                   ),
-                  items: const [
-                    DropdownMenuItem(
-                      value: AgentLanguage.english,
-                      child: Text('English'),
-                    ),
-                    DropdownMenuItem(
-                      value: AgentLanguage.filipino,
-                      child: Text('Filipino · best-effort'),
-                    ),
+                  items: [
+                    for (final l in AgentLanguage.values)
+                      DropdownMenuItem(
+                        value: l,
+                        child: Text(agentLanguageLabel(l)),
+                      ),
                   ],
                   onChanged: (v) => _change(context, {'language': v!.name}),
                 ),

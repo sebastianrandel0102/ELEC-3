@@ -57,12 +57,13 @@ void main() {
     );
     expect(p.actions.whereType<GoalDraft>().single.deadline, isNull);
   });
-  test('word numbers in voice never silently become financial amounts', () {
+  test('word numbers become reviewable drafts, never transactions', () {
     final p = planner.plan(
       'Prepare fifteen thousand pesos for my goal',
       now: agentNow,
     );
-    expect(p.actions.whereType<ContributionDraft>().single.amount, isEmpty);
+    expect(p.actions.whereType<ContributionDraft>().single.amount, '15000');
+    expect(p.actions.whereType<ContributionDraft>().single.goalId, isEmpty);
   });
   test('spoken yes, injection, deletion and withdrawal cannot authorize', () {
     for (final input in [

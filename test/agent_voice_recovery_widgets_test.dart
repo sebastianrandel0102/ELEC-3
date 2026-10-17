@@ -83,10 +83,10 @@ void main() {
       await tester.tap(find.text('Voice settings'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(
-        find.text('Recognition & speech language'),
+        find.text('Recognition locale override'),
         250,
       );
-      await tester.tap(find.text('Recognition & speech language'));
+      await tester.tap(find.text('Recognition locale override'));
       await tester.pumpAndSettle();
       expect(find.text('en-US'), findsOneWidget);
       expect(find.text('fil-PH'), findsNothing);
