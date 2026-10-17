@@ -14,10 +14,11 @@ class MoneyExpression {
     this.ambiguous = false,
     this.approximate = false,
     this.currencyAmbiguous = false,
+    this.invalid = false,
     List<MoneyCandidate> candidates = const [],
   }) : candidates = List.unmodifiable(candidates);
   final String currency, amount;
-  final bool ambiguous, approximate, currencyAmbiguous;
+  final bool ambiguous, approximate, currencyAmbiguous, invalid;
   final List<MoneyCandidate> candidates;
 }
 
@@ -150,7 +151,8 @@ class MoneyExpressionParser {
     final candidates = <MoneyCandidate>[];
     var malformed = false;
     for (final m in pattern.allMatches(work)) {
-      final raw = m[0]!;
+      final raw = m[0]!.replaceFirst(RegExp(r',$'), '');
+      final evidenceEnd = m.start + raw.length;
       // A naked year is a calendar reference, not money.
       if (RegExp(r'^20\d\d$').hasMatch(raw) &&
           RegExp(r'(by|before|deadline|petsa|on)\s*$')
@@ -158,12 +160,23 @@ class MoneyExpressionParser {
         continue;
       }
       final value = _number(raw);
-      if (value == null || value == '0' || value.startsWith('-')) {
+      final zeroSaved =
+          value == '0' &&
+          (RegExp(
+                r'\b(?:saved|already have|naipon|initial savings)\s*(?:[a-z]{3}|₱)?\s*$',
+              ).hasMatch(work.substring(0, m.start)) ||
+              RegExp(r'^\s*(?:saved|naipon)\b')
+                  .hasMatch(work.substring(evidenceEnd)));
+      if (value == null ||
+          value == '0' && !zeroSaved ||
+          value.startsWith('-')) {
         malformed = true;
         continue;
       }
       if (currency.isNotEmpty &&
-          parseCurrencyAmount(value, currency)?.positive != true) {
+          (parseCurrencyAmount(value, currency) == null ||
+              !zeroSaved &&
+                  parseCurrencyAmount(value, currency)?.positive != true)) {
         malformed = true;
         continue;
       }
@@ -172,9 +185,9 @@ class MoneyExpressionParser {
           value,
           SlotEvidence(
             'amount',
-            text.substring(m.start, m.end),
+            text.substring(m.start, evidenceEnd),
             m.start,
-            m.end,
+            evidenceEnd,
           ),
         ),
       );
@@ -194,6 +207,7 @@ class MoneyExpressionParser {
     final ambiguous = malformed || candidates.length > 1 || approximate;
     return MoneyExpression(
       currency: currency,
+      invalid: malformed,
       currencyAmbiguous: currencyAmbiguous,
       amount: !ambiguous && candidates.length == 1
           ? candidates.single.amount

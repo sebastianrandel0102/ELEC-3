@@ -183,7 +183,7 @@ void main() {
       );
       await tester.enterText(
         find.byKey(const Key('agent-input')),
-        'Add PHP 500 or 5000 to my laptop goal',
+        'Add PHP 500 or 5000 to my goal',
       );
       await tester.tap(find.byTooltip('Send reviewed text'));
       await tester.pumpAndSettle();

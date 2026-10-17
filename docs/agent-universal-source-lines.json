@@ -1,0 +1,87 @@
+{
+  "definition": "Physical nonblank noncomment source lines; excludes JSON, generated code, lockfiles and dependencies",
+  "categories": {
+    "productionDart": {
+      "files": {
+        "lib/agent_studio/agent_ai_gateway.dart": 112,
+        "lib/agent_studio/agent_backend.dart": 373,
+        "lib/agent_studio/agent_domain.dart": 788,
+        "lib/agent_studio/agent_engine.dart": 701,
+        "lib/agent_studio/agent_language_settings.dart": 185,
+        "lib/agent_studio/agent_planner.dart": 1353,
+        "lib/agent_studio/agent_screen.dart": 1808,
+        "lib/agent_studio/agent_settings_screen.dart": 403,
+        "lib/agent_studio/agent_step_editor.dart": 431,
+        "lib/agent_studio/agent_store.dart": 91,
+        "lib/agent_studio/agent_voice.dart": 430,
+        "lib/agent_studio/intelligence/agent_interpretation.dart": 195,
+        "lib/agent_studio/intelligence/agent_language.dart": 186,
+        "lib/agent_studio/intelligence/date_expression_parser.dart": 224,
+        "lib/agent_studio/intelligence/domain_slot_resolvers.dart": 76,
+        "lib/agent_studio/intelligence/draft_field_resolver.dart": 70,
+        "lib/agent_studio/intelligence/financial_role_resolver.dart": 76,
+        "lib/agent_studio/intelligence/interpretation_preview.dart": 128,
+        "lib/agent_studio/intelligence/money_expression_parser.dart": 280,
+        "lib/agent_studio/intelligence/multilingual_evaluator.dart": 149,
+        "lib/agent_studio/intelligence/semantic_text.dart": 124,
+        "lib/agent_studio/intelligence/title_resolver.dart": 510,
+        "lib/agent_studio/intelligence/voice_locale_repository.dart": 42
+      },
+      "lines": 8735
+    },
+    "productionKotlin": {
+      "files": {
+        "android/app/src/main/kotlin/com/example/myproject/agent/AgentRecognitionFailure.kt": 30,
+        "android/app/src/main/kotlin/com/example/myproject/agent/AgentVoiceBridge.kt": 333
+      },
+      "lines": 363
+    },
+    "kotlinTests": {
+      "files": {
+        "android/app/src/test/kotlin/com/example/myproject/agent/AgentVoiceBridgeTest.kt": 177
+      },
+      "lines": 177
+    },
+    "unitAndEngineIntegrationTests": {
+      "files": {
+        "test/agent_language_corpus_test.dart": 47,
+        "test/agent_language_followup_test.dart": 178,
+        "test/agent_language_intelligence_test.dart": 522,
+        "test/agent_studio_fixtures.dart": 171,
+        "test/agent_studio_test.dart": 549,
+        "test/agent_universal_corpus_test.dart": 191,
+        "test/agent_universal_intelligence_test.dart": 642,
+        "test/agent_voice_recovery_test.dart": 115
+      },
+      "lines": 2415
+    },
+    "widgetTests": {
+      "files": {
+        "test/agent_language_widgets_test.dart": 226,
+        "test/agent_studio_widgets_test.dart": 191,
+        "test/agent_universal_widgets_test.dart": 144,
+        "test/agent_voice_recovery_widgets_test.dart": 151
+      },
+      "lines": 712
+    },
+    "repositoryIntegrationTests": {
+      "files": {
+        "test/agent_studio_backend_test.dart": 122,
+        "test/agent_studio_validation_test.dart": 140
+      },
+      "lines": 262
+    },
+    "evaluationFixtures": {
+      "files": {
+        "test/fixtures/universal_intelligence_cases.dart": 242
+      },
+      "lines": 242
+    },
+    "evaluationTools": {
+      "files": {
+        "tools/measure_agent_source.dart": 124
+      },
+      "lines": 124
+    }
+  }
+}

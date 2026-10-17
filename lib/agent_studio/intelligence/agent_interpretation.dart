@@ -1,10 +1,13 @@
 import '../agent_domain.dart';
+import 'semantic_text.dart';
+import 'title_resolver.dart';
 
 enum AgentIntent {
   createGoalDraft,
   editGoalDraft,
   taskPlanning,
   reminderPlanning,
+  missionPlanning,
   prepareContribution,
   askQuestion,
   simulateSavings,
@@ -14,9 +17,53 @@ enum AgentIntent {
   unknown,
 }
 
+extension CanonicalAgentIntent on AgentIntent {
+  String get identifier => switch (this) {
+    AgentIntent.createGoalDraft => 'create_goal_draft',
+    AgentIntent.editGoalDraft => 'update_goal_draft',
+    AgentIntent.taskPlanning => 'organize_tasks',
+    AgentIntent.reminderPlanning => 'create_reminder_draft',
+    AgentIntent.missionPlanning => 'create_mission_draft',
+    AgentIntent.prepareContribution => 'prepare_savings_contribution',
+    AgentIntent.simulateSavings => 'simulate_savings_scenario',
+    AgentIntent.allocation => 'allocate_savings',
+    AgentIntent.askQuestion => 'ask_question',
+    AgentIntent.cancelMission => 'cancel_draft',
+    AgentIntent.modifyMission => 'update_draft',
+    AgentIntent.unknown => 'unknown',
+  };
+}
+
+/// Ephemeral provenance attached to an object, never used as execution authority.
+class TitleBinding {
+  const TitleBinding(this.object, this.title, {this.actionIndex});
+  final SemanticObject object;
+  final ResolvedTitle title;
+  final int? actionIndex;
+}
+
 enum UnderstandingStatus { resolved, needsClarification, unsupported }
 
-enum Uncertainty { amount, currency, date, time, target, intent, recurrence }
+enum AgentDomain {
+  planGoal,
+  organizeTasks,
+  makeReminder,
+  buildMission,
+  prepareSavings,
+  whatIf,
+  generalQuestion,
+}
+
+enum Uncertainty {
+  amount,
+  currency,
+  date,
+  time,
+  target,
+  intent,
+  recurrence,
+  title,
+}
 
 class SlotEvidence {
   const SlotEvidence(this.field, this.text, this.start, this.end);
@@ -42,6 +89,7 @@ class AgentInterpretation {
     Iterable<String> corrections = const [],
     Iterable<String> questions = const [],
     this.draftOnly = false,
+    Iterable<TitleBinding> titles = const [],
   }) : candidates = List.unmodifiable(candidates),
        slots = Map.unmodifiable(slots),
        evidence = List.unmodifiable(evidence),
@@ -49,7 +97,8 @@ class AgentInterpretation {
        missing = List.unmodifiable(missing),
        negated = Set.unmodifiable(negated),
        corrections = List.unmodifiable(corrections),
-       questions = List.unmodifiable(questions);
+       questions = List.unmodifiable(questions),
+       titles = List.unmodifiable(titles);
   final String original, normalized;
   final AgentLanguage language;
   final UnderstandingStatus status;
@@ -61,6 +110,33 @@ class AgentInterpretation {
   final Set<String> negated;
   final List<String> missing, corrections, questions;
   final bool draftOnly;
+  final List<TitleBinding> titles;
+  String get canonicalIntent => intent.identifier;
+  AgentDomain get domain => switch (intent) {
+    AgentIntent.createGoalDraft ||
+    AgentIntent.editGoalDraft => AgentDomain.planGoal,
+    AgentIntent.taskPlanning => AgentDomain.organizeTasks,
+    AgentIntent.reminderPlanning => AgentDomain.makeReminder,
+    AgentIntent.missionPlanning ||
+    AgentIntent.modifyMission ||
+    AgentIntent.cancelMission => AgentDomain.buildMission,
+    AgentIntent.prepareContribution => AgentDomain.prepareSavings,
+    AgentIntent.simulateSavings || AgentIntent.allocation => AgentDomain.whatIf,
+    _ => AgentDomain.generalQuestion,
+  };
+
+  /// Preview only. A structured interpretation cannot contain an approval.
+  Map<String, Object?> get structured => {
+    'intent': canonicalIntent,
+    'fields': {
+      ...slots,
+      if (titles.length == 1) 'title': titles.single.title.value,
+      if (titles.length == 1)
+        'titleSource': titles.single.title.origin.identifier,
+    },
+    'status': 'draft',
+    'requiresApproval': true,
+  };
   Map<String, Object?> get diagnostics => {
     'language': language.name,
     'intent': intent.name,
@@ -74,12 +150,49 @@ class GoalReferenceResolver {
   const GoalReferenceResolver();
   List<AgentRecord> matches(String text, List<AgentRecord> authorized) {
     final lower = text.toLowerCase();
-    final quoted = RegExp('["“]([^"”]+)["”]')
-        .firstMatch(text)?[1]
-        ?.toLowerCase();
-    if (quoted != null) {
-      return authorized.where((r) => r.title.toLowerCase() == quoted).toList();
+    String key(String value) =>
+        value.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+    List<AgentRecord> exact(String title) =>
+        authorized.where((r) => key(r.title) == key(title)).toList();
+    final source = SemanticText(text);
+    for (final quote in source.quotes) {
+      final prefix = lower.substring(0, quote.start);
+      if (RegExp(
+        r'\b(?:to|into|in|for|sa|yung|(?:goal|one)\s+(?:called|named))\s*$',
+        caseSensitive: false,
+      ).hasMatch(prefix)) {
+        return exact(text.substring(quote.start + 1, quote.end - 1));
+      }
     }
+    final naming = RegExp(
+      r'\b(?:goal|one)\s+(?:named|called|titled)\s+',
+      caseSensitive: false,
+    ).firstMatch(text);
+    if (naming != null) {
+      final value = text
+          .substring(naming.end)
+          .split(
+            RegExp(
+              r'[,;.!?]|\s+(?:at|every|by|tomorrow)\b',
+              caseSensitive: false,
+            ),
+          )
+          .first;
+      return exact(value);
+    }
+    final referenceText = source.withoutQuotes.toLowerCase();
+    final full = authorized
+        .where(
+          (r) =>
+              key(r.title).split(' ').length > 1 &&
+              RegExp(
+                '(?<![a-z0-9])${RegExp.escape(key(r.title)).replaceAll(' ', r'\s+')}(?![a-z0-9])',
+              ).hasMatch(referenceText),
+        )
+        .toList();
+    if (full.length == 1) return full;
+    if (full.length > 1) return full;
+    // A short unqualified reference can overlap several authorized records.
     // Even an exact short title can overlap another title: keep both choices.
     return authorized.where((r) {
       final words = r.title
@@ -91,7 +204,7 @@ class GoalReferenceResolver {
                 !['fund', 'goal', 'savings', 'ipon'].contains(w),
           );
       return words.any(
-        (w) => RegExp('\\b${RegExp.escape(w)}\\b').hasMatch(lower),
+        (w) => RegExp('\\b${RegExp.escape(w)}\\b').hasMatch(referenceText),
       );
     }).toList();
   }

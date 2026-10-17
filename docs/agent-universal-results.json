@@ -1,0 +1,219 @@
+{
+  "corpus": "universal_intelligence_v3",
+  "scope": "Synthetic text development regression; no live speech, provider calls, or user records",
+  "clock": "2026-10-17T10:00:00",
+  "cases": 1128,
+  "correctIntents": 1128,
+  "passedCases": 1128,
+  "annotatedFields": 1974,
+  "correctFields": 1974,
+  "macroF1": 1.0,
+  "intentMetrics": {
+    "createGoalDraft": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 246
+    },
+    "taskPlanning": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 168
+    },
+    "reminderPlanning": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 168
+    },
+    "missionPlanning": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 168
+    },
+    "simulateSavings": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 222
+    },
+    "prepareContribution": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 54
+    },
+    "modifyMission": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 48
+    },
+    "unknown": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 42
+    },
+    "askQuestion": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 12
+    }
+  },
+  "confusionMatrix": {
+    "createGoalDraft": {
+      "createGoalDraft": 246,
+      "taskPlanning": 0,
+      "reminderPlanning": 0,
+      "missionPlanning": 0,
+      "simulateSavings": 0,
+      "prepareContribution": 0,
+      "modifyMission": 0,
+      "unknown": 0,
+      "askQuestion": 0
+    },
+    "taskPlanning": {
+      "createGoalDraft": 0,
+      "taskPlanning": 168,
+      "reminderPlanning": 0,
+      "missionPlanning": 0,
+      "simulateSavings": 0,
+      "prepareContribution": 0,
+      "modifyMission": 0,
+      "unknown": 0,
+      "askQuestion": 0
+    },
+    "reminderPlanning": {
+      "createGoalDraft": 0,
+      "taskPlanning": 0,
+      "reminderPlanning": 168,
+      "missionPlanning": 0,
+      "simulateSavings": 0,
+      "prepareContribution": 0,
+      "modifyMission": 0,
+      "unknown": 0,
+      "askQuestion": 0
+    },
+    "missionPlanning": {
+      "createGoalDraft": 0,
+      "taskPlanning": 0,
+      "reminderPlanning": 0,
+      "missionPlanning": 168,
+      "simulateSavings": 0,
+      "prepareContribution": 0,
+      "modifyMission": 0,
+      "unknown": 0,
+      "askQuestion": 0
+    },
+    "simulateSavings": {
+      "createGoalDraft": 0,
+      "taskPlanning": 0,
+      "reminderPlanning": 0,
+      "missionPlanning": 0,
+      "simulateSavings": 222,
+      "prepareContribution": 0,
+      "modifyMission": 0,
+      "unknown": 0,
+      "askQuestion": 0
+    },
+    "prepareContribution": {
+      "createGoalDraft": 0,
+      "taskPlanning": 0,
+      "reminderPlanning": 0,
+      "missionPlanning": 0,
+      "simulateSavings": 0,
+      "prepareContribution": 54,
+      "modifyMission": 0,
+      "unknown": 0,
+      "askQuestion": 0
+    },
+    "modifyMission": {
+      "createGoalDraft": 0,
+      "taskPlanning": 0,
+      "reminderPlanning": 0,
+      "missionPlanning": 0,
+      "simulateSavings": 0,
+      "prepareContribution": 0,
+      "modifyMission": 48,
+      "unknown": 0,
+      "askQuestion": 0
+    },
+    "unknown": {
+      "createGoalDraft": 0,
+      "taskPlanning": 0,
+      "reminderPlanning": 0,
+      "missionPlanning": 0,
+      "simulateSavings": 0,
+      "prepareContribution": 0,
+      "modifyMission": 0,
+      "unknown": 42,
+      "askQuestion": 0
+    },
+    "askQuestion": {
+      "createGoalDraft": 0,
+      "taskPlanning": 0,
+      "reminderPlanning": 0,
+      "missionPlanning": 0,
+      "simulateSavings": 0,
+      "prepareContribution": 0,
+      "modifyMission": 0,
+      "unknown": 0,
+      "askQuestion": 12
+    }
+  },
+  "titleExactMatch": {
+    "createGoal": {
+      "annotated": 246,
+      "matched": 246
+    },
+    "createTask": {
+      "annotated": 168,
+      "matched": 168
+    },
+    "createReminder": {
+      "annotated": 168,
+      "matched": 168
+    },
+    "mission": {
+      "annotated": 168,
+      "matched": 168
+    },
+    "scenario": {
+      "annotated": 168,
+      "matched": 168
+    }
+  },
+  "negativeCases": 102,
+  "proposalOvertriggers": 0,
+  "titleProvenance": {
+    "annotated": 918,
+    "matched": 918
+  },
+  "explicitTitleExactMatch": {
+    "createGoal": {
+      "annotated": 216,
+      "matched": 216
+    },
+    "createTask": {
+      "annotated": 168,
+      "matched": 168
+    },
+    "createReminder": {
+      "annotated": 168,
+      "matched": 168
+    },
+    "mission": {
+      "annotated": 168,
+      "matched": 168
+    },
+    "scenario": {
+      "annotated": 168,
+      "matched": 168
+    }
+  },
+  "failures": []
+}

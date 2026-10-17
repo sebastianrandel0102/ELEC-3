@@ -310,6 +310,7 @@ class _StepEditorState extends State<_StepEditor> {
         ]),
       ],
       if (action is ReminderDraft) ...[
+        field('title', 'Reminder title (optional)'),
         ...target(),
         const SizedBox(height: 14),
         choice(
@@ -368,9 +369,19 @@ class _StepEditorState extends State<_StepEditor> {
         ),
       ],
       if (action is ScenarioDraft) ...[
+        field('title', 'Scenario title (optional)'),
         field('target', 'Target amount', money: true),
         field('saved', 'Already saved', money: true),
-        field('contribution', 'Weekly contribution (optional)', money: true),
+        field(
+          'contribution',
+          'Contribution per period (optional)',
+          money: true,
+        ),
+        choice('frequency', 'Contribution frequency', [
+          ('daily', 'Daily'),
+          ('weekly', 'Weekly'),
+          ('monthly', 'Monthly'),
+        ]),
         currency(),
         date('deadline', 'Scenario deadline'),
         const Text(

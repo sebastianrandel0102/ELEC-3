@@ -82,6 +82,7 @@ void main() {
       engine.draft([taskDraft()]);
       await mount(tester);
       await tester.ensureVisible(find.byKey(const Key('agent-review')));
+      await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('agent-review')));
       await tester.pumpAndSettle();
       expect(find.text('Approve selected actions'), findsOneWidget);
@@ -98,6 +99,7 @@ void main() {
     engine.draft([goalDraft()]);
     await mount(tester);
     await tester.ensureVisible(find.byKey(const Key('agent-review')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('agent-review')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Keep editing'));

@@ -120,12 +120,13 @@ class AgentEngine extends ChangeNotifier {
   void draft(
     List<AgentAction> actions, {
     String title = 'Your next steps',
+    bool allowEmpty = false,
     bool planOnly = false,
     List<String> languageIssues = const [],
   }) {
     _session();
     if (busy) throw const AgentFailure('Wait for the current operation.');
-    if (actions.isEmpty || actions.length > AgentLimits.steps) {
+    if (actions.isEmpty && !allowEmpty || actions.length > AgentLimits.steps) {
       throw const AgentFailure('Use a smaller mission.');
     }
     _epoch++;
@@ -181,6 +182,12 @@ class AgentEngine extends ChangeNotifier {
         : <String>[];
     if (plan.cancel) {
       cancel();
+    } else if (plan.removeSteps.isNotEmpty) {
+      for (final id in plan.removeSteps) {
+        edit(id, remove: true);
+      }
+    } else if (plan.moveStep != null) {
+      edit(plan.moveStep!, move: plan.moveBy);
     } else if (plan.replacement != null) {
       final previous = mission!.steps.firstWhere(
         (s) => s.id == plan.replaceStep,
@@ -215,6 +222,7 @@ class AgentEngine extends ChangeNotifier {
       _session();
       draft(
         plan.actions,
+        title: plan.missionTitle ?? 'Your next steps',
         planOnly: understanding?.draftOnly == true,
         languageIssues:
             understanding?.uncertain.contains(Uncertainty.target) == true
@@ -230,6 +238,19 @@ class AgentEngine extends ChangeNotifier {
         ],
       );
       _revalidate();
+    } else if (plan.missionTitle != null) {
+      if (mission == null ||
+          !editable ||
+          understanding?.intent == AgentIntent.missionPlanning) {
+        draft(
+          const [],
+          title: plan.missionTitle!,
+          allowEmpty: true,
+          planOnly: understanding?.draftOnly == true,
+        );
+      } else {
+        renameMission(plan.missionTitle!);
+      }
     } else if (mission != null &&
         editable &&
         (understanding?.draftOnly == true ||
@@ -249,6 +270,23 @@ class AgentEngine extends ChangeNotifier {
     _notify();
   }
 
+  void renameMission(String title) {
+    _session();
+    if (!editable ||
+        mission == null ||
+        title.trim().isEmpty ||
+        title.trim().length > 100) {
+      throw const AgentFailure('Use a mission title up to 100 characters.');
+    }
+    _epoch++;
+    mission = mission!.copyWith(
+      title: title.trim(),
+      version: mission!.version + 1,
+    );
+    _revalidate();
+    _notify();
+  }
+
   Map<String, String> _uncertainSlots(
     AgentAction action,
     AgentInterpretation? interpretation,
@@ -259,6 +297,7 @@ class AgentEngine extends ChangeNotifier {
     final result = <String, String>{};
     for (final issue in interpretation.uncertain) {
       final key = switch (issue) {
+        Uncertainty.title => action is GoalDraft ? 'name' : 'title',
         Uncertainty.amount =>
           action is ScenarioDraft
               ? 'target'
@@ -276,6 +315,10 @@ class AgentEngine extends ChangeNotifier {
           Uncertainty.currency => strings.currency,
           Uncertainty.date => strings.date,
           Uncertainty.time => strings.time,
+          Uncertainty.title => strings.choose(
+            'Review the title before approval.',
+            'Suriin ang pangalan bago aprubahan.',
+          ),
           _ => strings.choose(
             'Review the schedule for this step.',
             'Suriin ang iskedyul ng hakbang na ito.',

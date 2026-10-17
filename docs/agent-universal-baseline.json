@@ -1,0 +1,207 @@
+{
+    "corpus":  "universal_intelligence_v3",
+    "scope":  "Synthetic text development regression; no live speech, provider calls, or user records",
+    "clock":  "2026-10-17T10:00:00",
+    "cases":  1128,
+    "correctIntents":  816,
+    "passedCases":  219,
+    "annotatedFields":  1974,
+    "correctFields":  873,
+    "macroF1":  0.6998061577482122,
+    "intentMetrics":  {
+                          "createGoalDraft":  {
+                                                  "precision":  1.0,
+                                                  "recall":  0.6585365853658537,
+                                                  "f1":  0.7941176470588235,
+                                                  "support":  246
+                                              },
+                          "taskPlanning":  {
+                                               "precision":  1.0,
+                                               "recall":  1.0,
+                                               "f1":  1.0,
+                                               "support":  168
+                                           },
+                          "reminderPlanning":  {
+                                                   "precision":  1.0,
+                                                   "recall":  1.0,
+                                                   "f1":  1.0,
+                                                   "support":  168
+                                               },
+                          "missionPlanning":  {
+                                                  "precision":  0.0,
+                                                  "recall":  0.0,
+                                                  "f1":  0.0,
+                                                  "support":  168
+                                              },
+                          "simulateSavings":  {
+                                                  "precision":  1.0,
+                                                  "recall":  0.8108108108108109,
+                                                  "f1":  0.8955223880597014,
+                                                  "support":  222
+                                              },
+                          "prepareContribution":  {
+                                                      "precision":  0.6666666666666666,
+                                                      "recall":  0.7777777777777778,
+                                                      "f1":  0.717948717948718,
+                                                      "support":  54
+                                                  },
+                          "modifyMission":  {
+                                                "precision":  1.0,
+                                                "recall":  1.0,
+                                                "f1":  1.0,
+                                                "support":  48
+                                            },
+                          "unknown":  {
+                                          "precision":  0.12612612612612611,
+                                          "recall":  1.0,
+                                          "f1":  0.22399999999999998,
+                                          "support":  42
+                                      },
+                          "askQuestion":  {
+                                              "precision":  1.0,
+                                              "recall":  0.5,
+                                              "f1":  0.6666666666666666,
+                                              "support":  12
+                                          }
+                      },
+    "confusionMatrix":  {
+                            "createGoalDraft":  {
+                                                    "createGoalDraft":  162,
+                                                    "unknown":  84,
+                                                    "taskPlanning":  0,
+                                                    "reminderPlanning":  0,
+                                                    "simulateSavings":  0,
+                                                    "prepareContribution":  0,
+                                                    "modifyMission":  0,
+                                                    "askQuestion":  0
+                                                },
+                            "taskPlanning":  {
+                                                 "createGoalDraft":  0,
+                                                 "unknown":  0,
+                                                 "taskPlanning":  168,
+                                                 "reminderPlanning":  0,
+                                                 "simulateSavings":  0,
+                                                 "prepareContribution":  0,
+                                                 "modifyMission":  0,
+                                                 "askQuestion":  0
+                                             },
+                            "reminderPlanning":  {
+                                                     "createGoalDraft":  0,
+                                                     "unknown":  0,
+                                                     "taskPlanning":  0,
+                                                     "reminderPlanning":  168,
+                                                     "simulateSavings":  0,
+                                                     "prepareContribution":  0,
+                                                     "modifyMission":  0,
+                                                     "askQuestion":  0
+                                                 },
+                            "missionPlanning":  {
+                                                    "createGoalDraft":  0,
+                                                    "unknown":  168,
+                                                    "taskPlanning":  0,
+                                                    "reminderPlanning":  0,
+                                                    "simulateSavings":  0,
+                                                    "prepareContribution":  0,
+                                                    "modifyMission":  0,
+                                                    "askQuestion":  0
+                                                },
+                            "simulateSavings":  {
+                                                    "createGoalDraft":  0,
+                                                    "unknown":  24,
+                                                    "taskPlanning":  0,
+                                                    "reminderPlanning":  0,
+                                                    "simulateSavings":  180,
+                                                    "prepareContribution":  18,
+                                                    "modifyMission":  0,
+                                                    "askQuestion":  0
+                                                },
+                            "prepareContribution":  {
+                                                        "createGoalDraft":  0,
+                                                        "unknown":  12,
+                                                        "taskPlanning":  0,
+                                                        "reminderPlanning":  0,
+                                                        "simulateSavings":  0,
+                                                        "prepareContribution":  42,
+                                                        "modifyMission":  0,
+                                                        "askQuestion":  0
+                                                    },
+                            "modifyMission":  {
+                                                  "createGoalDraft":  0,
+                                                  "unknown":  0,
+                                                  "taskPlanning":  0,
+                                                  "reminderPlanning":  0,
+                                                  "simulateSavings":  0,
+                                                  "prepareContribution":  0,
+                                                  "modifyMission":  48,
+                                                  "askQuestion":  0
+                                              },
+                            "unknown":  {
+                                            "createGoalDraft":  0,
+                                            "unknown":  42,
+                                            "taskPlanning":  0,
+                                            "reminderPlanning":  0,
+                                            "simulateSavings":  0,
+                                            "prepareContribution":  0,
+                                            "modifyMission":  0,
+                                            "askQuestion":  0
+                                        },
+                            "askQuestion":  {
+                                                "createGoalDraft":  0,
+                                                "unknown":  3,
+                                                "taskPlanning":  0,
+                                                "reminderPlanning":  0,
+                                                "simulateSavings":  0,
+                                                "prepareContribution":  3,
+                                                "modifyMission":  0,
+                                                "askQuestion":  6
+                                            }
+                        },
+    "titleExactMatch":  {
+                            "createGoal":  {
+                                               "annotated":  246,
+                                               "matched":  80
+                                           },
+                            "createTask":  {
+                                               "annotated":  168,
+                                               "matched":  7
+                                           },
+                            "createReminder":  {
+                                                   "annotated":  168,
+                                                   "matched":  0
+                                               },
+                            "mission":  {
+                                            "annotated":  168,
+                                            "matched":  0
+                                        },
+                            "scenario":  {
+                                             "annotated":  168,
+                                             "matched":  0
+                                         }
+                        },
+    "negativeCases":  102,
+    "proposalOvertriggers":  3,
+    "failures":  [
+                     "0 Create a goal called My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "1 Please Create a goal called My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "2 Uhm, Create a goal called My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "3 Pakiusap, Create a goal called My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "4 Create a goal called My Future Setup: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "5 Create  a  goal  called  My  Future  Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "6 Make a goal named My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "7 Please Make a goal named My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "8 Uhm, Make a goal named My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "9 Pakiusap, Make a goal named My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "10 Make a goal named My Future Setup: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "11 Make  a  goal  named  My  Future  Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "12 Create a goal titled My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "13 Please Create a goal titled My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "14 Uhm, Create a goal titled My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "15 Pakiusap, Create a goal titled My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "16 Create a goal titled My Future Setup: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "17 Create  a  goal  titled  My  Future  Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got createGoalDraft [{type: createGoal, name: , amount: , currency: , deadline: null}]",
+                     "18 goal title My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got unknown []",
+                     "19 Please goal title My Future Setup.: expected createGoalDraft [{type: createGoal, name: My Future Setup}] ; got unknown []"
+                 ],
+    "failureCount":  909,
+    "failureSampleLimit":  20
+}

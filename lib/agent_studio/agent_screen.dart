@@ -19,6 +19,7 @@ import 'agent_settings_screen.dart';
 import 'agent_language_settings.dart';
 import 'intelligence/agent_language.dart';
 import 'intelligence/agent_interpretation.dart';
+import 'intelligence/interpretation_preview.dart';
 
 typedef AgentOpen = Future<void> Function(
   BuildContext context,
@@ -183,7 +184,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       await _voice.silence();
       if (!mounted || !_engine.active) return;
       await _run(() async {
-        final plan = LocalAgentPlanner().plan(
+        var plan = LocalAgentPlanner().plan(
           text,
           mission: _engine.editable ? _engine.mission : null,
           language: _engine.settings.language,
@@ -195,6 +196,53 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ? _engine.settings.memory
               : const {},
         );
+        if (plan.actions.any(
+              (a) =>
+                  a is ContributionDraft ||
+                  a is ScenarioDraft ||
+                  a is ReminderDraft && a.targetStep.isEmpty,
+            ) &&
+            _engine.settings.permissions.contains(
+              AgentPermission.privateContext,
+            )) {
+          final snapshot = _engine.mission?.snapshot;
+          try {
+            final goals = await _engine.backend.goals().timeout(
+              AgentLimits.requestTimeout,
+            );
+            if (!mounted ||
+                !_engine.active ||
+                snapshot != _engine.mission?.snapshot) {
+              return;
+            }
+            if (_engine.settings.permissions.contains(
+              AgentPermission.privateContext,
+            )) {
+              plan = LocalAgentPlanner().plan(
+                text,
+                goals: goals,
+                mission: _engine.editable ? _engine.mission : null,
+                language: _engine.settings.language,
+                previousLanguage: _engine.sessionLanguage,
+                previous: _engine.activeInterpretation,
+                now: _engine.clock(),
+                defaultCurrency:
+                    CurrencyScope.maybeOf(context)?.preferred ?? '',
+                memory: _engine.settings.useMemory
+                    ? _engine.settings.memory
+                    : const {},
+              );
+            }
+          } catch (_) {
+            if (!mounted || !_engine.active) return;
+            _notice(
+              _strings.choose(
+                'Goal details could not be loaded. Choose a goal in Edit details.',
+                'Hindi ma-load ang mga goal. Pumili ng goal sa Edit details.',
+              ),
+            );
+          }
+        }
         _engine.say(text, user: true, voice: _voiceMode);
         _input.clear();
         _lastTranscript = '';
@@ -716,7 +764,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           label: Text(
             recognition
                 ? '${_strings.choose('Recognition', 'Pagkilala')}: ${_voice.recognitionLocale.isEmpty ? _strings.choose('Device default', 'Default ng device') : _voice.recognitionLocale}'
-                : '${agentLanguageLabel(_engine.settings.language)} · Mint Aurora 6.1',
+                : '${agentLanguageLabel(_engine.settings.language)} · Mint Aurora 6.3',
           ),
           onPressed: () async {
             await _voice.silence();
@@ -1125,6 +1173,49 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       ),
     ),
   );
+  Future<void> _renameMission() async {
+    final controller = TextEditingController(
+      text: _engine.mission?.title ?? '',
+    );
+    final snapshot = _engine.mission?.snapshot;
+    final title = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(_strings.choose('Mission title', 'Pangalan ng mission')),
+        content: TextField(
+          controller: controller,
+          maxLength: 100,
+          autofocus: true,
+          decoration: InputDecoration(
+            labelText: _strings.choose('Title', 'Pangalan'),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(_strings.text('Cancel')),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (controller.text.trim().isNotEmpty) {
+                Navigator.pop(ctx, controller.text.trim());
+              }
+            },
+            child: Text(_strings.text('Save draft details')),
+          ),
+        ],
+      ),
+    );
+    // A dialog result cannot edit another mission opened while it was visible.
+    if (title != null &&
+        mounted &&
+        _engine.active &&
+        snapshot == _engine.mission?.snapshot) {
+      _engine.renameMission(title);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => controller.dispose());
+  }
+
   Widget _mission(BuildContext context) {
     final m = _engine.mission!;
     final errors = m.validate(_engine.clock());
@@ -1149,6 +1240,30 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           const SizedBox(height: 8),
           Text(
             '${_status(m.status)} · ${m.steps.length} steps · Version ${m.version}',
+          ),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                m.title.isEmpty
+                    ? _strings.choose(
+                        'Mission title needed',
+                        'Kailangan ng pangalan ng mission',
+                      )
+                    : m.title,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              if (_engine.editable)
+                IconButton(
+                  key: const Key('agent-rename-mission'),
+                  tooltip: _strings.choose(
+                    'Edit mission title',
+                    'I-edit ang pangalan ng mission',
+                  ),
+                  onPressed: _renameMission,
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                ),
+            ],
           ),
           const SizedBox(height: 16),
           if (m.planOnly)
@@ -1333,6 +1448,13 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ),
             ],
           ),
+          AgentInterpretationPreview(
+            action: step.action,
+            strings: _strings,
+            binding: _engine.activeInterpretation?.titles
+                .where((t) => t.actionIndex == index)
+                .firstOrNull,
+          ),
           Text(
             _strings.summary(step.action),
             style: const TextStyle(height: 1.6),
@@ -1376,7 +1498,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Text(
-                (step.action as ScenarioDraft).calculate(DateTime.now()),
+                (step.action as ScenarioDraft).calculate(_engine.clock()),
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ),

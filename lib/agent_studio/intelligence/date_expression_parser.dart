@@ -127,6 +127,14 @@ class DateExpressionParser {
         .hasMatch(lower)) {
       badDate = true;
     }
+    if (RegExp(
+          '\\b(?:deadline\\s+)?(?:$monthPattern)(?:\\s+next year)?[.!]?\$',
+          caseSensitive: false,
+        ).hasMatch(lower) &&
+        !RegExp('\\b(?:$monthPattern)\\s+\\d').hasMatch(lower) &&
+        dates.isEmpty) {
+      badDate = true;
+    }
     final unsupported = RegExp(r'\b(monthly|buwanan|payday|sweldo|sahod)\b')
         .hasMatch(lower);
     if (unsupported) frequency = '';
@@ -200,9 +208,10 @@ class DateExpressionParser {
           '${(h % 12 + (['umaga', 'morning'].contains(spoken[2]) ? 0 : 12)).toString().padLeft(2, '0')}:00',
         );
       }
-    } else if (RegExp(
-      r'\balas\s+\w+\b|\b(after lunch|before bed|mamayang gabi)\b',
-    ).hasMatch(lower)) {
+    } else if (times.isEmpty &&
+        RegExp(
+          '\\balas\\s+\\w+\\b|\\bat\\s+(?:${spokenHours.keys.join('|')}|\\d{1,2})\\b|\\b(after lunch|before bed|mamayang gabi)\\b',
+        ).hasMatch(lower)) {
       badTime = true;
     }
     if (times.toSet().length > 1) badTime = true;

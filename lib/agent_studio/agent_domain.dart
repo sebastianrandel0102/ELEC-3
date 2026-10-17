@@ -89,6 +89,7 @@ sealed class AgentAction {
       },
       AgentActionType.createReminder => {
         'type',
+        'title',
         'targetId',
         'targetStep',
         'targetKind',
@@ -100,6 +101,8 @@ sealed class AgentAction {
       AgentActionType.contribution => {'type', 'goalId', 'amount', 'currency'},
       AgentActionType.scenario => {
         'type',
+        'title',
+        'frequency',
         'target',
         'saved',
         'contribution',
@@ -128,6 +131,7 @@ sealed class AgentAction {
         priority: text('priority'),
       ),
       AgentActionType.createReminder => ReminderDraft(
+        title: text('title'),
         targetId: text('targetId'),
         targetStep: text('targetStep'),
         targetKind: text('targetKind'),
@@ -142,6 +146,8 @@ sealed class AgentAction {
         currency: text('currency'),
       ),
       AgentActionType.scenario => ScenarioDraft(
+        title: text('title'),
+        frequency: map['frequency'] as String? ?? 'weekly',
         target: text('target'),
         saved: text('saved'),
         contribution: text('contribution'),
@@ -160,7 +166,10 @@ List<String> _moneyErrors(String amount, String currency) =>
     parseCurrencyAmount(amount, currency)?.positive == true
     ? []
     : ['Enter a positive amount in a supported currency.'];
-bool _short(String value) => value.trim().isNotEmpty && value.length <= 100;
+bool _short(String value) =>
+    value.trim().isNotEmpty &&
+    value.length <= 100 &&
+    !RegExp(r'[\x00-\x1f\x7f]').hasMatch(value);
 bool agentRecordId(String id) => RegExp(r'^[A-Za-z0-9_-]{1,128}$').hasMatch(id);
 bool agentTime(String value) =>
     RegExp(r'^(?:[01]\d|2[0-3]):[0-5]\d$').hasMatch(value);
@@ -248,6 +257,7 @@ final class TaskDraft extends AgentAction {
 
 final class ReminderDraft extends AgentAction {
   const ReminderDraft({
+    this.title = '',
     this.targetId = '',
     this.targetStep = '',
     this.targetKind = 'personalGoal',
@@ -256,7 +266,7 @@ final class ReminderDraft extends AgentAction {
     this.time = '',
     this.day,
   });
-  final String targetId, targetStep, targetKind, frequency, time;
+  final String title, targetId, targetStep, targetKind, frequency, time;
   final int? weekday;
   final DateTime? day;
   @override
@@ -270,6 +280,8 @@ final class ReminderDraft extends AgentAction {
       '$frequency · ${weekday == null ? '' : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][weekday!.clamp(1, 7) - 1]} ${day == null ? '' : agentDay(day!)} · ${time.isEmpty ? 'Time needed' : time} · ${targetStep.isEmpty ? 'Existing personal item' : 'Linked to a mission step'}';
   @override
   List<String> validate(DateTime now) => [
+    if (title.isNotEmpty && !_short(title))
+      'Use a reminder title up to 100 characters.',
     if ((targetStep.isEmpty && !agentRecordId(targetId)) ||
         (targetStep.isNotEmpty && targetId.isNotEmpty))
       'Select exactly one existing item or mission step.',
@@ -304,6 +316,7 @@ final class ReminderDraft extends AgentAction {
   @override
   Map<String, Object?> toJson() => {
     'type': type.name,
+    'title': title,
     'targetId': targetId,
     'targetStep': targetStep,
     'targetKind': targetKind,
@@ -346,13 +359,15 @@ final class ContributionDraft extends AgentAction {
 
 final class ScenarioDraft extends AgentAction {
   const ScenarioDraft({
+    this.title = '',
+    this.frequency = 'weekly',
     this.target = '',
     this.saved = '0',
     this.contribution = '',
     this.currency = '',
     this.deadline,
   });
-  final String target, saved, contribution, currency;
+  final String title, frequency, target, saved, contribution, currency;
   final DateTime? deadline;
   @override
   AgentActionType get type => AgentActionType.scenario;
@@ -362,9 +377,13 @@ final class ScenarioDraft extends AgentAction {
   String get label => 'Calculate savings scenario';
   @override
   String get summary =>
-      '$currency $target target · $saved saved · $contribution weekly · ${deadline == null ? 'No deadline' : agentDay(deadline!)}';
+      '${title.isEmpty ? '' : '$title · '}$currency $target target · $saved saved · $contribution $frequency · ${deadline == null ? 'No deadline' : agentDay(deadline!)}';
   @override
   List<String> validate(DateTime now) => [
+    if (title.isNotEmpty && !_short(title))
+      'Use a scenario title up to 100 characters.',
+    if (!['daily', 'weekly', 'monthly'].contains(frequency))
+      'Choose daily, weekly or monthly contributions.',
     ..._moneyErrors(target, currency),
     if (parseCurrencyAmount(saved, currency) == null)
       'Enter a non-negative saved amount.',
@@ -384,22 +403,49 @@ final class ScenarioDraft extends AgentAction {
       final count =
           (periods.numerator + periods.denominator - BigInt.one) ~/
           periods.denominator;
-      return '$count weekly contributions of ${formatCurrency(ExactDecimal.parse(contribution), currency)} (last payment may be smaller). Assumes no withdrawals, interest, or currency changes.';
+      return '$count $frequency contributions of ${formatCurrency(ExactDecimal.parse(contribution), currency)} (last payment may be smaller). Assumes no withdrawals, interest, or currency changes.';
     }
     final start = DateTime.utc(now.year, now.month, now.day);
     final end = DateTime.utc(deadline!.year, deadline!.month, deadline!.day);
     final days = end.difference(start).inDays;
-    final weeks = ((days + 6) ~/ 7).clamp(1, 100000);
+    var count = frequency == 'daily' ? days : ((days + 6) ~/ 7);
+    if (frequency == 'monthly') {
+      final months = (end.year - start.year) * 12 + end.month - start.month;
+      final firstOfMonth = DateTime.utc(start.year, start.month + months);
+      final lastDay = DateTime.utc(
+        firstOfMonth.year,
+        firstOfMonth.month + 1,
+        0,
+      ).day;
+      final anchor = DateTime.utc(
+        firstOfMonth.year,
+        firstOfMonth.month,
+        start.day.clamp(1, lastDay),
+      );
+      count = months + (end.isAfter(anchor) ? 1 : 0);
+    }
+    count = count.clamp(1, 100000);
     final units = remaining.roundedUnits(
       CurrencyCatalog.require(currency).digits,
     );
-    final perWeek = (units + BigInt.from(weeks - 1)) ~/ BigInt.from(weeks);
-    return '${formatCurrency(ExactDecimal(perWeek, BigInt.from(10).pow(CurrencyCatalog.require(currency).digits)), currency)} across $weeks contributions, every 7 days with the final payment by ${agentDay(deadline!)}. The final interval may be shorter than a week. Rounded up; last contribution may be smaller. No interest or withdrawals assumed.';
+    final perPeriod = (units + BigInt.from(count - 1)) ~/ BigInt.from(count);
+    final interval = frequency == 'monthly'
+        ? 'calendar month'
+        : frequency == 'daily'
+        ? 'day'
+        : '7 days';
+    return '${formatCurrency(ExactDecimal(perPeriod, BigInt.from(10).pow(CurrencyCatalog.require(currency).digits)), currency)} across $count contributions, every $interval with the final payment by ${agentDay(deadline!)}. The final interval may be shorter than a ${frequency == 'monthly'
+        ? 'month'
+        : frequency == 'daily'
+        ? 'day'
+        : 'week'}. Rounded up; last contribution may be smaller. No interest or withdrawals assumed.';
   }
 
   @override
   Map<String, Object?> toJson() => {
     'type': type.name,
+    'title': title,
+    'frequency': frequency,
     'target': target,
     'saved': saved,
     'contribution': contribution,
@@ -520,6 +566,7 @@ class AgentMission {
   String get snapshot => jsonEncode({
     'id': id,
     'uid': uid,
+    'title': title,
     'version': version,
     'planOnly': planOnly,
     'languageIssues': languageIssues,
@@ -535,6 +582,7 @@ class AgentMission {
     ],
   });
   AgentMission copyWith({
+    String? title,
     List<AgentStep>? steps,
     MissionStatus? status,
     int? version,
@@ -543,7 +591,7 @@ class AgentMission {
   }) => AgentMission(
     id: id,
     uid: uid,
-    title: title,
+    title: title ?? this.title,
     createdAt: createdAt,
     steps: steps ?? this.steps,
     status: status ?? this.status,

@@ -3,6 +3,11 @@ import 'intelligence/agent_interpretation.dart';
 import 'intelligence/agent_language.dart';
 import 'intelligence/date_expression_parser.dart';
 import 'intelligence/money_expression_parser.dart';
+import 'intelligence/semantic_text.dart';
+import 'intelligence/title_resolver.dart';
+import 'intelligence/domain_slot_resolvers.dart';
+import 'intelligence/draft_field_resolver.dart';
+import 'intelligence/financial_role_resolver.dart';
 
 class LocalAgentPlan {
   const LocalAgentPlan(
@@ -12,6 +17,10 @@ class LocalAgentPlan {
     this.replaceStep,
     this.cancel = false,
     this.interpretation,
+    this.missionTitle,
+    this.removeSteps = const [],
+    this.moveStep,
+    this.moveBy,
   });
   final String reply;
   final List<AgentAction> actions;
@@ -19,6 +28,10 @@ class LocalAgentPlan {
   final String? replaceStep;
   final bool cancel;
   final AgentInterpretation? interpretation;
+  final String? missionTitle;
+  final List<String> removeSteps;
+  final String? moveStep;
+  final int? moveBy;
 }
 
 /// Local interpretation only. No provider call, writes, or approvals.
@@ -43,8 +56,255 @@ class LocalAgentPlanner {
     if (input.trim().isEmpty || input.length > AgentLimits.input) {
       throw const AgentFailure('Enter a request up to 3,000 characters.');
     }
+    final text = SemanticText(input);
+    if (mission?.status == MissionStatus.completed ||
+        mission?.status == MissionStatus.canceled) {
+      mission = null;
+      previous = null;
+    }
+    final scopes = text.commands;
+    if (scopes.length == 1) {
+      return _planSingle(
+        input,
+        mission: mission,
+        now: now,
+        language: language,
+        previousLanguage: previousLanguage,
+        memory: memory,
+        goals: goals,
+        defaultCurrency: defaultCurrency,
+        previous: previous,
+      );
+    }
+    final plans = [
+      for (final scope in scopes)
+        _planSingle(
+          scope.text(input),
+          now: now,
+          language: language,
+          previousLanguage: previousLanguage,
+          memory: memory,
+          goals: goals,
+          defaultCurrency: defaultCurrency,
+        ),
+    ];
+    final actions = <AgentAction>[], titles = <TitleBinding>[];
+    String? missionTitle;
+    for (var i = 0; i < plans.length; i++) {
+      final plan = plans[i];
+      missionTitle ??= plan.missionTitle;
+      for (final binding in plan.interpretation!.titles) {
+        final t = binding.title, e = t.evidence;
+        titles.add(
+          TitleBinding(
+            binding.object,
+            ResolvedTitle(
+              value: t.value,
+              origin: t.origin,
+              relation: t.relation,
+              purpose: t.purpose,
+              evidence: e == null
+                  ? null
+                  : SemanticSpan(
+                      e.start + scopes[i].start,
+                      e.end + scopes[i].start,
+                    ),
+            ),
+            actionIndex: binding.actionIndex == null
+                ? null
+                : actions.length + binding.actionIndex!,
+          ),
+        );
+      }
+      for (final action in plan.actions) {
+        var value = action;
+        if (value is ReminderDraft &&
+            value.targetId.isEmpty &&
+            value.targetStep.isEmpty) {
+          final reminder = value;
+          final explicitGoal = RegExp(r'\bgoal\b')
+              .hasMatch(plan.interpretation!.normalized);
+          final needsGoal =
+              explicitGoal ||
+              !['once', 'taskStart', ''].contains(reminder.frequency);
+          final parent = actions.lastIndexWhere(
+            (a) => a is GoalDraft || !needsGoal && a is TaskDraft,
+          );
+          if (parent >= 0) {
+            value = AgentAction.fromJson({
+              ...value.toJson(),
+              'targetStep': 'step_${parent + 1}',
+              'targetKind': actions[parent] is TaskDraft
+                  ? 'task'
+                  : 'personalGoal',
+            });
+          }
+        }
+        actions.add(value);
+      }
+    }
+    final languageResult = const AgentLanguageDetector().detect(
+      input,
+      previous: previousLanguage,
+    );
+    final uncertain = plans.expand((p) => p.interpretation!.uncertain).toSet();
+    final questions = plans.expand((p) => p.interpretation!.questions).toSet();
+    final intent = missionTitle != null
+        ? AgentIntent.missionPlanning
+        : plans
+              .map((p) => p.interpretation!.intent)
+              .firstWhere(
+                (i) => i != AgentIntent.unknown,
+                orElse: () => AgentIntent.unknown,
+              );
+    return LocalAgentPlan(
+      AgentStrings(
+        language == AgentLanguage.automatic ? languageResult : language,
+      ).draftNotice,
+      actions: actions,
+      missionTitle: missionTitle,
+      interpretation: AgentInterpretation(
+        original: input,
+        normalized: const MultilingualNormalizer().normalize(input),
+        language: languageResult,
+        intent: intent,
+        candidates: plans.expand((p) => p.interpretation!.candidates),
+        slots: {
+          for (final p in plans) ...p.interpretation!.slots,
+          'missionTitle': ?missionTitle,
+        },
+        titles: titles,
+        evidence: [
+          for (var i = 0; i < plans.length; i++)
+            for (final e in plans[i].interpretation!.evidence)
+              SlotEvidence(
+                e.field,
+                e.text,
+                e.start + scopes[i].start,
+                e.end + scopes[i].start,
+              ),
+        ],
+        status: uncertain.isNotEmpty
+            ? UnderstandingStatus.needsClarification
+            : UnderstandingStatus.resolved,
+        uncertain: uncertain,
+        missing: plans.expand((p) => p.interpretation!.missing),
+        questions: questions,
+        negated: plans.expand((p) => p.interpretation!.negated),
+        corrections: plans.expand((p) => p.interpretation!.corrections),
+        draftOnly: plans.any((p) => p.interpretation!.draftOnly),
+      ),
+    );
+  }
+
+  LocalAgentPlan _planSingle(
+    String input, {
+    AgentMission? mission,
+    DateTime? now,
+    AgentLanguage language = AgentLanguage.automatic,
+    AgentLanguage previousLanguage = AgentLanguage.automatic,
+    Map<String, String> memory = const {},
+    List<AgentRecord> goals = const [],
+    String defaultCurrency = '',
+    AgentInterpretation? previous,
+  }) {
+    if (input.trim().isEmpty || input.length > AgentLimits.input) {
+      throw const AgentFailure('Enter a request up to 3,000 characters.');
+    }
     now ??= DateTime.now();
     final normalized = const MultilingualNormalizer().normalize(input);
+    final semantic = SemanticText(input);
+    final listedTasks = const TaskListResolver().resolve(semantic);
+    final object =
+        semantic.tokens
+            .where((t) => !semantic.quoted(t.start))
+            .map((t) => SemanticText.object(t.value))
+            .whereType<SemanticObject>()
+            .firstOrNull ??
+        (RegExp(
+              r'\b(save for|want save|want to save|saving up for|to buy|pambili ng|pang|savings target|savings ko)\b',
+              caseSensitive: false,
+            ).hasMatch(normalized)
+            ? SemanticObject.goal
+            : null);
+    var title = object == null
+        ? const ResolvedTitle()
+        : const UniversalTitleResolver().resolve(
+            semantic,
+            object,
+            contextual: !semantic.tokens.any(
+              (t) => SemanticText.object(t.value) == object,
+            ),
+          );
+    if (object == null &&
+        mission != null &&
+        RegExp(
+          r'\b(call|name|title|label|pangalan|tawag|pangalanan)\b',
+          caseSensitive: false,
+        ).hasMatch(input)) {
+      title = const UniversalTitleResolver().resolve(
+        semantic,
+        SemanticObject.goal,
+        contextual: true,
+      );
+    }
+    if (title.present && ['object_title', 'purpose'].contains(title.relation)) {
+      final embedded = const MoneyExpressionParser().parse(title.value);
+      final number = embedded.candidates.firstOrNull;
+      if (number != null &&
+          number.evidence.start > 0 &&
+          title.evidence != null) {
+        final end = title.evidence!.start + number.evidence.start;
+        title = ResolvedTitle(
+          value: input.substring(title.evidence!.start, end).trim(),
+          origin: title.origin,
+          relation: title.relation,
+          evidence: SemanticSpan(title.evidence!.start, end),
+          purpose: title.purpose,
+        );
+      }
+    }
+    if (!title.present &&
+        object == SemanticObject.goal &&
+        !semantic.tokens.any(
+          (t) => SemanticText.object(t.value) == SemanticObject.goal,
+        )) {
+      final save = RegExp(
+        r'\b(?:save|savings)\s+(?:ko\s+)?',
+        caseSensitive: false,
+      ).firstMatch(input);
+      if (save != null) {
+        final resolved = const UniversalTitleResolver().resolve(
+          SemanticText(input.substring(save.end)),
+          SemanticObject.goal,
+          contextual: true,
+          pendingTitle: true,
+        );
+        if (resolved.present &&
+            !RegExp(r'^(?:target|for|to)\b')
+                .hasMatch(resolved.value.toLowerCase())) {
+          title = ResolvedTitle(
+            value: resolved.value,
+            origin: SlotOrigin.inferredPurpose,
+            relation: 'purpose',
+            evidence: SemanticSpan(
+              save.end + resolved.evidence!.start,
+              save.end + resolved.evidence!.end,
+            ),
+          );
+        }
+      }
+    }
+    final roleText = semantic.mask([
+      ...semantic.quotes,
+      if (title.evidence != null) title.evidence!,
+      for (final item in listedTasks)
+        if (item.evidence != null) item.evidence!,
+    ]);
+    final command = const MultilingualNormalizer().normalize(
+      SemanticText.commandText(roleText),
+    );
+    final titleBindings = <TitleBinding>[];
     final detected = const AgentLanguageDetector().detect(
       normalized,
       previous: previousLanguage,
@@ -57,13 +317,31 @@ class LocalAgentPlanner {
         corrections = <String>[];
     final questions = <String>[], intents = <AgentIntent>[];
     final slots = <String, Object?>{}, evidence = <SlotEvidence>[];
+    if (semantic.unclosedQuote) {
+      uncertain.add(Uncertainty.title);
+      questions.add(
+        s.choose(
+          'The quoted title is unfinished. Close the quote or edit the title.',
+          'Hindi pa tapos ang pangalan sa panipi. Kumpletuhin o i-edit ang pangalan.',
+        ),
+      );
+    }
+    if (title.relation == 'object_title' &&
+        RegExp(r'^cold\s+', caseSensitive: false).hasMatch(title.value)) {
+      uncertain.add(Uncertainty.title);
+      questions.add(
+        s.choose(
+          'Did you mean a title introduced by “called”? Review the recognized text.',
+          'Pangalan ba ang kasunod ng “called”? Suriin ang narinig na teksto.',
+        ),
+      );
+    }
     final conditional =
-        RegExp(r'\b(?:if|kung|kapag|pag|when)\s+')
-            .hasMatch(normalized.replaceAll(RegExp(r'"[^"]*"'), '')) &&
+        RegExp(r'\b(?:if|kung|kapag|pag|when)\s+').hasMatch(command) &&
         !RegExp(r'\bwhat[ -]if\b').hasMatch(normalized);
     var draftOnly = RegExp(
       r"\b(plan lang|draft only|plan only|not yet|wag muna|huwag muna|huwag pa|don't save|do not save|dont save|maybe|siguro|baka|sana|thinking about|plano ko)\b",
-    ).hasMatch(normalized);
+    ).hasMatch(command);
     if (draftOnly) negated.add('execute_now');
     LocalAgentPlan result(
       String reply, {
@@ -73,6 +351,10 @@ class LocalAgentPlanner {
       bool cancel = false,
       AgentIntent? intent,
       bool unsupported = false,
+      String? missionTitle,
+      List<String> removeSteps = const [],
+      String? moveStep,
+      int? moveBy,
     }) {
       final missing = <String>[];
       final proposed = [...actions, ?replacement];
@@ -96,11 +378,19 @@ class LocalAgentPlanner {
         );
       }
       for (final a in proposed) {
-        for (final entry in a.toJson().entries) {
-          if (entry.key != 'type' &&
-              (entry.value == null || entry.value == '')) {
-            missing.add(entry.key);
-          }
+        missing.addAll(_requiredMissing(a));
+      }
+      for (final binding in titleBindings) {
+        final span = binding.title.evidence;
+        if (span != null) {
+          evidence.add(
+            SlotEvidence(
+              '${binding.object.name}.title',
+              span.text(input),
+              span.start,
+              span.end,
+            ),
+          );
         }
       }
       return LocalAgentPlan(
@@ -109,6 +399,10 @@ class LocalAgentPlanner {
         replacement: replacement,
         replaceStep: replaceStep,
         cancel: cancel,
+        missionTitle: missionTitle,
+        removeSteps: removeSteps,
+        moveStep: moveStep,
+        moveBy: moveBy,
         interpretation: AgentInterpretation(
           original: input,
           normalized: normalized,
@@ -128,13 +422,14 @@ class LocalAgentPlanner {
           corrections: corrections,
           questions: questions,
           draftOnly: draftOnly,
+          titles: titleBindings,
         ),
       );
     }
 
     if (RegExp(
-      r'\b(actually\s+)?(wag na|huwag na|ayoko na|never mind|nevermind|cancel mission|cancel proposal|kanselahin|i-cancel)\b|^(cancel|stop mission)[.!]?$',
-    ).hasMatch(normalized)) {
+      r'\b(actually\s+)?(wag na|huwag na|ayoko na|never mind|nevermind|cancel mission|cancel proposal|kanselahin|i-cancel)\b|^(cancel|stop mission|start over|forget this draft|cancel that plan)[.!]?$',
+    ).hasMatch(command)) {
       return result(
         s.choose(
           'Mission canceled. Completed operations remain in your records.',
@@ -146,7 +441,7 @@ class LocalAgentPlanner {
     }
     if (RegExp(
       r'^(yes|approve|approved|do everything|oo|opo|sige|okay|ok|go|execute)[.!]?$',
-    ).hasMatch(normalized)) {
+    ).hasMatch(command)) {
       return result(
         s.choose(
           'Open Review Mission and use its dedicated confirmation button. A chat or spoken approval cannot authorize changes.',
@@ -157,7 +452,7 @@ class LocalAgentPlanner {
     }
     if (RegExp(
       r'^(explain|what is|what are|what does|how does|why|ano ang|ano yung|ipaliwanag|patingin|show me)\b',
-    ).hasMatch(normalized)) {
+    ).hasMatch(command)) {
       return result(
         s.choose(
           'Use Ask Anything for general explanations. Contributions add savings; withdrawals reduce a goal’s balance. Neither happens through a question.',
@@ -166,7 +461,201 @@ class LocalAgentPlanner {
         intent: AgentIntent.askQuestion,
       );
     }
-    if (RegExp(r'^(cancel|stop|remove|disable)\b').hasMatch(normalized)) {
+    if (mission != null && RegExp(r'^remove\b').hasMatch(command)) {
+      final wanted = object;
+      final targets = mission.steps
+          .where(
+            (st) =>
+                !st.done &&
+                st.attempts == 0 &&
+                (wanted == null || _objectFor(st.action) == wanted),
+          )
+          .toList();
+      if (targets.length == 1 ||
+          wanted == SemanticObject.reminder && targets.isNotEmpty) {
+        return result(
+          'Removed the selected draft steps. No saved records changed.',
+          removeSteps: targets.map((s) => s.id).toList(),
+          intent: AgentIntent.modifyMission,
+        );
+      }
+      uncertain.add(Uncertainty.target);
+      questions.add(s.step);
+      return result(s.step, intent: AgentIntent.modifyMission);
+    }
+    if (mission != null && RegExp(r'^move\b').hasMatch(command)) {
+      final order = RegExp(
+        r'(first|second|third|\d+)\b.*\bbefore\s+(?:the\s+)?(first|second|third|\d+)',
+      ).firstMatch(command);
+      if (order != null) {
+        int index(String s) =>
+            const {'first': 0, 'second': 1, 'third': 2}[s] ?? int.parse(s) - 1;
+        final from = index(order[1]!), to = index(order[2]!);
+        if (from >= 0 &&
+            from < mission.steps.length &&
+            to >= 0 &&
+            to < mission.steps.length &&
+            mission.steps[from].attempts == 0 &&
+            !mission.steps[from].dependsOn.contains(mission.steps[to].id)) {
+          return result(
+            'Updated the draft order. Review before approval.',
+            moveStep: mission.steps[from].id,
+            moveBy: to - from,
+            intent: AgentIntent.modifyMission,
+          );
+        }
+      }
+      uncertain.add(Uncertainty.target);
+      questions.add(s.step);
+      return result(s.step, intent: AgentIntent.modifyMission);
+    }
+    final newRequest = RegExp(
+      r'\b(create|new|build|gawa|pakigawa|gawan|gumawa|add|pa-create|i-create)\b',
+    ).hasMatch(command);
+    final naming = RegExp(
+      r'\b(call|name|title|label|named|called|titled|pangalan|tawag|pangalanan|tawagin|ipangalan)\b|\bmake\s+(?:the\s+)?(?:first|second|third)\s+task\b',
+    ).hasMatch(command);
+    if (mission == null && object == null && naming) {
+      uncertain.add(Uncertainty.intent);
+      final question = s.choose(
+        'Which draft should I name: a goal, task, reminder, mission, or scenario?',
+        'Aling draft ang papangalanan: goal, gawain, paalala, mission, o scenario?',
+      );
+      questions.add(question);
+      return result(question);
+    }
+    if (mission != null && !newRequest) {
+      final candidates = mission.steps
+          .where(
+            (st) =>
+                st.selected &&
+                !st.done &&
+                st.attempts == 0 &&
+                (object == null || _objectFor(st.action) == object),
+          )
+          .toList();
+      final pending = candidates
+          .where(
+            (st) =>
+                _requiredMissing(st.action)
+                    .any((f) => f == 'name' || f == 'title'),
+          )
+          .toList();
+      final possibleBareTitle =
+          const MoneyExpressionParser().parse(input).candidates.isEmpty &&
+          !RegExp(
+            r'\b(target|deadline|tomorrow|bukas|today|ngayon|priority|every|tuwing)\b',
+            caseSensitive: false,
+          ).hasMatch(input);
+      if (naming ||
+          mission.steps.isEmpty && possibleBareTitle ||
+          pending.length == 1 &&
+              possibleBareTitle &&
+              previous?.missing.any((f) => f == 'name' || f == 'title') ==
+                  true) {
+        if (object == SemanticObject.mission || mission.steps.isEmpty) {
+          final resolved = const UniversalTitleResolver().resolve(
+            semantic,
+            SemanticObject.mission,
+            contextual: true,
+            pendingTitle: mission.steps.isEmpty,
+          );
+          if (resolved.present) {
+            slots['missionTitle'] = resolved.value;
+            titleBindings.add(TitleBinding(SemanticObject.mission, resolved));
+            return result(
+              'Updated the mission title. Review before approval.',
+              missionTitle: resolved.value,
+              intent: AgentIntent.modifyMission,
+            );
+          }
+        }
+        final numbered = RegExp(r'\b(?:step|hakbang)\s+(\d+)')
+            .firstMatch(command);
+        final ordinal = RegExp(
+          r'\b(first|second|third)\s+(?:goal|task|reminder|scenario)\b',
+        ).firstMatch(command);
+        final ordinalIndex = ordinal == null
+            ? -1
+            : const ['first', 'second', 'third'].indexOf(ordinal[1]!);
+        final selected = numbered != null
+            ? candidates
+                  .where((st) => st.id == 'step_${numbered[1]}')
+                  .firstOrNull
+            : ordinalIndex >= 0 && ordinalIndex < candidates.length
+            ? candidates[ordinalIndex]
+            : candidates.length == 1
+            ? candidates.single
+            : pending.length == 1
+            ? pending.single
+            : null;
+        if (selected != null) {
+          final domain = _objectFor(selected.action);
+          final resolved = const UniversalTitleResolver().resolve(
+            semantic,
+            domain,
+            contextual: true,
+            pendingTitle: pending.contains(selected),
+          );
+          if (resolved.present) {
+            final key = selected.action is GoalDraft ? 'name' : 'title';
+            final updatedTitle = resolved.origin == SlotOrigin.contextFollowUp
+                ? resolved
+                : resolved.withOrigin(SlotOrigin.userCorrection);
+            titleBindings.add(
+              TitleBinding(
+                domain,
+                updatedTitle,
+                actionIndex: mission.steps.indexOf(selected),
+              ),
+            );
+            slots['title'] = resolved.value;
+            slots['titleSource'] = updatedTitle.origin.identifier;
+            final patchMoney = const MoneyExpressionParser().parse(roleText);
+            final patchCalendar = const DateExpressionParser().parse(
+              roleText,
+              now,
+            );
+            if (patchMoney.ambiguous) {
+              uncertain.add(Uncertainty.amount);
+              questions.add(s.amount);
+            }
+            if (patchMoney.currencyAmbiguous) {
+              uncertain.add(Uncertainty.currency);
+              questions.add(s.currency);
+            }
+            if (patchCalendar.ambiguousDate) {
+              uncertain.add(Uncertainty.date);
+              questions.add(s.date);
+            }
+            if (patchCalendar.ambiguousTime) {
+              uncertain.add(Uncertainty.time);
+              questions.add(s.time);
+            }
+            final patched = const DraftFieldResolver().apply(
+              selected.action,
+              patchMoney,
+              patchCalendar,
+              command,
+            );
+            return result(
+              'Updated the draft title. Review before approval.',
+              replacement: AgentAction.fromJson({
+                ...patched.toJson(),
+                key: resolved.value,
+              }),
+              replaceStep: selected.id,
+              intent: AgentIntent.modifyMission,
+            );
+          }
+        } else {
+          uncertain.add(Uncertainty.target);
+          questions.add(s.step);
+          return result(s.step, intent: AgentIntent.modifyMission);
+        }
+      }
+    }
+    if (RegExp(r'^(cancel|stop|remove|disable)\b').hasMatch(command)) {
       negated.add('operation');
       return result(
         s.choose(
@@ -177,7 +666,7 @@ class LocalAgentPlanner {
       );
     }
     final positive = <String>[];
-    for (final clause in normalized.split(
+    for (final clause in command.split(
       RegExp(r'[;!]|\.(?!\d)|\b(?:pero|but)\b'),
     )) {
       if (RegExp(r"\b(hindi|di|huwag|wag|ayoko|dont|don't|do not|not|never)\b")
@@ -203,13 +692,19 @@ class LocalAgentPlanner {
       }
     }
     var actionText = positive.join(' ').trim();
-    var money = const MoneyExpressionParser().parse(normalized);
-    var calendar = const DateExpressionParser().parse(normalized, now);
+    var money = const MoneyExpressionParser().parse(
+      roleText.replaceAllMapped(
+        RegExp(r'\bhow\s+about\b', caseSensitive: false),
+        (m) => ' ' * m[0]!.length,
+      ),
+    );
+    var calendar = const DateExpressionParser().parse(roleText, now);
     final correction = RegExp(
-      r'\b(?:ay wait|wait actually|actually|sorry|ay hindi|hindi pala|ay|instead)\b\s*[,.:]*\s*',
-    ).allMatches(normalized).lastOrNull;
+      r'\b(?:ay wait|wait actually|actually|sorry|wait|no|ay hindi|hindi pala|ay|instead)\b\s*[,.:]*\s*',
+      caseSensitive: false,
+    ).allMatches(roleText).lastOrNull;
     if (correction != null) {
-      final tail = normalized.substring(correction.end);
+      final tail = roleText.substring(correction.end);
       final cm = const MoneyExpressionParser().parse(tail);
       final cd = const DateExpressionParser().parse(tail, now);
       if (cm.candidates.isNotEmpty) {
@@ -218,6 +713,7 @@ class LocalAgentPlanner {
           amount: cm.amount,
           currency: cm.currency.isEmpty ? money.currency : cm.currency,
           ambiguous: cm.ambiguous,
+          invalid: cm.invalid,
           approximate: cm.approximate,
           currencyAmbiguous: cm.currencyAmbiguous,
           candidates: [
@@ -314,7 +810,8 @@ class LocalAgentPlanner {
       uncertain.add(Uncertainty.time);
       questions.add(s.time);
     }
-    if (calendar.unsupportedRecurrence) {
+    if (calendar.unsupportedRecurrence &&
+        RegExp(r'\b(remind|reminder|paalala|alarm)\b').hasMatch(command)) {
       uncertain.add(Uncertainty.recurrence);
       questions.add(
         s.choose(
@@ -353,17 +850,30 @@ class LocalAgentPlanner {
       r'\b(edit|modify|palitan|gawin mong|gawin mo|change|ayusin|pakiayos)\b',
     ).hasMatch(actionText);
     final hasGoal = _goalTerms.hasMatch(actionText);
-    final creatingGoal = !edit && _createsGoal(actionText);
-    final task = RegExp(
-      r'\b(task|tasks|to-do|to do|activity|organize|organise|planner|study|assignment|gawain|aral)\b',
-    ).hasMatch(actionText);
-    final reminder = RegExp(
-      r'\b(remind|pa-remind|reminder|paalala|ipaalala|alarm)\b',
-    ).hasMatch(actionText);
+    final creatingGoal =
+        !edit &&
+        actionText.isNotEmpty &&
+        (_createsGoal(actionText) ||
+            object == SemanticObject.goal &&
+                title.present &&
+                !_isReferenceCommand(command) &&
+                (title.relation == 'inverse_assignment' ||
+                    !RegExp(
+                      r'\b(add|pa-add|prepare|deposit|put|dagdagan|maglagay|save)\b',
+                    ).hasMatch(command)));
+    final task =
+        RegExp(
+          r'\b(task|tasks|to-do|to do|activity|organize|organise|planner|study|assignment|gawain|aral)\b',
+        ).hasMatch(actionText) &&
+        (object == null || object == SemanticObject.task);
+    final reminder =
+        RegExp(r'\b(remind|pa-remind|reminder|paalala|ipaalala|alarm)\b')
+            .hasMatch(actionText) &&
+        (object == null || object == SemanticObject.reminder);
     final allocation = RegExp(r'\b(allocat\w*|split|balance my goals|hatiin)\b')
         .hasMatch(actionText);
     final scenario = RegExp(
-      r'\b(simulat\w*|what.if|scenario|weekly plan|savings plan|plan.*savings|plan.*ipon|weekly contributions)\b',
+      r'\b(simulat\w*|compare\s+sav\w*|what.if|what happens if|suppose|imagine|how long if|paano kung|kung (?=magtabi|mag-ipon|\d)|when will i finish|scenario|weekly plan|savings plan|plan.*savings|plan.*ipon|weekly contributions)\b',
     ).hasMatch(actionText);
     final contribution =
         !creatingGoal &&
@@ -372,7 +882,7 @@ class LocalAgentPlanner {
         !scenario &&
         !allocation &&
         RegExp(
-          r'\b(add|pa-add|prepare|deposit|magdagdag|dagdag|dagdagan|magtabi|maghulog|save|saving)\b',
+          r'\b(add|pa-add|prepare|deposit|put|maglagay|magdagdag|dagdag|dagdagan|magtabi|maghulog|save|saving)\b',
         ).hasMatch(actionText);
     final nameRepair =
         previous?.missing.contains('name') == true &&
@@ -457,40 +967,12 @@ class LocalAgentPlanner {
         if (nameRepair && a is GoalDraft) {
           values['name'] = input.trim().replaceAll(RegExp('^["“]|["”]\$'), '');
         }
-        if (a is GoalDraft ||
-            a is ContributionDraft ||
-            a is ScenarioDraft ||
-            a is AllocationDraft) {
-          final key = a is ScenarioDraft
-              ? 'target'
-              : a is AllocationDraft
-              ? 'budget'
-              : 'amount';
-          if (amount.isNotEmpty || money.ambiguous) values[key] = amount;
-          if (currency.isNotEmpty || money.currencyAmbiguous) {
-            values['currency'] = currency;
-          }
-        }
-        if (a is GoalDraft || a is ScenarioDraft) {
-          if (date != null || calendar.ambiguousDate) {
-            values['deadline'] = date?.toIso8601String();
-          }
-        }
-        if (a is TaskDraft || a is ReminderDraft) {
-          if (date != null || calendar.ambiguousDate) {
-            values['day'] = date?.toIso8601String();
-          }
-          if (time.isNotEmpty || calendar.ambiguousTime) values['time'] = time;
-        }
-        if (a is ReminderDraft) {
-          if (weekday != null) values['weekday'] = weekday;
-          if (calendar.frequency.isNotEmpty) {
-            values['frequency'] = calendar.frequency;
-          } else if (date != null) {
-            values['frequency'] = 'once';
-          }
-        }
-        final action = AgentAction.fromJson(values);
+        final action = const DraftFieldResolver().apply(
+          AgentAction.fromJson(values),
+          money,
+          calendar,
+          command,
+        );
         questions.addAll(_missingQuestions(action, s));
         return result(
           '${s.choose('Updated the draft. Review its values before approval.', 'Na-update ang draft. Suriin ang mga detalye bago aprubahan.')}\n${questions.toSet().take(2).join('\n')}',
@@ -523,14 +1005,43 @@ class LocalAgentPlanner {
       );
     }
     final actions = <AgentAction>[];
+    if (object == SemanticObject.mission &&
+        actionText.isNotEmpty &&
+        !_isReferenceCommand(command)) {
+      intents.add(AgentIntent.missionPlanning);
+      slots['missionTitle'] = title.value;
+      if (title.present) {
+        titleBindings.add(TitleBinding(SemanticObject.mission, title));
+      } else {
+        questions.add(
+          s.choose(
+            'What should I call the mission?',
+            'Anong pangalan ng mission?',
+          ),
+        );
+      }
+      return result(
+        s.draftNotice,
+        missionTitle: title.value,
+        intent: AgentIntent.missionPlanning,
+      );
+    }
     if (allocation) {
       intents.add(AgentIntent.allocation);
       actions.add(AllocationDraft(budget: amount, currency: currency));
     }
     if (creatingGoal) {
       intents.add(AgentIntent.createGoalDraft);
-      final name = _goalName(input);
+      final name = title.value;
       slots['goalName'] = name;
+      slots['title'] = name;
+      slots['titleSource'] = title.origin.identifier;
+      slots['purpose'] = title.purpose;
+      if (title.present) {
+        titleBindings.add(
+          TitleBinding(SemanticObject.goal, title, actionIndex: actions.length),
+        );
+      }
       final goalCurrency = currency.isEmpty && !money.currencyAmbiguous
           ? defaultCurrency
           : currency;
@@ -554,7 +1065,7 @@ class LocalAgentPlanner {
     if (task) {
       intents.add(AgentIntent.taskPlanning);
       final countMatch = RegExp(
-        r'\b([1-6]|one|two|three|four|five|six|tatlo)\s+(?:study\s+)?tasks?\b',
+        r'\b([1-6]|one|two|three|four|five|six|tatlo)\s+(?:\w+\s+)?tasks?\b',
       ).firstMatch(actionText);
       const counts = {
         'one': 1,
@@ -568,13 +1079,44 @@ class LocalAgentPlanner {
       final count = countMatch == null
           ? 1
           : int.tryParse(countMatch[1]!) ?? counts[countMatch[1]] ?? 1;
-      for (var i = 0; i < count; i++) {
+      final taskCount = listedTasks.isEmpty ? count : listedTasks.length;
+      for (var i = 0; i < taskCount; i++) {
         actions.add(
           TaskDraft(
-            title: count > 1 ? '' : _taskName(input),
+            title: listedTasks.isNotEmpty
+                ? listedTasks[i].value
+                : count > 1
+                ? ''
+                : title.value,
             day: date,
             time: time,
-            priority: actionText.contains('high priority') ? 'High' : 'Normal',
+            priority:
+                RegExp(r'\b(high priority|priority high|urgent|mataas)\b')
+                    .hasMatch(actionText)
+                ? 'High'
+                : RegExp(r'\b(low priority|priority low|mababa)\b')
+                      .hasMatch(actionText)
+                ? 'Low'
+                : 'Normal',
+          ),
+        );
+      }
+      if (listedTasks.isNotEmpty) {
+        for (var i = 0; i < listedTasks.length; i++) {
+          titleBindings.add(
+            TitleBinding(
+              SemanticObject.task,
+              listedTasks[i],
+              actionIndex: actions.length - listedTasks.length + i,
+            ),
+          );
+        }
+      } else if (title.present) {
+        titleBindings.add(
+          TitleBinding(
+            SemanticObject.task,
+            title,
+            actionIndex: actions.length - 1,
           ),
         );
       }
@@ -587,13 +1129,17 @@ class LocalAgentPlanner {
       final targetKind = parent >= 0 && actions[parent] is TaskDraft
           ? 'task'
           : 'personalGoal';
-      final matches = const GoalReferenceResolver().matches(input, goals);
+      final matches = const GoalReferenceResolver().matches(
+        title.evidence == null ? input : semantic.mask([title.evidence!]),
+        goals,
+      );
       if (matches.length > 1) {
         uncertain.add(Uncertainty.target);
         questions.add(s.goal);
       }
       actions.add(
         ReminderDraft(
+          title: title.value,
           targetStep: parent < 0 ? '' : 'step_${parent + 1}',
           targetId: parent < 0 && matches.length == 1 ? matches.single.id : '',
           targetKind: targetKind,
@@ -611,6 +1157,15 @@ class LocalAgentPlanner {
           day: date,
         ),
       );
+      if (title.present) {
+        titleBindings.add(
+          TitleBinding(
+            SemanticObject.reminder,
+            title,
+            actionIndex: actions.length - 1,
+          ),
+        );
+      }
     }
     if (contribution) {
       intents.add(AgentIntent.prepareContribution);
@@ -627,23 +1182,70 @@ class LocalAgentPlanner {
     }
     if (scenario && !creatingGoal && !allocation) {
       intents.add(AgentIntent.simulateSavings);
-      final values = money.candidates;
-      final paired =
-          values.length == 2 &&
-          RegExp(r'\bwith\b|\bweekly\b').hasMatch(actionText) &&
-          !RegExp(r'\b(or|o)\b').hasMatch(actionText);
-      if (paired) {
+      final roles = const FinancialRoleResolver().resolve(roleText, money);
+      if (roles.resolved) {
         uncertain.remove(Uncertainty.amount);
         questions.remove(s.amount);
       }
-      actions.add(
-        ScenarioDraft(
-          target: paired ? values[0].amount : amount,
-          contribution: paired ? values[1].amount : '',
-          currency: currency,
-          deadline: date,
-        ),
+      final reference = const GoalReferenceResolver().matches(
+        object == SemanticObject.scenario && title.evidence != null
+            ? semantic.mask([title.evidence!])
+            : input,
+        goals,
       );
+      if (reference.length > 1) {
+        uncertain.add(Uncertainty.target);
+        questions.add(s.goal);
+      }
+      final baseline = reference.length == 1 ? reference.single : null;
+      final contributionRole =
+          !RegExp(r'\b(target|worth|budget)\b').hasMatch(actionText) &&
+          RegExp(
+            r'\b(save|saving|put|add|magtabi|mag-ipon|daily|weekly|monthly|week|month|every|per)\b',
+          ).hasMatch(actionText);
+      if (baseline != null &&
+          currency.isNotEmpty &&
+          currency != baseline.currency) {
+        uncertain.add(Uncertainty.currency);
+        questions.add(s.currency);
+      }
+      final contributions = roles.resolved && roles.contributions.isNotEmpty
+          ? roles.contributions
+          : [contributionRole ? amount : ''];
+      for (final contribution in contributions) {
+        actions.add(
+          ScenarioDraft(
+            title: title.value,
+            frequency: const ContributionPeriodResolver().resolve(actionText),
+            target: roles.resolved && roles.target.isNotEmpty
+                ? roles.target
+                : contributionRole
+                ? baseline?.target ?? ''
+                : amount.isNotEmpty
+                ? amount
+                : baseline?.target ?? '',
+            saved: roles.resolved && roles.saved.isNotEmpty
+                ? roles.saved
+                : baseline?.saved ?? '0',
+            contribution: contribution,
+            currency: currency.isNotEmpty
+                ? currency
+                : baseline?.currency ?? defaultCurrency,
+            deadline: calendar.ambiguousDate
+                ? null
+                : date ?? baseline?.deadline,
+          ),
+        );
+      }
+      if (title.present) {
+        titleBindings.add(
+          TitleBinding(
+            SemanticObject.scenario,
+            title,
+            actionIndex: actions.length - 1,
+          ),
+        );
+      }
     }
     if (actions.isNotEmpty) {
       for (final a in actions) {
@@ -679,6 +1281,16 @@ class LocalAgentPlanner {
         s.choose(
           'What should the goal be called?',
           'Ano ang pangalan ng goal?',
+        ),
+      if (a is TaskDraft && a.title.isEmpty)
+        s.choose(
+          'What should the task be called?',
+          'Anong pangalan ng gawain?',
+        ),
+      if (a is ScenarioDraft && a.target.isEmpty)
+        s.choose(
+          'What target amount should this scenario use?',
+          'Anong target na halaga ang gagamitin sa scenario?',
         ),
       if ((a is GoalDraft || a is ContributionDraft) && m['amount'] == '')
         s.amount,
@@ -723,51 +1335,34 @@ class LocalAgentPlanner {
     return null;
   }
 
-  String _goalName(String text) {
-    final quoted = RegExp('["“]([^"”]{1,100})["”]').firstMatch(text);
-    if (quoted != null) return quoted[1]!;
-    final match = RegExp(
-      r'(?:for (?:a |an |my |the )?|para sa (?:bagong )?|goal sa |ipon sa )(.+?)(?=\s+(?:worth|with|target|by|and|tapos|ko|halaga)|[,!.]|$)',
-      caseSensitive: false,
-    ).firstMatch(text);
-    var name = match?[1]?.trim() ?? '';
-    if (const MoneyExpressionParser().parse(name).candidates.isNotEmpty) {
-      name = '';
-    }
-    if (name.isEmpty) {
-      final m = RegExp(
-        r'\b(laptop|phone|motorcycle|motor|emergency|travel|tuition)\b',
-        caseSensitive: false,
-      ).firstMatch(text);
-      if (m != null) name = m[0]!;
-    }
-    return name.length > 100 ? '' : name;
-  }
+  bool _isReferenceCommand(String text) => RegExp(
+    r'^(?:open|show|view|delete|remove|edit|update|withdraw|take out)\b',
+  ).hasMatch(text);
 
-  String _taskName(String text) {
-    if (text.toLowerCase().contains('compare prices')) return 'Compare prices';
-    var title = text.replaceFirst(
-      RegExp(
-        r'^.*?(?:task(?: called| to)?|gawain(?: na)?|remind me to)\s+',
-        caseSensitive: false,
-      ),
-      '',
-    );
-    title = title
-        .replaceFirst(
-          RegExp(
-            r'\s+(?:tomorrow|today|bukas|ngayon|on 20\d\d|by 20\d\d|at \d|tapos|and remind).*$',
-            caseSensitive: false,
-          ),
-          '',
-        )
-        .trim();
-    return title.length <= 100 &&
-            !RegExp(
-              r'^(organize|organise|plan my|ayusin|yung task)',
-              caseSensitive: false,
-            ).hasMatch(title)
-        ? title
-        : '';
+  SemanticObject _objectFor(AgentAction a) => switch (a) {
+    GoalDraft() => SemanticObject.goal,
+    TaskDraft() => SemanticObject.task,
+    ReminderDraft() => SemanticObject.reminder,
+    ScenarioDraft() => SemanticObject.scenario,
+    _ => SemanticObject.goal,
+  };
+
+  List<String> _requiredMissing(AgentAction a) {
+    final fields = switch (a) {
+      GoalDraft() => ['name', 'amount', 'currency', 'deadline'],
+      TaskDraft() => ['title', 'day'],
+      ReminderDraft() => [
+        'frequency',
+        'time',
+        if (a.frequency == 'weekly') 'weekday',
+        if (a.frequency == 'once') 'day',
+        if (a.targetId.isEmpty && a.targetStep.isEmpty) 'targetId',
+      ],
+      ContributionDraft() => ['goalId', 'amount', 'currency'],
+      ScenarioDraft() => ['target', 'currency'],
+      AllocationDraft() => ['budget', 'currency'],
+    };
+    final values = a.toJson();
+    return fields.where((f) => values[f] == null || values[f] == '').toList();
   }
 }
