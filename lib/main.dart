@@ -78,7 +78,7 @@ class SaveTrackApp extends StatelessWidget {
             openTarget: _openHomeWidgetTarget,
             child: ReminderHost(
               openTarget: _openReminderTarget,
-              child: CurrencyHost(child: child!),
+              child: CurrencyHost(child: SharedSavingsHost(child: child!)),
             ),
           )
         : null,
@@ -160,12 +160,10 @@ class AuthGate extends StatelessWidget {
         builder: (context, googleBusy, child) =>
             snapshot.data == null || googleBusy
             ? const AuthScreen()
-            : SharedSavingsHost(
+            : GoalCoverSession(
                 key: ValueKey(snapshot.data!.uid),
-                child: GoalCoverSession(
-                  uid: snapshot.data!.uid,
-                  child: HomeShell(key: _homeShellKey),
-                ),
+                uid: snapshot.data!.uid,
+                child: HomeShell(key: _homeShellKey),
               ),
       );
     },

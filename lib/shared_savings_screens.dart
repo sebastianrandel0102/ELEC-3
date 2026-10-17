@@ -217,7 +217,7 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
       return const AuroraLoadingSurface();
     }
     final all = controller.goals;
-    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final uid = controller.repository.uid;
     final goals =
         all
             .where(
