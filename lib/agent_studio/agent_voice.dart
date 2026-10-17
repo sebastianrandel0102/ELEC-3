@@ -142,6 +142,7 @@ class AgentVoiceController extends ChangeNotifier {
   bool _disposed = false;
   bool get recording =>
       state == AgentVoiceState.starting || state == AgentVoiceState.listening;
+  String get turnId => _session;
   void _notify() {
     if (!_disposed) notifyListeners();
   }

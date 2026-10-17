@@ -5,6 +5,7 @@ import 'package:myproject/agent_studio/agent_domain.dart';
 import 'package:myproject/agent_studio/agent_engine.dart';
 import 'package:myproject/agent_studio/agent_store.dart';
 import 'package:myproject/agent_studio/agent_voice.dart';
+import 'package:myproject/agent_studio/autopilot/execution_ledger.dart';
 
 final agentNow = DateTime(2026, 10, 17, 10);
 GoalDraft goalDraft({
@@ -42,6 +43,20 @@ class MemoryAgentStore implements AgentStore {
   @override
   Future<void> clear(String uid) async {
     missions.remove(uid);
+  }
+}
+
+class MemoryExecutionLedger implements AgentExecutionLedger {
+  final records = <String, List<AgentExecutionRecord>>{};
+  bool fail = false;
+  @override
+  Future<List<AgentExecutionRecord>> load(String uid) async => [
+    ...?records[uid],
+  ];
+  @override
+  Future<void> save(String uid, List<AgentExecutionRecord> values) async {
+    if (fail) throw StateError('disk');
+    records[uid] = [...values];
   }
 }
 
@@ -162,11 +177,13 @@ AgentEngine testEngine({
   MemoryAgentStore? store,
   String? Function()? currentUid,
   DateTime Function()? clock,
+  AgentExecutionLedger? ledger,
 }) => AgentEngine(
   uid: 'owner',
   currentUid: currentUid ?? () => 'owner',
   backend: backend ?? FakeAgentBackend(),
   store: store ?? MemoryAgentStore(),
+  ledger: ledger ?? MemoryExecutionLedger(),
   clock: clock ?? () => agentNow,
 );
 Future<void> enableAgent(AgentEngine engine, {bool history = false}) async {

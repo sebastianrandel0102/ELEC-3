@@ -10,6 +10,7 @@ import '../reminder_models.dart';
 import '../reminder_repository.dart';
 import '../smart_task_recommendation_service.dart';
 import 'agent_domain.dart';
+import 'autopilot/execution_ledger.dart';
 
 abstract interface class AgentBackend {
   Future<List<AgentRecord>> goals();
@@ -17,7 +18,36 @@ abstract interface class AgentBackend {
   Future<AgentExecutionResult> perform(AgentMission mission, AgentStep step);
 }
 
-class FirestoreAgentBackend implements AgentBackend {
+/// Production adapters repeat the live authorization guard immediately before
+/// each transaction write, including SDK transaction retries after async reads.
+abstract interface class GuardedAgentBackend implements AgentBackend {
+  Future<List<String>> checkAutomatic(AgentMission mission);
+  Future<AgentExecutionResult> performGuarded(
+    AgentMission mission,
+    AgentStep step, {
+    required void Function() beforeWrite,
+  });
+}
+
+abstract interface class AgentTaskUndoBackend {
+  Future<void> undoCreatedTask(
+    String recordId,
+    TaskDraft action, {
+    required void Function() beforeWrite,
+  });
+}
+
+abstract interface class AgentOperationReconciler {
+  Future<AgentExecutionResult?> reconcileAutomaticRecord(
+    AgentExecutionRecord record,
+  );
+}
+
+class FirestoreAgentBackend
+    implements
+        GuardedAgentBackend,
+        AgentTaskUndoBackend,
+        AgentOperationReconciler {
   FirestoreAgentBackend({
     required this.uid,
     required this.reminders,
@@ -31,6 +61,109 @@ class FirestoreAgentBackend implements AgentBackend {
   final FirebaseAuth auth;
   final ReminderCoordinator? reminders;
   final Future<void> Function(String goalId, String amount) openContribution;
+  @override
+  Future<AgentExecutionResult?> reconcileAutomaticRecord(
+    AgentExecutionRecord record,
+  ) async {
+    _session();
+    if (record.uid != uid ||
+        !agentRecordId(record.missionId) ||
+        !agentRecordId(record.stepId)) {
+      throw const AgentFailure(
+        'This operation belongs to another session or account.',
+      );
+    }
+    final action = record.action;
+    if (action is GoalDraft || action is TaskDraft) {
+      final id = 'agent_${record.missionId}_${record.stepId}';
+      final doc = await _records(action is GoalDraft ? 'goals' : 'tasks')
+          .doc(id)
+          .get(const GetOptions(source: Source.server));
+      _session();
+      if (!doc.exists) return null;
+      if (doc.data()?['agentOperation'] != jsonEncode(action.toJson())) {
+        throw const AgentFailure(
+          'This record differs from the operation. Inspect it in SaveTrack.',
+        );
+      }
+      return AgentExecutionResult(
+        'Creation confirmed by the server. Later edits are preserved.',
+        recordId: id,
+      );
+    }
+    if (action is ReminderDraft) {
+      final mission = AgentMission(
+        id: record.missionId,
+        uid: uid,
+        title: 'Reconciliation',
+        createdAt: record.createdAt,
+        steps: [
+          if (action.targetStep.isNotEmpty)
+            AgentStep(id: action.targetStep, action: const GoalDraft()),
+        ],
+      );
+      final config = _config(mission, action);
+      final doc = await _records('reminders')
+          .doc(config.key)
+          .get(const GetOptions(source: Source.server));
+      _session();
+      if (!doc.exists) return null;
+      if (!_sameReminder(doc.data()!, config)) {
+        throw const AgentFailure(
+          'This reminder changed. Inspect it in Smart Reminders.',
+        );
+      }
+      return AgentExecutionResult(
+        'Reminder preference confirmed by the server. Check Smart Reminders for current phone scheduling status.',
+        recordId: config.targetId,
+      );
+    }
+    throw const AgentFailure(
+      'This operation cannot be reconciled as a database creation.',
+    );
+  }
+
+  @override
+  Future<void> undoCreatedTask(
+    String recordId,
+    TaskDraft action, {
+    required void Function() beforeWrite,
+  }) => AppRecordRepository(db: db, auth: auth).undoAgentTask(
+    uid: uid,
+    id: recordId,
+    operation: jsonEncode(action.toJson()),
+    beforeWrite: beforeWrite,
+    expected: {
+      'title': action.title.trim(),
+      'dateKey': agentDay(action.day!),
+      'time': action.time,
+      'priority': action.priority,
+      'completed': false,
+    },
+  );
+  @override
+  Future<List<String>> checkAutomatic(AgentMission mission) async {
+    final issues = await check(mission);
+    for (final step in mission.pending) {
+      if (step.action case final ReminderDraft action) {
+        final coordinator = reminders;
+        if (coordinator == null) {
+          continue; // check() reports the missing service.
+        }
+        final capability = await coordinator.scheduler.capability(
+          ReminderTargetType.values.byName(action.targetKind),
+        );
+        _session();
+        if (!capability.supported || !capability.allowed) {
+          issues.add(
+            'Phone notifications are unavailable or disabled. Enable them in Smart Reminders before automatic scheduling.',
+          );
+        }
+      }
+    }
+    return issues;
+  }
+
   void _session() {
     if (auth.currentUser?.uid != uid) {
       throw const AgentFailure('Your account changed. Sign in again.');
@@ -237,10 +370,15 @@ class FirestoreAgentBackend implements AgentBackend {
   }
 
   @override
-  Future<AgentExecutionResult> perform(
+  Future<AgentExecutionResult> perform(AgentMission mission, AgentStep step) =>
+      performGuarded(mission, step, beforeWrite: _session);
+
+  @override
+  Future<AgentExecutionResult> performGuarded(
     AgentMission mission,
-    AgentStep step,
-  ) async {
+    AgentStep step, {
+    required void Function() beforeWrite,
+  }) async {
     _session();
     if (mission.uid != uid) {
       throw const AgentFailure('This mission belongs to another account.');
@@ -260,6 +398,7 @@ class FirestoreAgentBackend implements AgentBackend {
         collection: 'goals',
         id: id,
         operation: jsonEncode(action.toJson()),
+        beforeWrite: beforeWrite,
         data: {
           ...timestamps,
           'title': action.name.trim(),
@@ -285,6 +424,7 @@ class FirestoreAgentBackend implements AgentBackend {
         collection: 'tasks',
         id: id,
         operation: jsonEncode(action.toJson()),
+        beforeWrite: beforeWrite,
         data: {
           ...timestamps,
           'title': action.title.trim(),
@@ -332,7 +472,8 @@ class FirestoreAgentBackend implements AgentBackend {
       await coordinator.save(
         config,
         target,
-        persist: repository.createReviewed,
+        persist: (config) =>
+            repository.createReviewed(config, beforeWrite: beforeWrite),
       );
       _session();
       final status = coordinator.status(config.key);
@@ -342,6 +483,7 @@ class FirestoreAgentBackend implements AgentBackend {
       );
     }
     if (action is ContributionDraft) {
+      beforeWrite();
       await openContribution(action.goalId, action.amount);
       _session();
       return AgentExecutionResult(

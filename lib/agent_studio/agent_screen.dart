@@ -20,6 +20,10 @@ import 'agent_language_settings.dart';
 import 'intelligence/agent_language.dart';
 import 'intelligence/agent_interpretation.dart';
 import 'intelligence/interpretation_preview.dart';
+import 'autopilot/autopilot_settings.dart';
+import 'autopilot/auto_execution_policy.dart';
+import 'autopilot/autopilot_settings_screen.dart';
+import 'autopilot/autopilot_activity_screen.dart';
 
 typedef AgentOpen = Future<void> Function(
   BuildContext context,
@@ -57,6 +61,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   String _lastTranscript = '';
   bool _voiceDisclosed = false;
   bool _submitting = false;
+  String _handledVoiceTurn = '';
   AgentStrings get _strings => AgentStrings(_engine.settings.interfaceLanguage);
   @override
   void didChangeDependencies() {
@@ -77,6 +82,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           store: PreferenceAgentStore(),
         );
     _voice = widget.voice ?? AgentVoiceController(AndroidAgentVoice());
+    _engine.setForeground(true);
     _engine.addListener(_changed);
     _voice.addListener(_voiceChanged);
     WidgetsBinding.instance.addObserver(this);
@@ -108,11 +114,41 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         selection: TextSelection.collapsed(offset: _voice.transcript.length),
       );
     }
+    final auto = _engine.settings.autopilot;
+    if (_voice.state == AgentVoiceState.reviewing &&
+        _voice.originalTranscript.isNotEmpty &&
+        _voice.transcript == _voice.originalTranscript &&
+        _handledVoiceTurn != _voice.turnId &&
+        auto.enabled &&
+        auto.voiceAutoExecutionEnabled &&
+        auto.voiceReviewMode != AgentVoiceReviewMode.alwaysReview &&
+        _engine.foreground &&
+        !_submitting &&
+        !_engine.busy) {
+      _handledVoiceTurn = _voice.turnId;
+      final confidence = _voice.confidences.firstOrNull;
+      final uncertainRecognition =
+          _voice.alternatives.toSet().length > 1 ||
+          confidence != null && confidence < .85;
+      if (!uncertainRecognition &&
+          (auto.voiceReviewMode == AgentVoiceReviewMode.autoRunEligible ||
+              confidence != null)) {
+        scheduleMicrotask(() {
+          if (mounted &&
+              _engine.foreground &&
+              _voice.state == AgentVoiceState.reviewing &&
+              _input.text == _voice.originalTranscript) {
+            unawaited(_send());
+          }
+        });
+      }
+    }
     setState(() {});
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    _engine.setForeground(state == AppLifecycleState.resumed);
     if (state != AppLifecycleState.resumed &&
         !_voice.usingSystemDialog &&
         !(state == AppLifecycleState.inactive &&
@@ -129,6 +165,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     _auth?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _engine.removeListener(_changed);
+    _engine.setForeground(false);
     _voice.removeListener(_voiceChanged);
     if (widget.engine == null) _engine.dispose();
     if (widget.voice == null) _voice.dispose();
@@ -179,6 +216,15 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       return;
     }
     final text = _input.text.trim();
+    final fromVoice = _voice.originalTranscript.isNotEmpty;
+    final voiceUncertain =
+        fromVoice &&
+        (_voice.alternatives.toSet().length > 1 ||
+            _voice.confidences.firstOrNull != null &&
+                _voice.confidences.first! < .85);
+    final origin = fromVoice || _voiceMode
+        ? AgentRequestOrigin.finalVoice
+        : AgentRequestOrigin.userText;
     _submitting = true;
     try {
       await _voice.silence();
@@ -249,9 +295,23 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         _voice.transcript = '';
         _voice.originalTranscript = '';
         _voice.alternatives = const [];
-        await _engine.applyPlan(plan);
-        _engine.say(plan.reply);
-        unawaited(_voice.speak(plan.reply, _engine.settings));
+        // Alternative recognition candidates require manual review, even when
+        // the selected transcript happens to parse into complete fields.
+        if (voiceUncertain) {
+          await _engine.applyPlan(plan);
+        } else {
+          await _engine.handleUserPlan(plan, origin: origin);
+        }
+        final m = _engine.mission;
+        final completed = m?.steps.where((s) => s.done).length ?? 0;
+        final reply = completed > 0
+            ? '$completed of ${m!.steps.where((s) => s.selected).length} steps completed. Inspect the results below.'
+            : _engine.error ??
+                  (voiceUncertain
+                      ? 'Recognition was uncertain. Review the transcript and mission before execution.'
+                      : _engine.autoDecision?.message ?? plan.reply);
+        _engine.say(reply);
+        unawaited(_voice.speak(reply, _engine.settings));
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (mounted &&
               _scroll.hasClients &&
@@ -338,7 +398,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       builder: (ctx) => AlertDialog(
         title: const Text('Use Android speech dialog?'),
         content: const Text(
-          'This opens your phone’s speech app. It may send audio to its provider and cannot guarantee on-device processing. The recognized text returns for your review; it is never sent or executed automatically.',
+          'This opens your phone’s speech app. It may send audio to its provider and cannot guarantee on-device processing. Final recognized text follows your separate voice review and Autopilot settings.',
         ),
         actions: [
           TextButton(
@@ -602,6 +662,12 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                 ),
               ),
               actions: [
+                if (_engine.settings.autopilot.enabled)
+                  IconButton(
+                    tooltip: 'Pause Autopilot',
+                    onPressed: () => _run(_engine.pauseAutopilot),
+                    icon: const Icon(Icons.pause_circle_outline),
+                  ),
                 if (!_voiceMode)
                   IconButton(
                     tooltip: 'Mission history',
@@ -677,6 +743,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                                   24,
                                 ),
                                 children: [
+                                  _executionModeBar(context),
                                   if (_voiceMode)
                                     _voicePanel(context)
                                   else if (_engine.messages.isEmpty &&
@@ -689,6 +756,12 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                                         _engine.error!,
                                         style: TextStyle(color: colors.error),
                                       ),
+                                    ),
+                                  if (_engine.autoDecision != null &&
+                                      !_engine.autoDecision!.mayRun)
+                                    _panel(
+                                      context,
+                                      Text(_engine.autoDecision!.message),
                                     ),
                                   for (final message in _engine.messages)
                                     _bubble(context, message),
@@ -749,6 +822,44 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
     ),
     child: child,
+  );
+
+  Widget _executionModeBar(BuildContext context) => Wrap(
+    spacing: 8,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    children: [
+      ActionChip(
+        key: const Key('agent-execution-mode'),
+        avatar: const Icon(Icons.auto_awesome_outlined, size: 16),
+        label: Text(_engine.settings.autopilot.mode.label),
+        onPressed: () async {
+          await _voice.silence();
+          if (!context.mounted) return;
+          await Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (_) => AgentAutopilotSettingsScreen(engine: _engine),
+            ),
+          );
+        },
+      ),
+      if (_engine.settings.autopilot.enabled)
+        TextButton.icon(
+          onPressed: () => _run(_engine.pauseAutopilot),
+          icon: const Icon(Icons.pause, size: 16),
+          label: const Text('Pause'),
+        ),
+      IconButton(
+        tooltip: 'Autopilot Activity',
+        icon: const Icon(Icons.manage_history),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute<void>(
+            builder: (_) => AgentAutopilotActivityScreen(engine: _engine),
+          ),
+        ),
+      ),
+    ],
   );
   Widget _languageChip(
     BuildContext context, {
@@ -993,7 +1104,9 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             ),
             const SizedBox(height: 10),
             Text(
-              _engine.settings.execute
+              _engine.settings.autopilot.enabled
+                  ? 'Autopilot can complete eligible actions under your permissions and limits. Financial transactions still require confirmation.'
+                  : _engine.settings.execute
                   ? 'Actions are enabled, and each mission still needs your explicit approval.'
                   : 'Action execution starts disabled. Draft freely, then choose permissions in Agent settings.',
             ),
@@ -1323,10 +1436,10 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           if (_engine.busy) ...[
             const LinearProgressIndicator(),
             const SizedBox(height: 12),
-            const Text('Verifying and performing approved steps…'),
+            const Text('Validating actions and waiting for verified results…'),
             TextButton(
               onPressed: _engine.cancel,
-              child: const Text('Cancel remaining steps'),
+              child: const Text('Stop Remaining Actions'),
             ),
           ] else if (m.status != MissionStatus.completed &&
               m.status != MissionStatus.canceled) ...[
@@ -1429,7 +1542,16 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ),
               Expanded(
                 child: Text(
-                  _strings.action(step.action),
+                  step.done
+                      ? switch (step.action) {
+                          GoalDraft() => 'Savings Goal Created',
+                          TaskDraft() => 'Task Created',
+                          ReminderDraft() => 'Reminder Preference Saved',
+                          ContributionDraft() => 'Add Savings Review Opened',
+                          ScenarioDraft() ||
+                          AllocationDraft() => 'Simulation Result',
+                        }
+                      : _strings.action(step.action),
                   style: const TextStyle(
                     fontWeight: FontWeight.w800,
                     fontSize: 16,
@@ -1448,13 +1570,14 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ),
             ],
           ),
-          AgentInterpretationPreview(
-            action: step.action,
-            strings: _strings,
-            binding: _engine.activeInterpretation?.titles
-                .where((t) => t.actionIndex == index)
-                .firstOrNull,
-          ),
+          if (!step.done)
+            AgentInterpretationPreview(
+              action: step.action,
+              strings: _strings,
+              binding: _engine.activeInterpretation?.titles
+                  .where((t) => t.actionIndex == index)
+                  .firstOrNull,
+            ),
           Text(
             _strings.summary(step.action),
             style: const TextStyle(height: 1.6),
@@ -1494,6 +1617,12 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               padding: const EdgeInsets.only(top: 8),
               child: SelectableText(step.result),
             ),
+          if (step.done && step.action is GoalDraft && step.recordId.isNotEmpty)
+            TextButton.icon(
+              onPressed: () => _open('goal', step.recordId),
+              icon: const Icon(Icons.open_in_new, size: 16),
+              label: const Text('View Goal'),
+            ),
           if (step.action is ScenarioDraft && errors.isEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 12),
@@ -1521,6 +1650,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                   icon: const Icon(Icons.arrow_upward, size: 18),
                 ),
                 IconButton(
+                  key: Key('agent-remove-${step.id}'),
                   tooltip: 'Remove step',
                   onPressed: () => _run(() async {
                     _engine.edit(step.id, remove: true);
@@ -1570,8 +1700,13 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         ),
       ),
       const SizedBox(height: 12),
-      const Text(
-        'Turn-based voice · Review each transcript before sending',
+      Text(
+        _engine.settings.autopilot.enabled &&
+                _engine.settings.autopilot.voiceAutoExecutionEnabled &&
+                _engine.settings.autopilot.voiceReviewMode !=
+                    AgentVoiceReviewMode.alwaysReview
+            ? 'Turn-based voice · Eligible final speech may run automatically'
+            : 'Turn-based voice · Review each transcript before sending',
         textAlign: TextAlign.center,
         style: TextStyle(color: mint, fontSize: 12),
       ),
@@ -1774,8 +1909,10 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           ],
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Local drafts · Changes require your approval',
+        Text(
+          _engine.settings.autopilot.enabled
+              ? '${_engine.settings.autopilot.mode.label} · Sensitive changes require confirmation'
+              : '${_engine.settings.autopilot.mode.label} · Changes require your approval',
           style: TextStyle(fontSize: 10),
         ),
       ],

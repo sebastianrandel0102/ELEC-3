@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import '../currency_money.dart';
+import 'autopilot/autopilot_settings.dart';
 
 abstract final class AgentLimits {
   static const steps = 12;
@@ -736,9 +737,11 @@ class AgentSettings {
     this.rate = .9,
     Map<String, String> memory = const {},
     this.useMemory = false,
+    this.autopilot = const AgentAutopilotSettings(),
   }) : permissions = Set.unmodifiable(permissions),
        memory = Map.unmodifiable(memory);
   final Set<AgentPermission> permissions;
+  final AgentAutopilotSettings autopilot;
   final bool execute, history, spoken, hideSpokenDetails, onDevice, useMemory;
   final AgentLanguage language, interfaceLanguage, speechLanguage;
   final String locale, ttsLocale, voice;
@@ -746,6 +749,7 @@ class AgentSettings {
   final Map<String, String> memory;
   Map<String, Object?> toJson() => {
     'permissions': permissions.map((p) => p.name).toList(),
+    'autopilot': autopilot.toJson(),
     'execute': execute,
     'history': history,
     'spoken': spoken,
@@ -762,6 +766,7 @@ class AgentSettings {
     'useMemory': useMemory,
   };
   factory AgentSettings.fromJson(Map<String, dynamic> m) => AgentSettings(
+    autopilot: AgentAutopilotSettings.fromJson(m['autopilot']),
     permissions: (m['permissions'] as List? ?? [])
         .map((p) => AgentPermission.values.byName(p as String))
         .toSet(),

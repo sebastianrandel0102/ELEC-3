@@ -151,8 +151,10 @@ void main() {
       const ReminderDraft(targetStep: 'step_1', weekday: 6, time: '09:00'),
     ]);
     await mount(tester);
-    await tester.ensureVisible(find.byTooltip('Remove step').first);
-    await tester.tap(find.byTooltip('Remove step').first);
+    final remove = find.byKey(const Key('agent-remove-step_1'));
+    await tester.ensureVisible(remove);
+    await tester.pumpAndSettle();
+    await tester.tap(remove);
     await tester.pumpAndSettle();
     expect(
       engine.mission!.validate(agentNow),

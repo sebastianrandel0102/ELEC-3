@@ -5,6 +5,8 @@ import 'agent_engine.dart';
 import 'agent_voice.dart';
 import 'agent_language_settings.dart';
 import 'intelligence/agent_language.dart';
+import 'autopilot/autopilot_settings_screen.dart';
+import 'autopilot/autopilot_settings.dart';
 
 class AgentSettingsScreen extends StatelessWidget {
   const AgentSettingsScreen({
@@ -52,9 +54,31 @@ class AgentSettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Agent Studio is separate from Ask Anything and the read-only AI Coach. A model cannot authorize writes. Every mission requires an exact on-screen review. Shared goal edits, withdrawals, deletion, and edits to existing records remain in their dedicated SaveTrack screens.',
+                  'Agent Studio is separate from Ask Anything and the read-only AI Coach. A model cannot authorize writes. Ask First preserves manual review; optional Autopilot can authorize eligible actions. Shared goal edits, withdrawals, deletion, and edits to existing records remain in their dedicated SaveTrack screens.',
                 ),
                 const SizedBox(height: 20),
+                Card(
+                  child: ListTile(
+                    key: const Key('agent-autopilot-settings'),
+                    leading: const Icon(Icons.auto_awesome_rounded),
+                    title: const Text('Agent Execution & Autopilot'),
+                    subtitle: Text(
+                      '${settings.autopilot.mode.label} · Choose automatic action permissions',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () async {
+                      await voice.silence();
+                      if (!context.mounted) return;
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              AgentAutopilotSettingsScreen(engine: engine),
+                        ),
+                      );
+                    },
+                  ),
+                ),
                 SwitchListTile(
                   title: Text(strings.text('Execute approved actions')),
                   subtitle: const Text(

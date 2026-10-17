@@ -1,5 +1,9 @@
 # SaveTrack Agent Studio Pro — Mint Aurora 6.0
 
+Optional **Agent Autopilot (Mint Aurora 6.5)** adds policy-authorized automatic
+actions while keeping Ask First as the default. See [Autopilot settings,
+architecture and limitations](agent-autopilot.md).
+
 Agent Studio is integrated into the existing dashboard and app bar. Ask Anything
 and the read-only Coach retain their own controllers, histories, and permissions.
 Agent Studio uses the app's existing Flutter state pattern (`ChangeNotifier` and
