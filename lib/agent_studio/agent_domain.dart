@@ -735,6 +735,7 @@ class AgentSettings {
     this.ttsLocale = '',
     this.voice = '',
     this.rate = .9,
+    this.appearance = 'system',
     Map<String, String> memory = const {},
     this.useMemory = false,
     this.autopilot = const AgentAutopilotSettings(),
@@ -745,6 +746,7 @@ class AgentSettings {
   final bool execute, history, spoken, hideSpokenDetails, onDevice, useMemory;
   final AgentLanguage language, interfaceLanguage, speechLanguage;
   final String locale, ttsLocale, voice;
+  final String appearance;
   final double rate;
   final Map<String, String> memory;
   Map<String, Object?> toJson() => {
@@ -762,6 +764,7 @@ class AgentSettings {
     'ttsLocale': ttsLocale,
     'voice': voice,
     'rate': rate,
+    'appearance': appearance,
     'memory': memory,
     'useMemory': useMemory,
   };
@@ -788,6 +791,9 @@ class AgentSettings {
     ttsLocale: m['ttsLocale'] as String? ?? '',
     voice: m['voice'] as String? ?? '',
     rate: ((m['rate'] as num?)?.toDouble() ?? .9).clamp(.5, 1.5),
+    appearance: ['light', 'dark'].contains(m['appearance'])
+        ? m['appearance'] as String
+        : 'system',
     memory: (m['memory'] as Map? ?? {}).cast<String, String>(),
     useMemory: m['useMemory'] == true,
   );

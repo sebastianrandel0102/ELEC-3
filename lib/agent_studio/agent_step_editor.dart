@@ -1,8 +1,13 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../currency_money.dart';
 import 'agent_domain.dart';
 import 'agent_engine.dart';
+import 'intelligence/agent_language.dart';
+import 'presentation/agent_action_preview.dart';
+import 'presentation/agent_widgets.dart';
 
 Future<AgentAction?> showAgentActionPicker(
   BuildContext context, {
@@ -228,6 +233,68 @@ class _StepEditorState extends State<_StepEditor> {
     }
   }
 
+  Widget scenarioLab() {
+    final draft = AgentAction.fromJson(
+      Map<String, dynamic>.from(values),
+    ) as ScenarioDraft;
+    final issues = draft.validate(widget.engine.clock());
+    final contribution = double.tryParse(draft.contribution);
+    final target = double.tryParse(draft.target);
+    final digits = CurrencyCatalog.byCode[draft.currency]?.digits ?? 2;
+    final minimum = math.pow(10, -digits).toDouble();
+    return AgentSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Explore your savings pace',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+          if (contribution != null &&
+              target != null &&
+              target >= minimum &&
+              contribution >= minimum &&
+              contribution <= target) ...[
+            const SizedBox(height: 8),
+            Slider(
+              semanticFormatterCallback: (v) =>
+                  agentMoney(v.toStringAsFixed(digits), draft.currency),
+              value: contribution,
+              min: minimum,
+              max: target,
+              onChanged: (value) {
+                final text = value.toStringAsFixed(digits);
+                controller('contribution').text = text;
+                setState(() => values['contribution'] = text);
+              },
+            ),
+            const Text(
+              'Fine-tune the contribution with the amount field above.',
+              style: TextStyle(fontSize: 12),
+            ),
+          ],
+          if (issues.isEmpty) ...[
+            AgentActionPreview(
+              action: draft,
+              strings: AgentStrings(widget.engine.settings.interfaceLanguage),
+              now: widget.engine.clock(),
+            ),
+            Text(
+              draft.calculate(widget.engine.clock()),
+              style: const TextStyle(height: 1.6),
+            ),
+          ] else
+            const Padding(
+              padding: EdgeInsets.only(top: 8),
+              child: Text(
+                'Add a target, currency, and contribution or deadline to see your projection.',
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   List<Widget> target({bool contribution = false}) {
     final reference = contribution ? 'goalId' : 'targetId';
     final targetStep = values['targetStep'] as String? ?? '';
@@ -387,6 +454,8 @@ class _StepEditorState extends State<_StepEditor> {
         const Text(
           'Choose a weekly amount or a deadline. This is a local estimate and never creates deposits.',
         ),
+        const SizedBox(height: 16),
+        scenarioLab(),
       ],
       if (action is AllocationDraft) ...[
         field('budget', 'Budget to allocate', money: true),
