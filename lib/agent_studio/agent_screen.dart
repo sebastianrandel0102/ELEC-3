@@ -2,6 +2,13 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'presentation/agent_theme.dart';
+import 'presentation/agent_widgets.dart';
+import 'presentation/agent_action_preview.dart';
+import 'presentation/agent_history_screen.dart';
+import 'presentation/agent_orb_artwork.dart';
 
 import '../ai_coach/ai_response.dart';
 import '../design_system.dart';
@@ -54,6 +61,13 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   late AgentVoiceController _voice;
   final _input = TextEditingController();
   final _scroll = ScrollController();
+  final _inputFocus = FocusNode();
+  BuildContext? _presentationContext;
+  BuildContext get _uiContext => _presentationContext ?? context;
+  final _goalNames = <String, String>{};
+  bool _followLatest = true;
+  AgentMessage? _latestMessage;
+  Object? _voiceUiState;
   StreamSubscription<User?>? _auth;
   bool _initialized = false, _voiceMode = false, _aiBusy = false;
   int _aiEpoch = 0;
@@ -68,6 +82,8 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     super.didChangeDependencies();
     if (_initialized) return;
     _initialized = true;
+    _scroll.addListener(_onScroll);
+    _input.addListener(_inputChanged);
     final uid = widget.engine?.uid ?? FirebaseAuth.instance.currentUser!.uid;
     _engine =
         widget.engine ??
@@ -101,8 +117,51 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     }
   }
 
-  void _changed() {
+  void _inputChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _onScroll() {
+    final follow = !_scroll.hasClients || _scroll.position.extentAfter < 120;
+    if (follow != _followLatest && mounted) {
+      setState(() => _followLatest = follow);
+    }
+  }
+
+  void _scrollToLatest({bool force = false}) {
+    if (!force && !_followLatest) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scroll.hasClients) return;
+      if (!force && !_followLatest) return;
+      final duration = SaveTrackDesign.duration(
+        context,
+        SaveTrackDesign.motion,
+      );
+      final end = _scroll.position.maxScrollExtent;
+      if (duration == Duration.zero) {
+        _scroll.jumpTo(end);
+      } else {
+        _scroll.animateTo(
+          end,
+          duration: duration,
+          curve: SaveTrackDesign.motionCurve,
+        );
+      }
+    });
+  }
+
+  void _changed() {
+    if (!mounted) return;
+    if (!_engine.settings.permissions.contains(
+      AgentPermission.privateContext,
+    )) {
+      _goalNames.clear();
+    }
+    if (_latestMessage != _engine.messages.lastOrNull) {
+      _latestMessage = _engine.messages.lastOrNull;
+      _scrollToLatest();
+    }
+    setState(() {});
   }
 
   void _voiceChanged() {
@@ -143,7 +202,23 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         });
       }
     }
-    setState(() {});
+    final uiState = (
+      _voice.state,
+      _voice.transcript,
+      _voice.originalTranscript,
+      _voice.error,
+      _voice.nativeErrorCode,
+      _voice.recognitionLocale,
+      _voice.turnId,
+      _voice.usingSystemDialog,
+      _voice.availability,
+      _voice.alternatives,
+      _voice.confidences,
+    );
+    if (uiState != _voiceUiState) {
+      _voiceUiState = uiState;
+      setState(() {});
+    }
   }
 
   @override
@@ -171,6 +246,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     if (widget.voice == null) _voice.dispose();
     _input.dispose();
     _scroll.dispose();
+    _inputFocus.dispose();
     super.dispose();
   }
 
@@ -205,6 +281,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   void _prefill(String text) {
     _input.text = text;
     _input.selection = TextSelection.collapsed(offset: text.length);
+    _inputFocus.requestFocus();
   }
 
   Future<void> _send() async {
@@ -264,6 +341,9 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             if (_engine.settings.permissions.contains(
               AgentPermission.privateContext,
             )) {
+              _goalNames.addEntries(
+                goals.map((goal) => MapEntry(goal.id, goal.title)),
+              );
               plan = LocalAgentPlanner().plan(
                 text,
                 goals: goals,
@@ -312,20 +392,12 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                       : _engine.autoDecision?.message ?? plan.reply);
         _engine.say(reply);
         unawaited(_voice.speak(reply, _engine.settings));
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted &&
-              _scroll.hasClients &&
-              _engine.interpretation?.uncertain.isEmpty != false) {
-            _scroll.animateTo(
-              _scroll.position.maxScrollExtent,
-              duration: SaveTrackDesign.motion,
-              curve: Curves.easeOut,
-            );
-          }
-        });
+        if (_engine.interpretation?.uncertain.isEmpty != false) {
+          _scrollToLatest();
+        }
       });
     } finally {
-      _submitting = false;
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -338,7 +410,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     final accepted = _voiceDisclosed
         ? true
         : await showDialog<bool>(
-            context: context,
+            context: _uiContext,
             builder: (ctx) => AlertDialog(
               title: const Text('Speak a turn'),
               content: const Text(
@@ -369,7 +441,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     if (!mounted) return;
     await _run(() async {
       final value = await showAgentStepEditor(
-        context,
+        _uiContext,
         step.action,
         engine: _engine,
       );
@@ -394,7 +466,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   Future<void> _systemMic() async {
     if (_engine.busy || _aiBusy || _voice.recording) return;
     final accepted = await showDialog<bool>(
-      context: context,
+      context: _uiContext,
       builder: (ctx) => AlertDialog(
         title: const Text('Use Android speech dialog?'),
         content: const Text(
@@ -425,7 +497,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       if (!mounted) return;
       if (errors.isNotEmpty) {
         await showDialog<void>(
-          context: context,
+          context: _uiContext,
           builder: (ctx) => AlertDialog(
             title: const Text('Review these details'),
             content: SingleChildScrollView(child: Text(errors.join('\n\n'))),
@@ -441,7 +513,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       }
       final reviewed = _engine.mission!;
       final confirmed = await showDialog<bool>(
-        context: context,
+        context: _uiContext,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
           scrollable: true,
@@ -457,20 +529,32 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                 ),
               ),
               const SizedBox(height: 16),
+              AgentStatusChip(
+                label: _strings.choose(
+                  'Review required',
+                  'Kailangan ng pagsusuri',
+                ),
+                icon: Icons.fact_check_outlined,
+              ),
+              const SizedBox(height: 16),
               for (final s in reviewed.pending)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _strings.action(s.action),
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      Text(_strings.summary(s.action)),
-                      if (s.dependsOn.isNotEmpty)
-                        Text('After: ${s.dependsOn.join(', ')}'),
-                    ],
+                  child: AgentSurface(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _strings.action(s.action),
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                        Text(_strings.summary(s.action)),
+                        if (s.dependsOn.isNotEmpty)
+                          Text(
+                            'After step: ${s.dependsOn.map((id) => reviewed.steps.indexWhere((step) => step.id == id) + 1).join(', ')}',
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               Text(
@@ -519,7 +603,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       detectedLanguage: _engine.sessionLanguage,
     );
     final accepted = await showDialog<bool>(
-      context: context,
+      context: _uiContext,
       builder: (ctx) => AlertDialog(
         title: const Text('Review external AI context'),
         content: SingleChildScrollView(
@@ -581,85 +665,132 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     unawaited(_voice.silence());
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (ctx) => ListenableBuilder(
-          listenable: _engine,
-          builder: (ctx, _) => Scaffold(
-            appBar: AppBar(title: const Text('Mission history')),
-            body: _engine.history.isEmpty
-                ? const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(24),
-                      child: Text(
-                        'No saved missions. Enable local mission history in Agent settings to keep drafts and execution recovery for 30 days.',
-                      ),
-                    ),
-                  )
-                : ListView(
-                    children: [
-                      for (final m in _engine.history)
-                        ListTile(
-                          leading: const Icon(Icons.route_outlined),
-                          title: Text(m.title),
-                          subtitle: Text(
-                            '${agentDay(m.createdAt)} · ${_status(m.status)} · ${m.steps.length} steps',
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _run(() async {
-                            _engine.open(m);
-                            Navigator.pop(ctx);
-                          }),
-                        ),
-                    ],
-                  ),
-          ),
+        builder: (ctx) => AgentHistoryScreen(
+          engine: _engine,
+          onOpen: (mission) => _run(() async {
+            _engine.open(mission);
+            Navigator.pop(ctx);
+          }),
         ),
       ),
     );
   }
 
-  static String _status(MissionStatus status) => switch (status) {
-    MissionStatus.needsClarification => 'Needs details',
-    MissionStatus.readyForReview => 'Ready for review',
-    MissionStatus.partiallyCompleted => 'Partially completed',
-    _ => status.name[0].toUpperCase() + status.name.substring(1),
-  };
-  @override
-  Widget build(BuildContext context) {
-    final dark = _voiceMode || Theme.of(context).brightness == Brightness.dark;
-    final colors = dark
-        ? ColorScheme.fromSeed(
-            seedColor: mint,
-            brightness: Brightness.dark,
-            surface: SaveTrackDesign.obsidian,
-          )
-        : ColorScheme.fromSeed(seedColor: teal, surface: canvas);
-    final theme = Theme.of(context).copyWith(
-      colorScheme: colors,
-      scaffoldBackgroundColor: colors.surface,
-      appBarTheme: AppBarTheme(
-        backgroundColor: colors.surface,
-        foregroundColor: colors.onSurface,
-        iconTheme: IconThemeData(color: colors.onSurface),
+  static String _status(MissionStatus status) => agentMissionStatus(status);
+
+  List<WidgetBuilder> _items() => [
+    (context) => _executionModeBar(context),
+    if (_voiceMode)
+      (context) => _voicePanel(context)
+    else if (_engine.messages.isEmpty && _engine.mission == null)
+      (context) => _welcome(context),
+    if (_engine.error != null)
+      (context) => Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: AgentSurface(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.info_outline,
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _engine.error!,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              TextButton.icon(
+                onPressed: _voiceSettings,
+                icon: const Icon(Icons.tune),
+                label: Text(
+                  _strings.choose('Review settings', 'Suriin ang settings'),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      textTheme: Theme.of(context).textTheme
-          .apply(bodyColor: colors.onSurface, displayColor: colors.onSurface),
-    );
-    return Theme(
-      data: theme,
-      child: Builder(
-        builder: (context) => PopScope(
+    if (_engine.autoDecision != null && !_engine.autoDecision!.mayRun)
+      (context) => _panel(context, Text(_engine.autoDecision!.message)),
+    for (var i = 0; i < _engine.messages.length; i++)
+      (context) => _bubble(
+        context,
+        _engine.messages[i],
+        grouped:
+            i > 0 && _engine.messages[i - 1].user == _engine.messages[i].user,
+      ),
+    if (_engine.activeInterpretation != null && _engine.editable)
+      (context) => _clarification(context),
+    if (_aiBusy)
+      (context) => AgentProcessingIndicator(
+        label: _strings.choose(
+          'Getting optional planning guidance…',
+          'Kumukuha ng gabay sa pagpaplano…',
+        ),
+        onCancel: () {
+          _aiEpoch++;
+          setState(() => _aiBusy = false);
+        },
+      ),
+    if (_engine.mission != null) (context) => _mission(context),
+  ];
+
+  @override
+  Widget build(BuildContext context) => AgentAtelierScope(
+    engine: _engine,
+    voice: _voiceMode,
+    child: Builder(
+      builder: (context) {
+        _presentationContext = context;
+        final colors = Theme.of(context).colorScheme;
+        final items = _items();
+        final compact =
+            MediaQuery.sizeOf(context).width < 360 ||
+            MediaQuery.textScalerOf(context).scale(1) > 1.4;
+        return PopScope(
           canPop: !_engine.busy,
           child: Scaffold(
             appBar: AppBar(
               leading: Navigator.of(context).canPop()
-                  ? BackButton(color: colors.onSurface)
-                  : null,
-              title: Text(
-                _voiceMode ? 'SaveTrack Voice' : 'Agent Studio',
-                style: TextStyle(
-                  fontSize: _voiceMode ? 18 : 20,
-                  fontWeight: FontWeight.w800,
-                ),
+                  ? const BackButton()
+                  : const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: AgentEmblem(size: 36),
+                    ),
+              titleSpacing: 0,
+              title: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _voiceMode ? 'SaveTrack Voice' : 'Agent Studio',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (!compact)
+                    Text(
+                      _strings.choose(
+                        'Your intelligent companion',
+                        'Kasama mo sa pagplano',
+                      ),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                ],
               ),
               actions: [
                 if (_engine.settings.autopilot.enabled)
@@ -668,7 +799,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                     onPressed: () => _run(_engine.pauseAutopilot),
                     icon: const Icon(Icons.pause_circle_outline),
                   ),
-                if (!_voiceMode)
+                if (!_voiceMode && !compact)
                   IconButton(
                     tooltip: 'Mission history',
                     onPressed: _engine.busy ? null : _history,
@@ -676,17 +807,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                   ),
                 IconButton(
                   tooltip: 'Agent settings',
-                  onPressed: () async {
-                    await _voice.silence();
-                    if (!context.mounted) return;
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute<void>(
-                        builder: (_) =>
-                            AgentSettingsScreen(engine: _engine, voice: _voice),
-                      ),
-                    );
-                  },
+                  onPressed: _voiceSettings,
                   icon: const Icon(Icons.tune_rounded),
                 ),
                 PopupMenuButton<String>(
@@ -705,7 +826,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                     }
                   }),
                   itemBuilder: (_) => [
-                    if (_voiceMode)
+                    if (_voiceMode || compact)
                       const PopupMenuItem(
                         value: 'history',
                         child: Text('Mission history'),
@@ -725,81 +846,64 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ],
             ),
             body: SafeArea(
+              top: false,
               child: Align(
                 alignment: Alignment.topCenter,
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 780),
+                  constraints: const BoxConstraints(
+                    maxWidth: AgentAtelier.readingWidth,
+                  ),
                   child: Column(
                     children: [
                       Expanded(
-                        child: _engine.loading
-                            ? const Center(child: CircularProgressIndicator())
-                            : ListView(
+                        child: Stack(
+                          children: [
+                            if (_engine.loading)
+                              Center(
+                                child: AgentProcessingIndicator(
+                                  label: _strings.choose(
+                                    'Opening your workspace…',
+                                    'Binubuksan ang workspace…',
+                                  ),
+                                ),
+                              )
+                            else
+                              ListView.builder(
                                 controller: _scroll,
-                                padding: const EdgeInsets.fromLTRB(
-                                  20,
-                                  12,
-                                  20,
+                                keyboardDismissBehavior:
+                                    ScrollViewKeyboardDismissBehavior.onDrag,
+                                padding: EdgeInsets.fromLTRB(
+                                  SaveTrackDesign.pageInset(
+                                    MediaQuery.sizeOf(context).width,
+                                  ),
+                                  4,
+                                  SaveTrackDesign.pageInset(
+                                    MediaQuery.sizeOf(context).width,
+                                  ),
                                   24,
                                 ),
-                                children: [
-                                  _executionModeBar(context),
-                                  if (_voiceMode)
-                                    _voicePanel(context)
-                                  else if (_engine.messages.isEmpty &&
-                                      _engine.mission == null)
-                                    _welcome(context),
-                                  if (_engine.error != null)
-                                    _panel(
-                                      context,
-                                      Text(
-                                        _engine.error!,
-                                        style: TextStyle(color: colors.error),
-                                      ),
-                                    ),
-                                  if (_engine.autoDecision != null &&
-                                      !_engine.autoDecision!.mayRun)
-                                    _panel(
-                                      context,
-                                      Text(_engine.autoDecision!.message),
-                                    ),
-                                  for (final message in _engine.messages)
-                                    _bubble(context, message),
-                                  if (_engine.activeInterpretation != null &&
-                                      _engine.editable)
-                                    _clarification(context),
-                                  if (_aiBusy)
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Row(
-                                        children: [
-                                          SizedBox(
-                                            width: 16,
-                                            height: 16,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                            ),
-                                          ),
-                                          SizedBox(width: 12),
-                                          Expanded(
-                                            child: Text(
-                                              'Getting optional planning guidance…',
-                                            ),
-                                          ),
-                                          TextButton(
-                                            onPressed: () {
-                                              _aiEpoch++;
-                                              setState(() => _aiBusy = false);
-                                            },
-                                            child: const Text('Cancel'),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  if (_engine.mission != null)
-                                    _mission(context),
-                                ],
+                                itemCount: items.length,
+                                itemBuilder: (context, index) =>
+                                    items[index](context),
                               ),
+                            if (!_followLatest && _engine.messages.isNotEmpty)
+                              Positioned(
+                                right: 16,
+                                bottom: 12,
+                                child: FloatingActionButton.small(
+                                  heroTag: 'agent-latest',
+                                  tooltip: _strings.choose(
+                                    'Jump to latest',
+                                    'Pumunta sa pinakabago',
+                                  ),
+                                  onPressed: () => _scrollToLatest(force: true),
+                                  child: const Icon(
+                                    Icons.arrow_downward_rounded,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       _composer(context),
                     ],
@@ -808,10 +912,10 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               ),
             ),
           ),
-        ),
-      ),
-    );
-  }
+        );
+      },
+    ),
+  );
 
   Widget _panel(BuildContext context, Widget child) => Container(
     margin: const EdgeInsets.only(bottom: 12),
@@ -831,7 +935,12 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       ActionChip(
         key: const Key('agent-execution-mode'),
         avatar: const Icon(Icons.auto_awesome_outlined, size: 16),
-        label: Text(_engine.settings.autopilot.mode.label),
+        label: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.sizeOf(context).width - 140,
+          ),
+          child: Text(_engine.settings.autopilot.mode.label),
+        ),
         onPressed: () async {
           await _voice.silence();
           if (!context.mounted) return;
@@ -872,10 +981,15 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       children: [
         ActionChip(
           avatar: const Icon(Icons.translate, size: 18),
-          label: Text(
-            recognition
-                ? '${_strings.choose('Recognition', 'Pagkilala')}: ${_voice.recognitionLocale.isEmpty ? _strings.choose('Device default', 'Default ng device') : _voice.recognitionLocale}'
-                : '${agentLanguageLabel(_engine.settings.language)} · Mint Aurora 6.3',
+          label: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.sizeOf(context).width - 140,
+            ),
+            child: Text(
+              recognition
+                  ? '${_strings.choose('Recognition', 'Pagkilala')}: ${_voice.recognitionLocale.isEmpty ? _strings.choose('Device default', 'Default ng device') : _voice.recognitionLocale}'
+                  : '${agentLanguageLabel(_engine.settings.language)} · Mint Aurora 7.0',
+            ),
           ),
           onPressed: () async {
             await _voice.silence();
@@ -982,7 +1096,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       return;
     }
     final goal = await showDialog<AgentRecord>(
-      context: context,
+      context: _uiContext,
       builder: (ctx) => SimpleDialog(
         title: Text(_strings.goal),
         children: [
@@ -996,6 +1110,19 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                 ),
               ),
             ),
+          if (goals.isEmpty)
+            SimpleDialogOption(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _prefill(
+                  _strings.choose(
+                    'Create a savings goal',
+                    'Gumawa ng savings goal',
+                  ),
+                );
+              },
+              child: Text(_strings.choose('Plan a goal', 'Gumawa ng Goal')),
+            ),
           for (final g in goals)
             SimpleDialogOption(
               onPressed: () => Navigator.pop(ctx, g),
@@ -1004,6 +1131,9 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         ],
       ),
     );
+    if (_engine.settings.permissions.contains(AgentPermission.privateContext)) {
+      _goalNames.addEntries(goals.map((goal) => MapEntry(goal.id, goal.title)));
+    }
     if (goal == null ||
         !_engine.active ||
         snapshot != _engine.mission?.snapshot ||
@@ -1042,47 +1172,203 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
   Widget _welcome(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Container(
-        padding: const EdgeInsets.all(26),
-        decoration: BoxDecoration(
-          gradient: SaveTrackDesign.premium,
-          borderRadius: BorderRadius.circular(28),
+      const SizedBox(height: 12),
+      AgentHero(
+        eyebrow: 'MINT AURORA 7.0 / AGENT ATELIER',
+        title: _strings.welcome,
+        subtitle: _strings.choose(
+          'Plan your savings, organize your day, and turn ideas into action.',
+          'Planuhin ang ipon, ayusin ang araw, at gawing hakbang ang mga ideya.',
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        footer: Row(
           children: [
-            Icon(Icons.auto_awesome_rounded, color: mint, size: 32),
-            SizedBox(height: 24),
-            Text(
-              'YOUR PLANS, MADE ACTIONABLE',
-              style: TextStyle(
-                color: mint,
-                fontSize: 11,
-                letterSpacing: 1.5,
-                fontWeight: FontWeight.w800,
+            const Icon(Icons.shield_outlined, size: 15, color: mint),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _strings.choose(
+                  'Intelligence, beautifully in motion.',
+                  'Matalinong kasama sa bawat hakbang.',
+                ),
+                style: const TextStyle(fontSize: 12, color: mint, height: 1.5),
               ),
-            ),
-            SizedBox(height: 12),
-            Text(
-              _strings.welcome,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.w800,
-                height: 1.15,
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              _strings.choose(
-                'Tell me what you want to accomplish. We’ll shape it into a plan you can edit and approve.',
-                'Sabihin ang gusto mong gawin. Bubuo tayo ng planong puwedeng i-edit at suriin.',
-              ),
-              style: TextStyle(color: SaveTrackDesign.onHeroMuted, height: 1.6),
             ),
           ],
         ),
       ),
+      AgentSectionHeader(
+        title: _strings.choose(
+          'Make room for progress',
+          'Simulan ang pag-unlad',
+        ),
+        subtitle: _strings.choose(
+          'A little help, right where you need it.',
+          'Kaunting tulong para sa mga plano mo.',
+        ),
+      ),
+      LayoutBuilder(
+        builder: (ctx, c) {
+          final single =
+              c.maxWidth < 310 ||
+              MediaQuery.textScalerOf(context).scale(1) > 1.4;
+          final columns = single
+              ? 1
+              : c.maxWidth >= 650
+              ? 3
+              : 2;
+          return Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              for (final item in [
+                (
+                  Icons.track_changes_rounded,
+                  _strings.choose('Plan a goal', 'Gumawa ng Goal'),
+                  _strings.choose(
+                    'Give your savings direction',
+                    'Bigyan ng direksyon ang ipon',
+                  ),
+                  _strings.choose(
+                    'Create a savings goal for a laptop worth PHP 30000',
+                    'Gawa ka ng goal para sa laptop target PHP 30000',
+                  ),
+                ),
+                (
+                  Icons.checklist_rounded,
+                  _strings.choose('Organize tasks', 'Ayusin ang Araw Ko'),
+                  _strings.choose(
+                    'Find your next clear step',
+                    'Ayusin ang susunod na hakbang',
+                  ),
+                  _strings.choose(
+                    'Create three tasks for tomorrow',
+                    'Gawa ng task para bukas',
+                  ),
+                ),
+                (
+                  Icons.notifications_none_rounded,
+                  _strings.choose('Draft a reminder', 'Mag-set ng Paalala'),
+                  _strings.choose(
+                    'Keep the important things close',
+                    'Tandaan ang mahahalagang bagay',
+                  ),
+                  _strings.choose(
+                    'Remind me every Saturday',
+                    'Pa-remind ako tuwing Sabado',
+                  ),
+                ),
+                (
+                  Icons.route_outlined,
+                  _strings.choose('Build a mission', 'Bumuo ng mission'),
+                  _strings.choose(
+                    'One idea. A connected plan.',
+                    'Isang ideya, magkakaugnay na plano.',
+                  ),
+                  _strings.choose(
+                    'Create a phone savings goal, plan contributions and add a task to compare prices',
+                    'Gumawa ng phone savings goal at task para magkumpara ng presyo',
+                  ),
+                ),
+                (
+                  Icons.savings_outlined,
+                  _strings.choose('Prepare savings', 'Magplano ng Ipon'),
+                  _strings.choose(
+                    'Prepare your next contribution',
+                    'Ihanda ang susunod na hulog',
+                  ),
+                  _strings.choose(
+                    'Prepare PHP 200 for my goal',
+                    'Pa-add PHP 200 sa goal ko',
+                  ),
+                ),
+                (
+                  Icons.insights_rounded,
+                  _strings.choose('What if…', 'Paano kung…'),
+                  _strings.choose(
+                    'Explore a different savings pace',
+                    'Subukan ang ibang bilis ng ipon',
+                  ),
+                  _strings.choose(
+                    'Simulate a PHP 30000 target with PHP 500 weekly',
+                    'Paano kung PHP 30000 target at PHP 500 lingguhan',
+                  ),
+                ),
+              ])
+                SizedBox(
+                  width: (c.maxWidth - (columns - 1) * 12) / columns,
+                  child: AgentQuickActionCard(
+                    icon: item.$1,
+                    title: item.$2,
+                    description: item.$3,
+                    featured:
+                        item.$1 == Icons.track_changes_rounded ||
+                        item.$1 == Icons.route_outlined,
+                    onTap: () => _prefill(item.$4),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+      AgentSectionHeader(
+        title: _strings.choose(
+          'Start with a thought',
+          'Magsimula sa isang ideya',
+        ),
+      ),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final prompt in [
+            _strings.choose(
+              'Help me plan tomorrow',
+              'Tulungan akong magplano para bukas',
+            ),
+            _strings.choose(
+              'Compare two savings plans',
+              'Ihambing ang dalawang plano sa ipon',
+            ),
+          ])
+            ActionChip(
+              label: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.sizeOf(context).width - 120,
+                ),
+                child: Text(prompt),
+              ),
+              avatar: const Icon(Icons.add, size: 16),
+              onPressed: () => _prefill(prompt),
+            ),
+        ],
+      ),
+      AgentSectionHeader(
+        title: _strings.choose('Recent activity', 'Kamakailang aktibidad'),
+        action: TextButton(
+          onPressed: _history,
+          child: Text(_strings.choose('View all', 'Tingnan lahat')),
+        ),
+      ),
+      if (_engine.history.isEmpty)
+        AgentEmptyState(
+          title: _strings.choose(
+            'Your next plan starts here.',
+            'Dito magsisimula ang susunod mong plano.',
+          ),
+          message: _strings.choose(
+            'A goal, a reminder, a fresh start. Tell me what you have in mind.',
+            'Goal, paalala, o bagong simula. Sabihin ang nasa isip mo.',
+          ),
+        )
+      else
+        for (final mission
+            in (_engine.history.toList()
+                  ..sort((a, b) => b.createdAt.compareTo(a.createdAt)))
+                .take(3))
+          AgentMissionActivityTile(
+            mission: mission,
+            onTap: () => _run(() async => _engine.open(mission)),
+          ),
       const SizedBox(height: 16),
       _languageChip(context),
       _panel(
@@ -1090,14 +1376,17 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
-                Icon(Icons.shield_outlined, size: 20),
-                SizedBox(width: 8),
+                const Icon(Icons.shield_outlined, size: 20),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Local planning. You’re in control.',
-                    style: TextStyle(fontWeight: FontWeight.w800),
+                    _strings.choose(
+                      'Local planning. You’re in control.',
+                      'Lokal na pagplano. Ikaw ang may kontrol.',
+                    ),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
@@ -1105,108 +1394,40 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             const SizedBox(height: 10),
             Text(
               _engine.settings.autopilot.enabled
-                  ? 'Autopilot can complete eligible actions under your permissions and limits. Financial transactions still require confirmation.'
+                  ? _strings.choose(
+                      'Autopilot follows your permissions and limits. Financial transactions still require confirmation.',
+                      'Sinusunod ng Autopilot ang pahintulot at limitasyon mo. Kailangan pa rin ng kumpirmasyon sa transaksyon.',
+                    )
                   : _engine.settings.execute
-                  ? 'Actions are enabled, and each mission still needs your explicit approval.'
-                  : 'Action execution starts disabled. Draft freely, then choose permissions in Agent settings.',
-            ),
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      AgentSettingsScreen(engine: _engine, voice: _voice),
-                ),
-              ),
-              child: const Text('Permissions & privacy'),
-            ),
-          ],
-        ),
-      ),
-      LayoutBuilder(
-        builder: (ctx, c) => Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: [
-            for (final item in [
-              (
-                Icons.flag_outlined,
-                _strings.choose('Plan a goal', 'Gumawa ng Goal'),
-                _strings.choose(
-                  'Create a savings goal for a laptop worth PHP 30000',
-                  'Gawa ka ng goal para sa laptop target PHP 30000',
-                ),
-              ),
-              (
-                Icons.checklist_rounded,
-                _strings.choose('Organize tasks', 'Ayusin ang Araw Ko'),
-                _strings.choose(
-                  'Create three tasks for tomorrow',
-                  'Gawa ng task para bukas',
-                ),
-              ),
-              (
-                Icons.notifications_outlined,
-                _strings.choose('Draft a reminder', 'Mag-set ng Paalala'),
-                _strings.choose(
-                  'Remind me every Saturday',
-                  'Pa-remind ako tuwing Sabado',
-                ),
-              ),
-              (
-                Icons.route_outlined,
-                'Build a mission',
-                'Create a phone savings goal, plan contributions and add a task to compare prices',
-              ),
-              (
-                Icons.savings_outlined,
-                _strings.choose('Prepare savings', 'Magplano ng Ipon'),
-                _strings.choose(
-                  'Prepare PHP 200 for my goal',
-                  'Pa-add PHP 200 sa goal ko',
-                ),
-              ),
-              (
-                Icons.calculate_outlined,
-                'What if…',
-                'Simulate a PHP 30000 target with PHP 500 weekly',
-              ),
-            ])
-              SizedBox(
-                width: c.maxWidth < 350 ? c.maxWidth : (c.maxWidth - 10) / 2,
-                child: OutlinedButton(
-                  onPressed: () => _prefill(item.$3),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.all(18),
-                    alignment: Alignment.centerLeft,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(18),
+                  ? _strings.choose(
+                      'Each mission needs your explicit approval.',
+                      'Kailangan ng kumpirmasyon mo sa bawat mission.',
+                    )
+                  : _strings.choose(
+                      'Draft freely. Enable action permissions in Agent settings when you are ready.',
+                      'Malayang gumawa ng draft. I-on ang pahintulot sa settings kapag handa ka na.',
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(item.$1, size: 24),
-                      const SizedBox(height: 16),
-                      Text(
-                        item.$2,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ],
-                  ),
+            ),
+            TextButton(
+              onPressed: _voiceSettings,
+              child: Text(
+                _strings.choose(
+                  'Permissions & privacy',
+                  'Pahintulot at privacy',
                 ),
               ),
+            ),
           ],
         ),
       ),
-      const SizedBox(height: 12),
       Wrap(
         spacing: 8,
         children: [
           TextButton(
             onPressed: () => _open('reports'),
-            child: const Text('Review my progress'),
+            child: Text(
+              _strings.choose('Review my progress', 'Tingnan ang pag-unlad'),
+            ),
           ),
           TextButton(
             onPressed: () => _open('planner'),
@@ -1220,79 +1441,129 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       ),
     ],
   );
-  Widget _bubble(BuildContext context, AgentMessage message) => Align(
-    alignment: message.user ? Alignment.centerRight : Alignment.centerLeft,
-    child: Container(
-      constraints: const BoxConstraints(maxWidth: 650),
-      margin: const EdgeInsets.only(top: 12, bottom: 8),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: message.user
-            ? teal
-            : Theme.of(context).colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            message.user
-                ? (message.voice ? 'YOU · VOICE TRANSCRIPT' : 'YOU')
-                : message.text.startsWith('Gemini planning guidance')
-                ? 'SAVETRACK · GEMINI GUIDANCE'
-                : 'SAVETRACK · LOCAL PLAN',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
-              color: message.user
-                  ? mint
-                  : Theme.of(context).colorScheme.primary,
+
+  Widget _bubble(
+    BuildContext context,
+    AgentMessage message, {
+    bool grouped = false,
+  }) {
+    final c = Theme.of(context).colorScheme;
+    return Align(
+      alignment: message.user ? Alignment.centerRight : Alignment.centerLeft,
+      child: FractionallySizedBox(
+        widthFactor: message.user ? .88 : 1,
+        child: Container(
+          margin: EdgeInsets.only(top: grouped ? 4 : 18, bottom: 4),
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
+          decoration: BoxDecoration(
+            color: message.user ? teal : c.surfaceContainerLow,
+            border: message.user ? null : Border.all(color: c.outlineVariant),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(20),
+              topRight: const Radius.circular(20),
+              bottomLeft: Radius.circular(message.user ? 20 : 6),
+              bottomRight: Radius.circular(message.user ? 6 : 20),
             ),
           ),
-          const SizedBox(height: 8),
-          if (!message.user)
-            AiMarkdownResponse(
-              text: message.text,
-              foregroundColor: Theme.of(context).colorScheme.onSurface,
-            )
-          else
-            SelectableText(
-              message.text,
-              style: TextStyle(
-                color: message.user
-                    ? Colors.white
-                    : Theme.of(context).colorScheme.onSurface,
-                height: 1.55,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!grouped) ...[
+                Row(
+                  children: [
+                    if (!message.user) ...[
+                      const AgentEmblem(size: 24),
+                      const SizedBox(width: 8),
+                    ],
+                    Expanded(
+                      child: Text(
+                        message.user
+                            ? (message.voice ? 'YOU · VOICE TRANSCRIPT' : 'YOU')
+                            : message.text.startsWith(
+                                'Gemini planning guidance',
+                              )
+                            ? 'SAVETRACK · GEMINI GUIDANCE'
+                            : 'SAVETRACK · LOCAL PLAN',
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: .8,
+                          color: message.user ? mint : c.primary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+              ],
+              if (!message.user)
+                AiMarkdownResponse(
+                  text: message.text,
+                  foregroundColor: c.onSurface,
+                )
+              else
+                SelectableText(
+                  message.text,
+                  style: const TextStyle(color: Colors.white, height: 1.6),
+                ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    tooltip: _strings.choose(
+                      'Copy message',
+                      'Kopyahin ang mensahe',
+                    ),
+                    onPressed: () async {
+                      await Clipboard.setData(
+                        ClipboardData(text: message.text),
+                      );
+                      if (mounted) {
+                        _notice(
+                          _strings.choose(
+                            'Message copied',
+                            'Nakopya ang mensahe',
+                          ),
+                        );
+                      }
+                    },
+                    icon: Icon(
+                      Icons.copy_outlined,
+                      size: 17,
+                      color: message.user ? mint : c.onSurfaceVariant,
+                    ),
+                  ),
+                  if (!message.user)
+                    IconButton(
+                      tooltip: 'Speak response',
+                      onPressed: () => _run(() async {
+                        if (!_engine.settings.spoken) {
+                          _notice(
+                            'Enable spoken replies in Voice settings first.',
+                          );
+                          return;
+                        }
+                        await _voice.initialize();
+                        await _voice.speak(message.text, _engine.settings);
+                      }),
+                      icon: const Icon(Icons.volume_up_outlined, size: 19),
+                    ),
+                ],
               ),
-            ),
-          if (!message.user)
-            Align(
-              alignment: Alignment.centerRight,
-              child: IconButton(
-                tooltip: 'Speak response',
-                onPressed: () => _run(() async {
-                  if (!_engine.settings.spoken) {
-                    _notice('Enable spoken replies in Voice settings first.');
-                    return;
-                  }
-                  await _voice.initialize();
-                  await _voice.speak(message.text, _engine.settings);
-                }),
-                icon: const Icon(Icons.volume_up_outlined, size: 20),
-              ),
-            ),
-        ],
+            ],
+          ),
+        ),
       ),
-    ),
-  );
+    );
+  }
+
   Future<void> _renameMission() async {
     final controller = TextEditingController(
       text: _engine.mission?.title ?? '',
     );
     final snapshot = _engine.mission?.snapshot;
     final title = await showDialog<String>(
-      context: context,
+      context: _uiContext,
       builder: (ctx) => AlertDialog(
         title: Text(_strings.choose('Mission title', 'Pangalan ng mission')),
         content: TextField(
@@ -1379,6 +1650,39 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             ],
           ),
           const SizedBox(height: 16),
+          _panel(
+            context,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    AgentStatusChip(
+                      label: _status(m.status),
+                      icon: m.status == MissionStatus.completed
+                          ? Icons.check_circle_outline
+                          : Icons.route_outlined,
+                    ),
+                    AgentStatusChip(
+                      label:
+                          '${m.steps.where((s) => s.done).length} / ${m.steps.length} ${_strings.choose('steps completed', 'natapos na hakbang')}',
+                      icon: Icons.checklist_rounded,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                LinearProgressIndicator(
+                  value: m.steps.isEmpty
+                      ? 0
+                      : m.steps.where((s) => s.done).length / m.steps.length,
+                  minHeight: 5,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ],
+            ),
+          ),
           if (m.planOnly)
             _panel(
               context,
@@ -1518,155 +1822,282 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     );
   }
 
+  bool _canMoveStep(int index, int offset) {
+    final steps = [..._engine.mission!.steps];
+    final destination = index + offset;
+    if (destination < 0 || destination >= steps.length) return false;
+    steps.insert(destination, steps.removeAt(index));
+    for (var i = 0; i < steps.length; i++) {
+      if (steps[i].dependsOn.any((id) {
+        final dependency = steps.indexWhere((step) => step.id == id);
+        return dependency < 0 || dependency >= i;
+      })) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Widget _step(BuildContext context, AgentStep step, int index) {
     final locked = step.attempts > 0 || !_engine.editable;
     final errors = step.action.validate(_engine.clock());
-    return _panel(
-      context,
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 30,
-                child: Text(
-                  '${index + 1}'.padLeft(2, '0'),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  step.done
-                      ? switch (step.action) {
-                          GoalDraft() => 'Savings Goal Created',
-                          TaskDraft() => 'Task Created',
-                          ReminderDraft() => 'Reminder Preference Saved',
-                          ContributionDraft() => 'Add Savings Review Opened',
-                          ScenarioDraft() ||
-                          AllocationDraft() => 'Simulation Result',
-                        }
-                      : _strings.action(step.action),
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              Checkbox(
-                value: step.selected,
-                onChanged: locked
-                    ? null
-                    : (value) => _run(() async {
-                        _aiEpoch++;
-                        _engine.edit(step.id, selected: value);
-                      }),
-                semanticLabel: 'Select step ${index + 1}',
-              ),
-            ],
+    return Stack(
+      children: [
+        Positioned(
+          left: 13,
+          top: 0,
+          bottom: index == _engine.mission!.steps.length - 1 ? null : 0,
+          child: Container(
+            width: 1,
+            height: index == _engine.mission!.steps.length - 1 ? 28 : null,
+            color: Theme.of(context).colorScheme.outlineVariant,
           ),
-          if (!step.done)
-            AgentInterpretationPreview(
-              action: step.action,
-              strings: _strings,
-              binding: _engine.activeInterpretation?.titles
-                  .where((t) => t.actionIndex == index)
-                  .firstOrNull,
+        ),
+        Positioned(
+          left: 0,
+          top: 16,
+          child: Container(
+            width: 28,
+            height: 28,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: step.done
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surfaceContainerLow,
+              shape: BoxShape.circle,
+              border: Border.all(color: Theme.of(context).colorScheme.primary),
             ),
-          Text(
-            _strings.summary(step.action),
-            style: const TextStyle(height: 1.6),
-          ),
-          if (step.dependsOn.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                'After: ${step.dependsOn.join(', ')}',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ),
-          if (step.status != StepStatus.waiting)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Row(
-                children: [
-                  Icon(
-                    step.done ? Icons.check_circle_outline : Icons.info_outline,
-                    size: 18,
+            child: step.done
+                ? Icon(
+                    Icons.check,
+                    size: 16,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  )
+                : Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 40),
+          child: _panel(
+            context,
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10, top: 3),
+                      child: Icon(
+                        agentActionIcon(step.action),
+                        size: 22,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        step.done
+                            ? switch (step.action) {
+                                GoalDraft() => 'Savings Goal Created',
+                                TaskDraft() => 'Task Created',
+                                ReminderDraft() => 'Reminder Preference Saved',
+                                ContributionDraft() =>
+                                  'Add Savings Review Opened',
+                                ScenarioDraft() ||
+                                AllocationDraft() => 'Simulation Result',
+                              }
+                            : _strings.action(step.action),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                    Checkbox(
+                      value: step.selected,
+                      onChanged: locked
+                          ? null
+                          : (value) => _run(() async {
+                              _aiEpoch++;
+                              _engine.edit(step.id, selected: value);
+                            }),
+                      semanticLabel: 'Select step ${index + 1}',
+                    ),
+                  ],
+                ),
+                AgentActionPreview(
+                  action: step.action,
+                  strings: _strings,
+                  now: _engine.clock(),
+                  referenceLabel: switch (step.action) {
+                    ContributionDraft a => _goalNames[a.goalId],
+                    ReminderDraft a => _goalNames[a.targetId],
+                    _ => null,
+                  },
+                ),
+                if (!step.done)
+                  AgentInterpretationPreview(
+                    action: step.action,
+                    strings: _strings,
+                    binding: _engine.activeInterpretation?.titles
+                        .where((t) => t.actionIndex == index)
+                        .firstOrNull,
+                  ),
+                Text(
+                  _strings.summary(step.action),
+                  style: const TextStyle(height: 1.6),
+                ),
+                if (step.dependsOn.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      step.status.name.toUpperCase(),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
+                      '${_strings.choose('After step', 'Pagkatapos ng hakbang')} ${step.dependsOn.map((id) => _engine.mission!.steps.indexWhere((s) => s.id == id) + 1).join(', ')}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                if (step.status != StepStatus.waiting)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Row(
+                      children: [
+                        Icon(
+                          step.done
+                              ? Icons.check_circle_outline
+                              : Icons.info_outline,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            step.status.name.toUpperCase(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (step.result.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: SelectableText(step.result),
+                  ),
+                if (step.done &&
+                    step.action is GoalDraft &&
+                    step.recordId.isNotEmpty)
+                  TextButton.icon(
+                    onPressed: () => _open('goal', step.recordId),
+                    icon: const Icon(Icons.open_in_new, size: 16),
+                    label: const Text('View Goal'),
+                  ),
+                if (step.action is ScenarioDraft && errors.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Text(
+                      (step.action as ScenarioDraft).calculate(_engine.clock()),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                if (errors.isNotEmpty && !step.done)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Text(
+                      errors.first,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.error,
                       ),
                     ),
                   ),
-                ],
-              ),
-            ),
-          if (step.result.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: SelectableText(step.result),
-            ),
-          if (step.done && step.action is GoalDraft && step.recordId.isNotEmpty)
-            TextButton.icon(
-              onPressed: () => _open('goal', step.recordId),
-              icon: const Icon(Icons.open_in_new, size: 16),
-              label: const Text('View Goal'),
-            ),
-          if (step.action is ScenarioDraft && errors.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Text(
-                (step.action as ScenarioDraft).calculate(_engine.clock()),
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ),
-          if (!locked)
-            Wrap(
-              spacing: 4,
-              children: [
-                TextButton.icon(
-                  onPressed: () => _edit(step),
-                  icon: const Icon(Icons.edit_outlined, size: 16),
-                  label: Text(_strings.text('Edit details')),
-                ),
-                IconButton(
-                  tooltip: 'Move step up',
-                  onPressed: index == 0
-                      ? null
-                      : () => _run(() async {
-                          _engine.edit(step.id, move: -1);
+                if (!locked)
+                  Wrap(
+                    spacing: 4,
+                    children: [
+                      TextButton.icon(
+                        onPressed: () => _edit(step),
+                        icon: const Icon(Icons.edit_outlined, size: 16),
+                        label: Text(_strings.text('Edit details')),
+                      ),
+                      IconButton(
+                        tooltip: 'Move step up',
+                        onPressed: !_canMoveStep(index, -1)
+                            ? null
+                            : () => _run(() async {
+                                _engine.edit(step.id, move: -1);
+                              }),
+                        icon: const Icon(Icons.arrow_upward, size: 18),
+                      ),
+                      IconButton(
+                        tooltip: 'Move step down',
+                        onPressed: !_canMoveStep(index, 1)
+                            ? null
+                            : () => _run(() async {
+                                _engine.edit(step.id, move: 1);
+                              }),
+                        icon: const Icon(Icons.arrow_downward, size: 18),
+                      ),
+                      IconButton(
+                        key: Key('agent-remove-${step.id}'),
+                        tooltip: 'Remove step',
+                        onPressed: () => _run(() async {
+                          _engine.edit(step.id, remove: true);
                         }),
-                  icon: const Icon(Icons.arrow_upward, size: 18),
-                ),
-                IconButton(
-                  key: Key('agent-remove-${step.id}'),
-                  tooltip: 'Remove step',
-                  onPressed: () => _run(() async {
-                    _engine.edit(step.id, remove: true);
-                  }),
-                  icon: const Icon(Icons.close, size: 18),
-                ),
+                        icon: const Icon(Icons.close, size: 18),
+                      ),
+                    ],
+                  ),
               ],
             ),
-        ],
-      ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _voicePanel(BuildContext context) => Column(
     children: [
       _languageChip(context, recognition: true),
+      Align(
+        alignment: Alignment.centerRight,
+        child: IconButton(
+          tooltip: _strings.choose(
+            'Microphone privacy',
+            'Privacy ng mikropono',
+          ),
+          onPressed: () => showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: Text(
+                _strings.choose(
+                  'Your voice, your choice',
+                  'Boses mo, desisyon mo',
+                ),
+              ),
+              content: Text(
+                _strings.choose(
+                  'The microphone starts only when you tap it. Android speech and TTS providers may process audio remotely. SaveTrack does not retain raw recordings. You can require verified on-device recognition in Voice settings.',
+                  'Magsisimula lang ang mikropono kapag pinindot mo. Maaaring iproseso ng Android speech at TTS provider ang audio online. Hindi nagtatago ang SaveTrack ng raw recording. Puwedeng piliin ang on-device recognition sa Voice settings.',
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(_strings.choose('Got it', 'Nauunawaan ko')),
+                ),
+              ],
+            ),
+          ),
+          icon: const Icon(Icons.privacy_tip_outlined, size: 20),
+        ),
+      ),
       const Text(
         'SPEAK NATURALLY',
         style: TextStyle(
@@ -1677,7 +2108,11 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         ),
       ),
       const SizedBox(height: 8),
-      AgentVoiceOrb(state: _voice.state, amplitude: _voice.amplitude),
+      ListenableBuilder(
+        listenable: _voice,
+        builder: (context, _) =>
+            AgentVoiceOrb(state: _voice.state, amplitude: _voice.amplitude),
+      ),
       Text(
         switch (_voice.state) {
           AgentVoiceState.ready => 'Ready for your next turn',
@@ -1773,7 +2208,11 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           TextButton.icon(
             onPressed: () => _run(_voice.silence),
             icon: const Icon(Icons.volume_off_outlined),
-            label: const Text('Stop audio'),
+            label: Text(
+              _voice.state == AgentVoiceState.speaking
+                  ? 'Stop speaking'
+                  : 'Stop audio',
+            ),
           ),
           TextButton(
             onPressed: () => _run(() async {
@@ -1787,137 +2226,223 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       const SizedBox(height: 16),
     ],
   );
-  Widget _composer(BuildContext context) => Container(
-    padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      border: Border(
-        top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant),
+  Widget _composer(BuildContext context) {
+    final c = Theme.of(context).colorScheme;
+    final available =
+        MediaQuery.sizeOf(context).height -
+        MediaQuery.viewInsetsOf(context).bottom;
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.4;
+    final compact =
+        available < 430 ||
+        largeText && MediaQuery.viewInsetsOf(context).bottom > 0;
+    final transcript =
+        !_voice.recording && _voice.originalTranscript.isNotEmpty;
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: (available * .48).clamp(100.0, 340.0),
       ),
-    ),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (!_voice.recording && _voice.originalTranscript.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _strings.transcript,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                Text(
-                  _strings.choose(
-                    'Check amounts, names, and dates. Edit the text below before sending.',
-                    'Suriin ang halaga, pangalan, at petsa. I-edit ang teksto bago ipadala.',
-                  ),
-                  style: const TextStyle(fontSize: 12),
-                ),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    TextButton(
-                      onPressed: () => _run(_mic),
-                      child: Text(_strings.choose('Try again', 'Subukan Ulit')),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        await _voice.silence();
-                        _voice.originalTranscript = '';
-                        _voice.transcript = '';
-                        _lastTranscript = '';
-                        _input.clear();
-                        if (mounted) setState(() {});
-                      },
-                      child: Text(
-                        _strings.choose(
-                          'Cancel transcript',
-                          'Kanselahin ang teksto',
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(12, 6, 12, 10),
+        padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
+        decoration: BoxDecoration(
+          color: c.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: c.outlineVariant),
+          boxShadow: Theme.of(context).brightness == Brightness.light
+              ? SaveTrackDesign.shadows
+              : null,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (transcript)
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _strings.transcript,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
                         ),
+                        if (!compact)
+                          Text(
+                            _strings.choose(
+                              'Check amounts, names, and dates before sending.',
+                              'Suriin ang halaga, pangalan, at petsa bago ipadala.',
+                            ),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: c.onSurfaceVariant,
+                            ),
+                          ),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            TextButton(
+                              onPressed: () => _inputFocus.requestFocus(),
+                              child: Text(
+                                _strings.choose(
+                                  'Edit transcript',
+                                  'I-edit ang teksto',
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => _run(_mic),
+                              child: Text(
+                                _strings.choose('Try again', 'Subukan Ulit'),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                await _voice.silence();
+                                _voice.originalTranscript = '';
+                                _voice.transcript = '';
+                                _lastTranscript = '';
+                                _input.clear();
+                                if (mounted) setState(() {});
+                              },
+                              child: Text(
+                                _strings.choose(
+                                  'Cancel transcript',
+                                  'Kanselahin ang teksto',
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_voice.alternatives.toSet().length > 1)
+                          Text(
+                            _strings.choose(
+                              'Recognition returned alternatives. Verify the intended amount.',
+                              'May ibang narinig ang recognizer. Suriin ang tamang halaga.',
+                            ),
+                            style: TextStyle(color: c.error, fontSize: 12),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (_voice.recording && !compact)
+              Padding(
+                padding: const EdgeInsets.all(6),
+                child: Semantics(
+                  liveRegion: true,
+                  child: Text(
+                    _strings.choose(
+                      'LIVE TRANSCRIPT · Stop listening to edit and send',
+                      'LIVE NA TEKSTO · Ihinto ang pakikinig bago i-edit at ipadala',
+                    ),
+                    style: TextStyle(fontSize: 11, color: c.onSurfaceVariant),
+                  ),
+                ),
+              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                IconButton(
+                  tooltip: _voice.recording
+                      ? 'Stop microphone'
+                      : 'Start voice input',
+                  onPressed: _engine.loading || _engine.busy || _aiBusy
+                      ? null
+                      : () => _run(_mic),
+                  icon: Icon(
+                    _voice.recording
+                        ? Icons.stop_circle
+                        : Icons.mic_none_rounded,
+                  ),
+                ),
+                Expanded(
+                  child: TextField(
+                    key: const Key('agent-input'),
+                    controller: _input,
+                    focusNode: _inputFocus,
+                    readOnly: _voice.recording,
+                    enabled: !_engine.loading && !_engine.busy && !_aiBusy,
+                    minLines: 1,
+                    maxLines: available < 300
+                        ? 1
+                        : compact || largeText
+                        ? 2
+                        : 4,
+                    maxLength: AgentLimits.input,
+                    keyboardType: TextInputType.multiline,
+                    textInputAction: TextInputAction.newline,
+                    decoration: InputDecoration(
+                      hintText: _strings.hint,
+                      hintMaxLines: 1,
+                      hintStyle: TextStyle(
+                        color: c.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
+                      counterText: '',
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 4,
                       ),
                     ),
-                  ],
-                ),
-                if (_voice.alternatives.toSet().length > 1)
-                  Text(
-                    _strings.choose(
-                      'The recognizer returned alternatives. Verify the intended amount on screen.',
-                      'May ibang narinig ang recognizer. Suriin ang tamang halaga sa screen.',
-                    ),
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.error,
-                    ),
+                    onSubmitted: (_) => _send(),
                   ),
+                ),
+                IconButton.filled(
+                  key: const Key('agent-send'),
+                  tooltip: 'Send reviewed text',
+                  onPressed:
+                      _input.text.trim().isEmpty ||
+                          _submitting ||
+                          _engine.loading ||
+                          _engine.busy ||
+                          _aiBusy ||
+                          _voice.recording
+                      ? null
+                      : _send,
+                  style: IconButton.styleFrom(
+                    backgroundColor: c.primary,
+                    foregroundColor: c.onPrimary,
+                    disabledBackgroundColor: c.surfaceContainerHighest,
+                    disabledForegroundColor: c.onSurfaceVariant,
+                  ),
+                  icon: _submitting
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.arrow_upward_rounded),
+                ),
               ],
             ),
-          ),
-        if (_voice.recording)
-          const Padding(
-            padding: EdgeInsets.only(bottom: 6),
-            child: Text(
-              'LIVE TRANSCRIPT · Stop listening to edit and send',
-              style: TextStyle(fontSize: 11),
-            ),
-          ),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            IconButton(
-              tooltip: _voice.recording
-                  ? 'Stop microphone'
-                  : 'Start voice input',
-              onPressed: _engine.busy || _aiBusy ? null : () => _run(_mic),
-              style: IconButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.primary,
-              ),
-              icon: Icon(
-                _voice.recording ? Icons.stop_circle : Icons.mic_none_rounded,
-              ),
-            ),
-            Expanded(
-              child: TextField(
-                key: const Key('agent-input'),
-                controller: _input,
-                readOnly: _voice.recording,
-                enabled: !_engine.loading && !_engine.busy && !_aiBusy,
-                minLines: 1,
-                maxLines: 4,
-                maxLength: AgentLimits.input,
-                decoration: InputDecoration(
-                  hintText: _strings.hint,
-                  counterText: '',
-                  border: InputBorder.none,
-                  filled: false,
+            if (!compact)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(8, 6, 8, 4),
+                child: Text(
+                  _engine.settings.autopilot.enabled
+                      ? _strings.choose(
+                          'Sensitive changes still require confirmation',
+                          'Kailangan pa rin ng kumpirmasyon sa sensitibong pagbabago',
+                        )
+                      : _strings.choose(
+                          'Changes require your approval',
+                          'Kailangan ng pahintulot mo sa mga pagbabago',
+                        ),
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 11, color: c.onSurfaceVariant),
                 ),
-                onSubmitted: (_) => _send(),
               ),
-            ),
-            IconButton.filled(
-              tooltip: 'Send reviewed text',
-              style: IconButton.styleFrom(
-                backgroundColor: Theme.of(context).colorScheme.primary,
-                foregroundColor: Theme.of(context).colorScheme.onPrimary,
-              ),
-              onPressed:
-                  _engine.loading || _engine.busy || _aiBusy || _voice.recording
-                  ? null
-                  : _send,
-              icon: const Icon(Icons.arrow_upward_rounded),
-            ),
           ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          _engine.settings.autopilot.enabled
-              ? '${_engine.settings.autopilot.mode.label} · Sensitive changes require confirmation'
-              : '${_engine.settings.autopilot.mode.label} · Changes require your approval',
-          style: TextStyle(fontSize: 10),
-        ),
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 class AgentVoiceOrb extends StatelessWidget {
@@ -1936,39 +2461,32 @@ class AgentVoiceOrb extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: failed ? 12 : 28),
         child: AnimatedContainer(
-          duration: MediaQuery.disableAnimationsOf(context)
-              ? Duration.zero
-              : const Duration(milliseconds: 180),
-          width: (failed ? 96 : 170) + amplitude * 18,
-          height: (failed ? 96 : 170) + amplitude * 18,
+          duration: SaveTrackDesign.duration(
+            context,
+            const Duration(milliseconds: 180),
+          ),
+          width:
+              (failed ? 96 : 170) +
+              (MediaQuery.disableAnimationsOf(context)
+                  ? 0
+                  : amplitude.clamp(0, 1) * 18),
+          height:
+              (failed ? 96 : 170) +
+              (MediaQuery.disableAnimationsOf(context)
+                  ? 0
+                  : amplitude.clamp(0, 1) * 18),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            gradient: RadialGradient(
-              center: const Alignment(-.3, -.35),
-              colors: [
-                const Color(0xFFE0FFF0),
-                mint,
-                SaveTrackDesign.fresh,
-                teal,
-              ],
-              stops: const [0, .35, .65, 1],
-            ),
             boxShadow: [
               BoxShadow(
                 color: mint.withValues(alpha: active ? .25 : .12),
-                blurRadius: active ? 55 : 35,
-                spreadRadius: active ? 12 : 4,
+                blurRadius: active ? 36 : 24,
+                spreadRadius: active ? 6 : 0,
               ),
             ],
-            border: Border.all(color: mint.withValues(alpha: .4), width: 8),
+            border: Border.all(color: mint.withValues(alpha: .3), width: 1),
           ),
-          child: Icon(
-            state == AgentVoiceState.speaking
-                ? Icons.graphic_eq_rounded
-                : Icons.auto_awesome_rounded,
-            color: teal,
-            size: 48,
-          ),
+          child: AgentOrbArtwork(speaking: state == AgentVoiceState.speaking),
         ),
       ),
     );

@@ -123,6 +123,7 @@ void main() {
       });
       await tester.pumpAndSettle();
       await tester.ensureVisible(find.text('Use Android speech dialog'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Use Android speech dialog'));
       await tester.pumpAndSettle();
       expect(adapter.systemStarts, isEmpty);

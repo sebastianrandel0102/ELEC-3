@@ -185,6 +185,7 @@ void main() {
         find.byKey(const Key('agent-input')),
         'Add PHP 500 or 5000 to my goal',
       );
+      await tester.pump();
       await tester.tap(find.byTooltip('Send reviewed text'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(

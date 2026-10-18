@@ -137,6 +137,7 @@ void main() {
         find.byKey(const Key('agent-input')),
         'Create a goal called Laptop, target ₱30,000, deadline December 15, 2027.',
       );
+      await tester.pump();
       await tester.tap(find.byTooltip('Send reviewed text'));
       await tester.pumpAndSettle();
       expect(engine.mission!.status, MissionStatus.completed);
@@ -150,6 +151,7 @@ void main() {
         find.byKey(const Key('agent-input')),
         'Create a task called Research Laptop Prices tomorrow',
       );
+      await tester.pump();
       await tester.tap(find.byTooltip('Send reviewed text'));
       await tester.pumpAndSettle();
       expect(backend.calls, hasLength(1));
@@ -172,6 +174,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(backend.calls, isEmpty);
       expect(engine.mission, isNull);
+      await tester.pump();
       await tester.tap(find.byTooltip('Send reviewed text'));
       await tester.pumpAndSettle();
       expect(backend.calls, isEmpty);

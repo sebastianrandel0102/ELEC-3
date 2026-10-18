@@ -65,6 +65,7 @@ void main() {
       find.byKey(const Key('agent-input')),
       'Create a task to compare prices tomorrow',
     );
+    await tester.pump();
     await tester.tap(find.byTooltip('Send reviewed text'));
     await tester.pumpAndSettle();
     expect(engine.mission, isNotNull);
@@ -133,6 +134,7 @@ void main() {
         find.byKey(const Key('agent-input')),
         'Prepare PHP 15 for my goal',
       );
+      await tester.pump();
       await tester.tap(find.byTooltip('Send reviewed text'));
       await tester.pumpAndSettle();
       expect(
@@ -167,6 +169,11 @@ void main() {
     (tester) async {
       await mount(tester);
       await tester.tap(find.byTooltip('Agent settings'));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.text('Execute approved actions'),
+        300,
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Execute approved actions'));
       await tester.pumpAndSettle();
