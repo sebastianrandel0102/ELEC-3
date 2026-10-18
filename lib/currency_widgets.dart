@@ -212,11 +212,11 @@ class ExchangeRateStatus extends StatelessWidget {
                     ? Icons.history
                     : Icons.public,
                 size: 14,
-                color: muted,
+                color: context.atelierMuted,
               ),
               Text(
                 '${controller.preferred} · ${controller.status}',
-                style: const TextStyle(fontSize: 11, color: muted),
+                style: TextStyle(fontSize: 11, color: context.atelierMuted),
               ),
               if (controller.loading)
                 const SizedBox.square(
@@ -238,13 +238,13 @@ class ExchangeRateStatus extends StatelessWidget {
                     );
                   }
                 },
-                child: const Padding(
+                child: Padding(
                   padding: EdgeInsets.all(4),
                   child: Text(
                     'Rates by ExchangeRate-API',
                     style: TextStyle(
                       fontSize: 11,
-                      color: teal,
+                      color: context.atelierAccent,
                       decoration: TextDecoration.underline,
                     ),
                   ),
@@ -256,24 +256,21 @@ class ExchangeRateStatus extends StatelessWidget {
             if (controller.snapshot != null) ...[
               Text(
                 'Provider updated: ${rateTime(controller.snapshot!.providerTime)}',
-                style: const TextStyle(color: muted, fontSize: 12),
+                style: TextStyle(color: context.atelierMuted, fontSize: 12),
               ),
               Text(
                 'Fetched: ${rateTime(controller.snapshot!.fetchedAt)}',
-                style: const TextStyle(color: muted, fontSize: 12),
+                style: TextStyle(color: context.atelierMuted, fontSize: 12),
               ),
             ],
-            const Text(
+            Text(
               'Daily reference rates. Converted values are tracking estimates.',
-              style: TextStyle(color: muted, fontSize: 12),
+              style: TextStyle(color: context.atelierMuted, fontSize: 12),
             ),
             if (controller.error != null)
               Text(
                 controller.error!,
-                style: const TextStyle(
-                  color: SaveTrackDesign.warning,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: context.atelierWarning, fontSize: 12),
               ),
             TextButton.icon(
               key: const ValueKey('refresh-rates'),
@@ -318,7 +315,7 @@ class CurrencyContextLabel extends StatelessWidget {
     }
     return Text(
       '${historical ? 'Current-rate estimated equivalent' : 'Display estimate'} · stored in $source${controller.stale || controller.usingCache ? ' · saved rates' : ''}',
-      style: const TextStyle(fontSize: 11, color: muted),
+      style: TextStyle(fontSize: 11, color: context.atelierMuted),
     );
   }
 }
@@ -372,7 +369,9 @@ class _CurrencyPickerState extends State<CurrencyPicker> {
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         )
-                      : SaveTrackDesign.heading,
+                      : SaveTrackDesign.heading.copyWith(
+                          color: context.atelierInk,
+                        ),
                 ),
               ),
               Padding(
@@ -401,7 +400,7 @@ class _CurrencyPickerState extends State<CurrencyPicker> {
                       child: ListTile(
                         key: ValueKey('pick-${c.code}'),
                         selected: c.code == widget.selected,
-                        selectedTileColor: SaveTrackDesign.mist,
+                        selectedTileColor: context.atelierTonal,
                         title: Text('${c.code} · ${c.name}'),
                         subtitle: Text(
                           enabled
@@ -409,15 +408,18 @@ class _CurrencyPickerState extends State<CurrencyPicker> {
                               : 'No applicable rate available',
                         ),
                         leading: CircleAvatar(
-                          backgroundColor: SaveTrackDesign.lightMint,
-                          foregroundColor: teal,
+                          backgroundColor: context.atelierSelected,
+                          foregroundColor: context.atelierAccent,
                           child: Text(
                             c.symbol,
                             style: const TextStyle(fontSize: 13),
                           ),
                         ),
                         trailing: c.code == widget.selected
-                            ? const Icon(Icons.check_circle, color: teal)
+                            ? Icon(
+                                Icons.check_circle,
+                                color: context.atelierAccent,
+                              )
                             : null,
                         enabled: enabled,
                         onTap: () => Navigator.pop(context, c.code),
@@ -470,7 +472,7 @@ class TransactionConversionDetails extends StatelessWidget {
       'Recorded input: ${originalMoney(data['inputAmount'] as num? ?? 0, data['inputCurrencyCode'] as String? ?? 'PHP')}\n'
       'Locked rate: ${data['exchangeRate']} ${data['goalCurrencyCode']} per ${data['inputCurrencyCode']}\n'
       '${data['rateProvider']} · ${timestamp is Timestamp ? rateTime(timestamp.toDate()) : 'Rate timestamp unavailable'}',
-      style: const TextStyle(color: muted, fontSize: 12),
+      style: TextStyle(color: context.atelierMuted, fontSize: 12),
     );
   }
 }

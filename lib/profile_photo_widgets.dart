@@ -180,11 +180,14 @@ Future<ProfilePhotoAction?> showProfilePhotoActions(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text('Profile Picture', style: SaveTrackDesign.heading),
+          Text(
+            'Profile Picture',
+            style: SaveTrackDesign.heading.copyWith(color: context.atelierInk),
+          ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Choose a photo to personalize your SaveTrack account.',
-            style: TextStyle(color: muted, height: 1.4),
+            style: TextStyle(color: context.atelierMuted, height: 1.4),
           ),
           const SizedBox(height: 20),
           ListTile(
@@ -294,9 +297,11 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text(
+                    Text(
                       'Profile Picture',
-                      style: SaveTrackDesign.heading,
+                      style: SaveTrackDesign.heading.copyWith(
+                        color: context.atelierInk,
+                      ),
                     ),
                     const SizedBox(height: 24),
                     ProfileAvatar(
@@ -433,9 +438,9 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
                 child: IconButton(
                   tooltip: 'Change profile picture',
                   onPressed: _busy || !widget.enabled ? null : _actions,
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.add_a_photo_outlined,
-                    color: teal,
+                    color: context.atelierAccent,
                     size: 21,
                   ),
                 ),
@@ -501,7 +506,10 @@ class _ProfilePhotoPreviewState extends State<ProfilePhotoPreview> {
     children: [
       Text(
         label,
-        style: const TextStyle(color: muted, fontWeight: FontWeight.w600),
+        style: TextStyle(
+          color: context.atelierMuted,
+          fontWeight: FontWeight.w600,
+        ),
       ),
       Slider(
         label: label,
@@ -586,7 +594,7 @@ class _ProfilePhotoPreviewState extends State<ProfilePhotoPreview> {
                   padding: const EdgeInsets.only(bottom: 12),
                   child: Text(
                     _error!,
-                    style: const TextStyle(color: SaveTrackDesign.error),
+                    style: TextStyle(color: context.atelierError),
                   ),
                 ),
               GradientButton(
@@ -678,7 +686,7 @@ class _ProfilePhotoUploadDialogState extends State<_ProfilePhotoUploadDialog> {
                 _progress! >= 1
                     ? 'Saving your profile…'
                     : '${(_progress! * 100).round()}% uploaded',
-                style: const TextStyle(color: muted),
+                style: TextStyle(color: context.atelierMuted),
               ),
             ),
         ],

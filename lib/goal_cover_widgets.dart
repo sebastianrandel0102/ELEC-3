@@ -167,18 +167,20 @@ class _GoalCoverImageState extends State<GoalCoverImage> {
             child: Icon(widget.icon, color: mint, size: 38),
           ),
         ),
-        const Positioned(
-          left: 20,
-          bottom: 16,
-          child: Text(
-            'A little closer, every day.',
-            style: TextStyle(
-              color: SaveTrackDesign.onHeroMuted,
-              fontSize: 11,
-              letterSpacing: .4,
+        if (MediaQuery.textScalerOf(context).scale(11) <= 16.5)
+          const Positioned(
+            left: 20,
+            right: 20,
+            bottom: 16,
+            child: Text(
+              'A little closer, every day.',
+              style: TextStyle(
+                color: SaveTrackDesign.onHeroMuted,
+                fontSize: 11,
+                letterSpacing: .4,
+              ),
             ),
           ),
-        ),
       ],
     ),
   );
@@ -522,9 +524,9 @@ class _GoalCoverFormSectionState extends State<GoalCoverFormSection> {
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Add a picture that inspires your savings goal.',
-          style: TextStyle(color: muted, height: 1.4),
+          style: TextStyle(color: context.atelierMuted, height: 1.4),
         ),
         const SizedBox(height: 14),
         GoalCoverImage(
@@ -670,9 +672,9 @@ class _GoalCoverPreviewState extends State<GoalCoverPreview> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
+                      Text(
                         'Make sure your goal looks just right.',
-                        style: TextStyle(color: muted),
+                        style: TextStyle(color: context.atelierMuted),
                       ),
                       const SizedBox(height: 20),
                       Semantics(
@@ -828,9 +830,7 @@ class _GoalCoverPreviewState extends State<GoalCoverPreview> {
                           padding: const EdgeInsets.only(top: 12),
                           child: Text(
                             error!,
-                            style: const TextStyle(
-                              color: SaveTrackDesign.error,
-                            ),
+                            style: TextStyle(color: context.atelierError),
                             semanticsLabel: 'Cover update failed. $error',
                           ),
                         ),
@@ -872,7 +872,7 @@ class _GoalCoverPreviewState extends State<GoalCoverPreview> {
   ) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      Text(label, style: const TextStyle(color: muted, fontSize: 12)),
+      Text(label, style: TextStyle(color: context.atelierMuted, fontSize: 12)),
       Slider(
         value: value,
         min: min,

@@ -20,8 +20,8 @@ Future<void> loadAiMathFontsForPreviews() async {
 }
 
 /// Review captures use the same bundled typeface as the production app.
-Future<void> loadManropeForPreviews() async {
-  if (!const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;
+Future<void> loadManropeForPreviews({bool force = false}) async {
+  if (!force && !const bool.fromEnvironment('SAVE_UI_PREVIEWS')) return;
   final loader = FontLoader('Manrope')
     ..addFont(
       File('assets/fonts/Manrope.ttf')

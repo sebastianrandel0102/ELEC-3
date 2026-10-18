@@ -333,10 +333,10 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                     action == 'plan'
                         ? 'Choose a goal for your plan'
                         : 'Analyze a Goal',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: ink,
+                      color: context.atelierInk,
                     ),
                   ),
                 ),
@@ -369,7 +369,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                         goals[index].shared
                             ? Icons.group_outlined
                             : Icons.flag_outlined,
-                        color: teal,
+                        color: context.atelierAccent,
                       ),
                       title: Text(goals[index].title),
                       subtitle: Text(
@@ -461,7 +461,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     resizeToAvoidBottomInset: true,
-    backgroundColor: canvas,
+    backgroundColor: context.atelierCanvas,
     body: SafeArea(
       child: Center(
         child: ConstrainedBox(
@@ -479,10 +479,10 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                       horizontal: compact ? 8 : 12,
                       vertical: compact ? 2 : 10,
                     ),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
+                    decoration: BoxDecoration(
+                      color: context.atelierSurface,
                       border: Border(
-                        bottom: BorderSide(color: SaveTrackDesign.border),
+                        bottom: BorderSide(color: context.atelierBorder),
                       ),
                     ),
                     child: Row(
@@ -500,19 +500,22 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'SaveTrack AI',
                                 style: TextStyle(
-                                  color: ink,
+                                  color: context.atelierInk,
                                   fontSize: 18,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -.4,
                                 ),
                               ),
                               if (!compact)
-                                const Text(
+                                Text(
                                   'Your intelligent companion',
-                                  style: TextStyle(color: muted, fontSize: 11),
+                                  style: TextStyle(
+                                    color: context.atelierMuted,
+                                    fontSize: 11,
+                                  ),
                                 ),
                             ],
                           ),
@@ -569,10 +572,10 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                       padding: EdgeInsets.fromLTRB(inset, 0, inset, 10),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.shield_outlined,
                             size: 14,
-                            color: muted,
+                            color: context.atelierMuted,
                           ),
                           const SizedBox(width: 7),
                           Expanded(
@@ -582,8 +585,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                                   : active.approval != null
                                   ? 'Anonymous summary approved · exact facts stay local'
                                   : 'Personalized insights use only information you approve',
-                              style: const TextStyle(
-                                color: muted,
+                              style: TextStyle(
+                                color: context.atelierMuted,
                                 fontSize: 10,
                                 height: 1.5,
                               ),
@@ -630,7 +633,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                         child: Container(
                           padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
                           decoration: BoxDecoration(
-                            color: SaveTrackDesign.errorSurface,
+                            color: Theme.of(context).colorScheme.errorContainer,
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Row(
@@ -638,8 +641,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                               Expanded(
                                 child: Text(
                                   active.failure!.message,
-                                  style: const TextStyle(
-                                    color: SaveTrackDesign.error,
+                                  style: TextStyle(
+                                    color: context.atelierError,
                                     fontSize: 12,
                                     height: 1.5,
                                   ),
@@ -692,8 +695,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
             _controller.mode == AiMode.askAnything
                 ? 'A little inspiration'
                 : 'Make room for progress',
-            style: const TextStyle(
-              color: ink,
+            style: TextStyle(
+              color: context.atelierInk,
               fontWeight: FontWeight.w700,
               fontSize: 17,
             ),
@@ -703,7 +706,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
             _controller.mode == AiMode.askAnything
                 ? 'Start with an idea. Make it your own.'
                 : 'Choose a subject. Review what you share.',
-            style: const TextStyle(color: muted, fontSize: 12),
+            style: TextStyle(color: context.atelierMuted, fontSize: 12),
           ),
           const SizedBox(height: 16),
           if (_contextStep == _ContextStep.loading ||
@@ -716,10 +719,10 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
             ),
           _prompts(),
           const SizedBox(height: 20),
-          const Text(
+          Text(
             'Powered by Gemini · Guidance, with you in control',
             textAlign: TextAlign.center,
-            style: TextStyle(color: muted, fontSize: 10),
+            style: TextStyle(color: context.atelierMuted, fontSize: 10),
           ),
         ],
       );
@@ -771,15 +774,15 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           child: Container(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
             decoration: BoxDecoration(
-              color: user ? SaveTrackDesign.midnight : Colors.white,
+              color: user ? SaveTrackDesign.midnight : context.atelierSurface,
               borderRadius: BorderRadius.circular(20),
-              border: user ? null : Border.all(color: SaveTrackDesign.border),
+              border: user ? null : Border.all(color: context.atelierBorder),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (!user) ...[
-                  const Row(
+                  Row(
                     children: [
                       AiEmblem(size: 24),
                       SizedBox(width: 8),
@@ -789,7 +792,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: teal,
+                            color: context.atelierAccent,
                           ),
                         ),
                       ),
@@ -803,21 +806,24 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                   Semantics(
                     liveRegion: true,
                     label: 'AI is thinking',
-                    child: const Row(
+                    child: Row(
                       children: [
                         SizedBox(
                           width: 14,
                           height: 14,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: teal,
+                            color: context.atelierAccent,
                           ),
                         ),
                         SizedBox(width: 10),
                         Expanded(
                           child: Text(
                             'Thinking…',
-                            style: TextStyle(color: muted, fontSize: 13),
+                            style: TextStyle(
+                              color: context.atelierMuted,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -849,8 +855,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                               : message.status == AiMessageStatus.failed
                               ? 'Incomplete · AI-generated'
                               : 'AI-generated · verify important details',
-                          style: const TextStyle(
-                            color: muted,
+                          style: TextStyle(
+                            color: context.atelierMuted,
                             fontSize: 10,
                             height: 1.5,
                           ),
@@ -861,10 +867,10 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                         IconButton(
                           tooltip: 'Copy answer',
                           onPressed: () => copyAiText(context, message.text),
-                          icon: const Icon(
+                          icon: Icon(
                             Icons.copy_rounded,
                             size: 16,
-                            color: muted,
+                            color: context.atelierMuted,
                           ),
                         ),
                     ],
@@ -995,9 +1001,9 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         Container(
           padding: const EdgeInsets.fromLTRB(8, 4, 6, 4),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.atelierSurface,
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: SaveTrackDesign.elevatedBorder),
+            border: Border.all(color: context.atelierBorder),
             boxShadow: SaveTrackDesign.shadows,
           ),
           child: Row(
@@ -1011,7 +1017,11 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                   maxLines: compact ? 2 : 4,
                   maxLength: AiConfig.maxQuestionCharacters,
                   textInputAction: TextInputAction.newline,
-                  style: const TextStyle(fontSize: 14, color: ink, height: 1.5),
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: context.atelierInk,
+                    height: 1.5,
+                  ),
                   decoration: InputDecoration(
                     hintText: _controller.mode == AiMode.askAnything
                         ? 'Ask anything…'
@@ -1033,8 +1043,8 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                 builder: (context, value, _) => IconButton.filled(
                   tooltip: _controller.busy ? 'Stop response' : 'Send question',
                   style: IconButton.styleFrom(
-                    backgroundColor: teal,
-                    foregroundColor: Colors.white,
+                    backgroundColor: context.atelierAccent,
+                    foregroundColor: context.atelierSurface,
                     minimumSize: const Size(48, 48),
                   ),
                   onPressed: _controller.busy
@@ -1054,12 +1064,12 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           ),
         ),
         if (!compact)
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(top: 7),
             child: Text(
               'Keep questions free of personal or sensitive information.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: muted, fontSize: 10),
+              style: TextStyle(color: context.atelierMuted, fontSize: 10),
             ),
           ),
       ],

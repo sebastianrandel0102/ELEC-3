@@ -131,10 +131,10 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                                 to: chosen.code,
                               ),
                               if (!selectable)
-                                const Text(
+                                Text(
                                   'This recognized currency has no current applicable quote. Keep your existing preference or refresh rates.',
                                   style: TextStyle(
-                                    color: SaveTrackDesign.warning,
+                                    color: context.atelierWarning,
                                   ),
                                 ),
                               const SizedBox(height: 12),
@@ -165,14 +165,15 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                               if (service.preferenceError != null)
                                 Text(
                                   service.preferenceError!,
-                                  style: const TextStyle(
-                                    color: SaveTrackDesign.error,
-                                  ),
+                                  style: TextStyle(color: context.atelierError),
                                 ),
                               if (service.preferencePending)
-                                const Text(
+                                Text(
                                   'Preference saved on this device; syncing to your account.',
-                                  style: TextStyle(color: muted, fontSize: 12),
+                                  style: TextStyle(
+                                    color: context.atelierMuted,
+                                    fontSize: 12,
+                                  ),
                                 ),
                             ],
                           ),
@@ -185,9 +186,12 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                         'All active fiat currencies (${currencies.length})',
                         style: const TextStyle(fontWeight: FontWeight.w700),
                       ),
-                      const Text(
+                      Text(
                         'Only currencies with provider quotes can be selected. Your stored balances keep their original denomination.',
-                        style: TextStyle(color: muted, fontSize: 12),
+                        style: TextStyle(
+                          color: context.atelierMuted,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
@@ -209,14 +213,14 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           selected: selected == currency.code,
-                          selectedTileColor: SaveTrackDesign.lightMint,
+                          selectedTileColor: context.atelierSelected,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 8,
                           ),
                           leading: CircleAvatar(
-                            backgroundColor: Colors.white,
-                            foregroundColor: teal,
+                            backgroundColor: context.atelierSurface,
+                            foregroundColor: context.atelierAccent,
                             child: Text(
                               currency.symbol,
                               style: const TextStyle(fontSize: 13),
@@ -241,12 +245,12 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                                 ? Icon(
                                     Icons.check_circle,
                                     key: ValueKey(currency.code),
-                                    color: teal,
+                                    color: context.atelierAccent,
                                   )
-                                : const Icon(
+                                : Icon(
                                     Icons.circle_outlined,
                                     size: 22,
-                                    color: muted,
+                                    color: context.atelierMuted,
                                   ),
                           ),
                           onTap: () => setState(() => selected = currency.code),
@@ -289,31 +293,34 @@ class ConversionPreview extends StatelessWidget {
           children: [
             Text(
               formatCurrency(amount, from),
-              style: const TextStyle(color: muted),
+              style: TextStyle(color: context.atelierMuted),
             ),
             Text(
               formatCurrency(conversion.convert(amount, from, to), to),
               key: const ValueKey('converted-preview'),
-              style: SaveTrackDesign.amount.copyWith(fontSize: 24, color: teal),
+              style: SaveTrackDesign.amount.copyWith(
+                fontSize: 24,
+                color: context.atelierAccent,
+              ),
             ),
             if (from != to) ...[
               Text(
                 '1 $from = ${rate.fixed(8)} $to',
-                style: const TextStyle(color: muted, fontSize: 12),
+                style: TextStyle(color: context.atelierMuted, fontSize: 12),
               ),
               if (rates != null)
                 Text(
                   'Provider updated: ${rateTime(rates.providerTime)}${controller?.stale == true ? ' · saved rates' : ''}',
-                  style: const TextStyle(color: muted, fontSize: 12),
+                  style: TextStyle(color: context.atelierMuted, fontSize: 12),
                 ),
             ],
           ],
         ),
       );
     } on CurrencyFailure {
-      return const Text(
+      return Text(
         'Exchange rates unavailable for this conversion.',
-        style: TextStyle(color: SaveTrackDesign.warning),
+        style: TextStyle(color: context.atelierWarning),
       );
     }
   }
@@ -352,9 +359,9 @@ class _CurrencyConverterState extends State<CurrencyConverter> {
               'Currency Converter',
               style: TextStyle(fontWeight: FontWeight.w700),
             ),
-            const Text(
+            Text(
               'Preview only · no money is exchanged',
-              style: TextStyle(fontSize: 12, color: muted),
+              style: TextStyle(fontSize: 12, color: context.atelierMuted),
             ),
             const SizedBox(height: 12),
             TextField(

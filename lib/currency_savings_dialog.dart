@@ -152,7 +152,7 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                             'Current Savings: ${originalMoney(balance, code)}',
                             style: SaveTrackDesign.amount.copyWith(
                               fontSize: 24,
-                              color: teal,
+                              color: context.atelierAccent,
                             ),
                           ),
                           Text(
@@ -182,7 +182,7 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                     TextFormField(
                       style: SaveTrackDesign.amount.copyWith(
                         fontSize: 28,
-                        color: teal,
+                        color: context.atelierAccent,
                       ),
                       key: ValueKey(
                         widget.withdrawal
@@ -235,35 +235,38 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                           'New Savings Balance: ${formatCurrency(widget.withdrawal ? ExactDecimal.fromNum(balance) - preview.amount : ExactDecimal.fromNum(balance) + preview.amount, code)}',
                         ),
                       if (inputCurrency != code)
-                        const Text(
+                        Text(
                           'Confirming records this estimate with a locked rate. No money is exchanged.',
-                          style: TextStyle(fontSize: 12, color: muted),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: context.atelierMuted,
+                          ),
                         ),
                     ],
                     if (conversionError != null)
                       Text(
                         conversionError,
-                        style: const TextStyle(color: SaveTrackDesign.warning),
+                        style: TextStyle(color: context.atelierWarning),
                       ),
                     if (!validBalance)
-                      const Text(
+                      Text(
                         'You cannot decrease more than your available savings.',
-                        style: TextStyle(color: SaveTrackDesign.error),
+                        style: TextStyle(color: context.atelierError),
                       ),
                     if (!available)
-                      const Text(
+                      Text(
                         'This savings goal is unavailable for this operation.',
-                        style: TextStyle(color: SaveTrackDesign.error),
+                        style: TextStyle(color: context.atelierError),
                       ),
                     if (error != null)
                       Text(
                         error!,
-                        style: const TextStyle(color: SaveTrackDesign.error),
+                        style: TextStyle(color: context.atelierError),
                       ),
                     if (submitted != null && error != null)
-                      const Text(
+                      Text(
                         'Retry confirms the same amount and locked rate.',
-                        style: TextStyle(color: muted),
+                        style: TextStyle(color: context.atelierMuted),
                       ),
                   ],
                 ),

@@ -632,7 +632,10 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             brightness: Brightness.dark,
             surface: SaveTrackDesign.obsidian,
           )
-        : ColorScheme.fromSeed(seedColor: teal, surface: canvas);
+        : ColorScheme.fromSeed(
+            seedColor: context.atelierAccent,
+            surface: context.atelierCanvas,
+          );
     final theme = Theme.of(context).copyWith(
       colorScheme: colors,
       scaffoldBackgroundColor: colors.surface,
@@ -1228,7 +1231,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: message.user
-            ? teal
+            ? context.atelierAccent
             : Theme.of(context).colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(20),
       ),
@@ -1261,7 +1264,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               message.text,
               style: TextStyle(
                 color: message.user
-                    ? Colors.white
+                    ? Theme.of(context).colorScheme.onPrimary
                     : Theme.of(context).colorScheme.onSurface,
                 height: 1.55,
               ),

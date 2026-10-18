@@ -561,9 +561,22 @@ void main() {
       expect(find.text('Savings Decreased'), findsOneWidget);
       expect(find.text('Reason: Emergency'), findsOneWidget);
       expect(find.text('+PHP ₱1,000.00'), findsOneWidget);
-      expect(find.text('+PHP ₱2,000.00'), findsOneWidget);
       expect(find.byIcon(Icons.south_east), findsOneWidget);
-      expect(find.byIcon(Icons.south_west), findsNWidgets(2));
+      expect(find.byIcon(Icons.south_west), findsWidgets);
+      // Date headings and filter controls put later entries below the fold.
+      await tester.scrollUntilVisible(
+        find.text('+PHP ₱2,000.00'),
+        200,
+        scrollable: find
+            .byWidgetPredicate(
+              (widget) =>
+                  widget is Scrollable &&
+                  widget.axisDirection == AxisDirection.down,
+            )
+            .first,
+      );
+      expect(find.text('+PHP ₱2,000.00'), findsOneWidget);
+      expect(find.byIcon(Icons.south_west), findsWidgets);
       expect(tester.takeException(), isNull);
     },
   );
