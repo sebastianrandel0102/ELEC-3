@@ -158,15 +158,18 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
+                      Text(
                         'Check your inbox and spam folder after requesting a reset.',
-                        style: TextStyle(color: muted),
+                        style: TextStyle(color: context.atelierMuted),
                       ),
                       const SizedBox(height: 16),
                     ],
-                    const Text(
+                    Text(
                       'This resets your SaveTrack email/password credential. If you use Google Sign-In, continue signing in with Google; this does not change your Google password.',
-                      style: TextStyle(color: muted, fontSize: 12),
+                      style: TextStyle(
+                        color: context.atelierMuted,
+                        fontSize: 12,
+                      ),
                     ),
                     if (_error != null) ...[
                       const SizedBox(height: 16),
@@ -174,7 +177,7 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
                         liveRegion: true,
                         child: Text(
                           _error!,
-                          style: const TextStyle(color: SaveTrackDesign.error),
+                          style: TextStyle(color: context.atelierError),
                         ),
                       ),
                     ],
@@ -182,7 +185,7 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
                     GradientButton(
                       onPressed: _busy || _cooldown > 0 ? null : _send,
                       child: _busy
-                          ? const SizedBox.square(
+                          ? SizedBox.square(
                               dimension: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
@@ -197,7 +200,10 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
                       const SizedBox(height: 12),
                       Text(
                         'To avoid repeated requests, SaveTrack enables another request in $_cooldown seconds.',
-                        style: const TextStyle(color: muted, fontSize: 12),
+                        style: TextStyle(
+                          color: context.atelierMuted,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                     const SizedBox(height: 8),

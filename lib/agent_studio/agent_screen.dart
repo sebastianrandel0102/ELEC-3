@@ -1456,7 +1456,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
           margin: EdgeInsets.only(top: grouped ? 4 : 18, bottom: 4),
           padding: const EdgeInsets.fromLTRB(18, 16, 18, 10),
           decoration: BoxDecoration(
-            color: message.user ? teal : c.surfaceContainerLow,
+            color: message.user ? c.primary : c.surfaceContainerLow,
             border: message.user ? null : Border.all(color: c.outlineVariant),
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(20),
@@ -1488,7 +1488,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
                           letterSpacing: .8,
-                          color: message.user ? mint : c.primary,
+                          color: message.user ? c.onPrimary : c.primary,
                         ),
                       ),
                     ),
@@ -1504,7 +1504,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
               else
                 SelectableText(
                   message.text,
-                  style: const TextStyle(color: Colors.white, height: 1.6),
+                  style: TextStyle(color: c.onPrimary, height: 1.6),
                 ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -1530,7 +1530,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                     icon: Icon(
                       Icons.copy_outlined,
                       size: 17,
-                      color: message.user ? mint : c.onSurfaceVariant,
+                      color: message.user ? c.onPrimary : c.onSurfaceVariant,
                     ),
                   ),
                   if (!message.user)

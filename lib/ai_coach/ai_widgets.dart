@@ -57,7 +57,7 @@ class AiDashboardCard extends StatelessWidget {
               children: [
                 const AiEmblem(size: 44),
                 const SizedBox(width: 16),
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -112,7 +112,7 @@ class AiModeSelector extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(4),
     decoration: BoxDecoration(
-      color: SaveTrackDesign.lightMint,
+      color: context.atelierSelected,
       borderRadius: BorderRadius.circular(16),
     ),
     child: LayoutBuilder(
@@ -146,12 +146,14 @@ class AiModeSelector extends StatelessWidget {
         SaveTrackDesign.selectionMotion,
       ),
       decoration: BoxDecoration(
-        color: item == mode ? teal : Colors.transparent,
+        color: item == mode ? context.atelierAccent : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextButton(
         style: TextButton.styleFrom(
-          foregroundColor: item == mode ? Colors.white : ink,
+          foregroundColor: item == mode
+              ? context.atelierSurface
+              : context.atelierInk,
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         ),
@@ -274,10 +276,10 @@ class AiPromptCard extends StatelessWidget {
   final VoidCallback onTap;
   @override
   Widget build(BuildContext context) => Material(
-    color: Colors.white,
+    color: context.atelierSurface,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(18),
-      side: const BorderSide(color: SaveTrackDesign.border),
+      side: BorderSide(color: context.atelierBorder),
     ),
     clipBehavior: Clip.antiAlias,
     child: InkWell(
@@ -289,24 +291,32 @@ class AiPromptCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, color: teal, size: 21),
+                Icon(icon, color: context.atelierAccent, size: 21),
                 const Spacer(),
-                const Icon(Icons.north_east_rounded, color: muted, size: 14),
+                Icon(
+                  Icons.north_east_rounded,
+                  color: context.atelierMuted,
+                  size: 14,
+                ),
               ],
             ),
             const SizedBox(height: 14),
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: ink,
+                color: context.atelierInk,
                 fontSize: 14,
               ),
             ),
             const SizedBox(height: 5),
             Text(
               detail,
-              style: const TextStyle(color: muted, height: 1.5, fontSize: 12),
+              style: TextStyle(
+                color: context.atelierMuted,
+                height: 1.5,
+                fontSize: 12,
+              ),
             ),
           ],
         ),
@@ -324,52 +334,56 @@ class AiFactCard extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: SaveTrackDesign.mist,
+        color: context.atelierTonal,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: SaveTrackDesign.elevatedBorder),
+        border: Border.all(color: context.atelierBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Wrap(
+          Wrap(
             spacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Icon(Icons.verified_outlined, color: teal, size: 18),
+              Icon(
+                Icons.verified_outlined,
+                color: context.atelierAccent,
+                size: 18,
+              ),
               Text(
                 'Verified by SaveTrack',
                 style: TextStyle(
-                  color: teal,
+                  color: context.atelierAccent,
                   fontWeight: FontWeight.w700,
                   fontSize: 12,
                 ),
               ),
               Text(
                 '· On this device',
-                style: TextStyle(color: muted, fontSize: 11),
+                style: TextStyle(color: context.atelierMuted, fontSize: 11),
               ),
             ],
           ),
           const SizedBox(height: 12),
           Text(
             facts.title,
-            style: const TextStyle(
-              color: ink,
+            style: TextStyle(
+              color: context.atelierInk,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
           ),
           if (facts.values['Saved'] != null) ...[
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Saved toward your goal',
-              style: TextStyle(color: muted, fontSize: 12),
+              style: TextStyle(color: context.atelierMuted, fontSize: 12),
             ),
             const SizedBox(height: 4),
             SelectableText(
               facts.values['Saved']!,
-              style: const TextStyle(
-                color: ink,
+              style: TextStyle(
+                color: context.atelierInk,
                 fontSize: 26,
                 height: 1.3,
                 fontWeight: FontWeight.w700,
@@ -383,8 +397,8 @@ class AiFactCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: facts.progress,
-                backgroundColor: SaveTrackDesign.lightMint,
-                color: teal,
+                backgroundColor: context.atelierSelected,
+                color: context.atelierAccent,
                 minHeight: 6,
                 semanticsLabel: 'Goal progress',
                 semanticsValue: '${(facts.progress! * 100).round()}',
@@ -404,12 +418,12 @@ class AiFactCard extends StatelessWidget {
                       MediaQuery.textScalerOf(context).scale(14) > 20;
                   final label = Text(
                     entry.key,
-                    style: const TextStyle(color: muted, fontSize: 12),
+                    style: TextStyle(color: context.atelierMuted, fontSize: 12),
                   );
                   final value = SelectableText(
                     entry.value,
-                    style: const TextStyle(
-                      color: ink,
+                    style: TextStyle(
+                      color: context.atelierInk,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                       height: 1.5,
@@ -431,9 +445,13 @@ class AiFactCard extends StatelessWidget {
                 },
               ),
             ),
-          const Text(
+          Text(
             'Exact values stay local. AI guidance is separate and may be inaccurate.',
-            style: TextStyle(color: muted, height: 1.5, fontSize: 11),
+            style: TextStyle(
+              color: context.atelierMuted,
+              height: 1.5,
+              fontSize: 11,
+            ),
           ),
         ],
       ),
@@ -451,7 +469,7 @@ Future<AiReviewChoice?> showAiContextReview(
   isScrollControlled: true,
   useSafeArea: true,
   showDragHandle: true,
-  backgroundColor: Colors.white,
+  backgroundColor: context.atelierSurface,
   constraints: const BoxConstraints(maxWidth: 560),
   shape: const RoundedRectangleBorder(
     borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -483,17 +501,17 @@ class _AiContextReviewSheet extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: SaveTrackDesign.lightMint,
+                        color: context.atelierSelected,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.shield_outlined,
-                        color: teal,
+                        color: context.atelierAccent,
                         size: 26,
                       ),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Text(
                         'Review AI Context',
                         style: TextStyle(
@@ -501,7 +519,7 @@ class _AiContextReviewSheet extends StatelessWidget {
                           height: 1.25,
                           letterSpacing: -.5,
                           fontWeight: FontWeight.w700,
-                          color: ink,
+                          color: context.atelierInk,
                         ),
                       ),
                     ),
@@ -512,8 +530,8 @@ class _AiContextReviewSheet extends StatelessWidget {
                   facts.shared
                       ? 'Shared goal facts stay on your device. Member participation does not authorize external sharing.'
                       : 'Only the broad categories below will be shared. Names, exact amounts, dates, notes and identifiers stay on your device.',
-                  style: const TextStyle(
-                    color: muted,
+                  style: TextStyle(
+                    color: context.atelierMuted,
                     height: 1.6,
                     fontSize: 13,
                   ),
@@ -536,16 +554,20 @@ class _AiContextReviewSheet extends StatelessWidget {
                 ),
                 if (!facts.shared) ...[
                   const SizedBox(height: 16),
-                  const Row(
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.schedule_rounded, size: 16, color: muted),
+                      Icon(
+                        Icons.schedule_rounded,
+                        size: 16,
+                        color: context.atelierMuted,
+                      ),
                       SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'Approval lasts 10 minutes. Revoke it anytime.',
                           style: TextStyle(
-                            color: muted,
+                            color: context.atelierMuted,
                             fontSize: 12,
                             height: 1.5,
                           ),
@@ -566,8 +588,8 @@ class _AiContextReviewSheet extends StatelessWidget {
                 if (!facts.shared) ...[
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: teal,
-                      foregroundColor: Colors.white,
+                      backgroundColor: context.atelierAccent,
+                      foregroundColor: context.atelierSurface,
                       minimumSize: const Size.fromHeight(52),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -589,15 +611,13 @@ class _AiContextReviewSheet extends StatelessWidget {
                 ],
                 OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: teal,
+                    foregroundColor: context.atelierAccent,
                     minimumSize: const Size.fromHeight(52),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 14,
                     ),
-                    side: const BorderSide(
-                      color: SaveTrackDesign.elevatedBorder,
-                    ),
+                    side: BorderSide(color: context.atelierBorder),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -649,21 +669,21 @@ class _AiReviewSummary extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: SaveTrackDesign.mist,
+      color: context.atelierTonal,
       borderRadius: BorderRadius.circular(20),
-      border: Border.all(color: SaveTrackDesign.elevatedBorder),
+      border: Border.all(color: context.atelierBorder),
     ),
     clipBehavior: Clip.antiAlias,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Padding(
+        Padding(
           padding: EdgeInsets.fromLTRB(18, 16, 18, 8),
           child: Text(
             'What AI will see',
             style: TextStyle(
-              color: teal,
+              color: context.atelierAccent,
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
@@ -680,12 +700,15 @@ class _AiReviewSummary extends StatelessWidget {
                     builder: (context, constraints) {
                       final label = Text(
                         _fieldLabel(entry.key),
-                        style: const TextStyle(color: muted, fontSize: 13),
+                        style: TextStyle(
+                          color: context.atelierMuted,
+                          fontSize: 13,
+                        ),
                       );
                       final value = Text(
                         _valueLabel(entry.value),
-                        style: const TextStyle(
-                          color: ink,
+                        style: TextStyle(
+                          color: context.atelierInk,
                           fontSize: 13,
                           height: 1.5,
                           fontWeight: FontWeight.w600,
@@ -712,12 +735,12 @@ class _AiReviewSummary extends StatelessWidget {
             ],
           ),
         ),
-        const Divider(height: 1, color: SaveTrackDesign.elevatedBorder),
+        Divider(height: 1, color: context.atelierBorder),
         ExpansionTile(
-          title: const Text(
+          title: Text(
             'View exact data',
             style: TextStyle(
-              color: teal,
+              color: context.atelierAccent,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -725,15 +748,15 @@ class _AiReviewSummary extends StatelessWidget {
           tilePadding: const EdgeInsets.symmetric(horizontal: 18),
           childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 16),
           expandedCrossAxisAlignment: CrossAxisAlignment.stretch,
-          iconColor: teal,
-          collapsedIconColor: teal,
+          iconColor: context.atelierAccent,
+          collapsedIconColor: context.atelierAccent,
           shape: const Border(),
           collapsedShape: const Border(),
           children: [
             SelectableText(
               summary.text,
-              style: const TextStyle(
-                color: ink,
+              style: TextStyle(
+                color: context.atelierInk,
                 fontFamily: 'monospace',
                 fontSize: 12,
                 height: 1.6,
@@ -795,15 +818,15 @@ class _AiReviewNotice extends StatelessWidget {
     padding: tonal ? const EdgeInsets.all(16) : EdgeInsets.zero,
     decoration: tonal
         ? BoxDecoration(
-            color: SaveTrackDesign.mist,
+            color: context.atelierTonal,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: SaveTrackDesign.elevatedBorder),
+            border: Border.all(color: context.atelierBorder),
           )
         : null,
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: teal, size: 18),
+        Icon(icon, color: context.atelierAccent, size: 18),
         const SizedBox(width: 10),
         Expanded(
           child: Column(
@@ -811,8 +834,8 @@ class _AiReviewNotice extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
-                  color: ink,
+                style: TextStyle(
+                  color: context.atelierInk,
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                 ),
@@ -820,7 +843,11 @@ class _AiReviewNotice extends StatelessWidget {
               const SizedBox(height: 5),
               Text(
                 detail,
-                style: const TextStyle(color: muted, height: 1.6, fontSize: 12),
+                style: TextStyle(
+                  color: context.atelierMuted,
+                  height: 1.6,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),

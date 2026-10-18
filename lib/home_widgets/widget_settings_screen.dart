@@ -49,38 +49,38 @@ class _HomeWidgetsSettingsScreenState extends State<HomeWidgetsSettingsScreen> {
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            const Text(
+            Text(
               'Your progress, closer.',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.w800,
-                color: ink,
+                color: context.atelierInk,
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Give savings and daily plans a place on your Android home screen. Each widget has its own settings.',
-              style: TextStyle(color: muted, height: 1.5),
+              style: TextStyle(color: context.atelierMuted, height: 1.5),
             ),
             const SizedBox(height: 20),
             for (final type in HomeWidgetType.values) ...[
               Text(
                 widgetTypeName(type),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
-                  color: ink,
+                  color: context.atelierInk,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 widgetTypeDescription(type),
-                style: const TextStyle(color: muted, height: 1.4),
+                style: TextStyle(color: context.atelierMuted, height: 1.4),
               ),
               const SizedBox(height: 6),
               Text(
                 '${type == HomeWidgetType.today ? '4 × 3' : '4 × 2'} starting size · Resizable',
-                style: const TextStyle(fontSize: 11, color: muted),
+                style: TextStyle(fontSize: 11, color: context.atelierMuted),
               ),
               const SizedBox(height: 12),
               WidgetPreviewCard(type: type),
@@ -114,16 +114,16 @@ class _HomeWidgetsSettingsScreenState extends State<HomeWidgetsSettingsScreen> {
               const SizedBox(height: 12),
             ],
             if (_message != null)
-              Text(_message!, style: const TextStyle(color: teal)),
+              Text(_message!, style: TextStyle(color: context.atelierAccent)),
             const SizedBox(height: 16),
             const Text(
               'On your Android home screen',
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               '1. Long-press an empty area and open Widgets.\n2. Find SaveTrack and drag a widget onto your home screen.\n3. Choose your settings and save.\n4. Long-press the widget and drag the resize handles.\n\nSteps and available sizes vary by launcher.',
-              style: TextStyle(color: muted, height: 1.7),
+              style: TextStyle(color: context.atelierMuted, height: 1.7),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -164,9 +164,13 @@ class _HomeWidgetsSettingsScreenState extends State<HomeWidgetsSettingsScreen> {
               ),
             if (controller.error != null) Text(controller.error!),
             const SizedBox(height: 20),
-            const Text(
+            Text(
               'Widgets use saved information and refresh as SaveTrack syncs. Background updates can be delayed by Android. Home-screen information can be seen even while your phone or app is locked.',
-              style: TextStyle(fontSize: 12, color: muted, height: 1.5),
+              style: TextStyle(
+                fontSize: 12,
+                color: context.atelierMuted,
+                height: 1.5,
+              ),
             ),
           ],
         ),
@@ -347,18 +351,18 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  const Text(
+                  Text(
                     'Make it yours.',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
-                      color: ink,
+                      color: context.atelierInk,
                     ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     widgetTypeDescription(widget.instance.type),
-                    style: const TextStyle(color: muted, height: 1.4),
+                    style: TextStyle(color: context.atelierMuted, height: 1.4),
                   ),
                   const SizedBox(height: 20),
                   Container(
@@ -414,9 +418,13 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Preview only. Resize the actual widget from your home screen; layouts vary by launcher.',
-                    style: TextStyle(fontSize: 12, color: muted, height: 1.4),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.atelierMuted,
+                      height: 1.4,
+                    ),
                   ),
                   const SizedBox(height: 24),
                   if (_loading)
@@ -465,7 +473,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
                           '${(_goal!.progress * 100).round()}% completed · ${_goal!.currency}',
-                          style: const TextStyle(color: muted),
+                          style: TextStyle(color: context.atelierMuted),
                         ),
                       ),
                     const SizedBox(height: 20),
@@ -518,7 +526,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                         : _theme == WidgetTheme.emerald
                         ? 'Mint Aurora · Midnight Emerald'
                         : 'Mint Aurora · Daylight',
-                    style: const TextStyle(fontSize: 12, color: muted),
+                    style: TextStyle(fontSize: 12, color: context.atelierMuted),
                   ),
                   const SizedBox(height: 20),
                   const _StudioHeading('Privacy'),
@@ -527,8 +535,8 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: Material(
                         color: _privacy == privacy
-                            ? const Color(0xFFE3F5EA)
-                            : Colors.white,
+                            ? context.atelierSelected
+                            : context.atelierSurface,
                         borderRadius: BorderRadius.circular(16),
                         child: Semantics(
                           selected: _privacy == privacy,
@@ -542,7 +550,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                                   : privacy == WidgetPrivacy.progress
                                   ? Icons.shield_outlined
                                   : Icons.lock_outline,
-                              color: teal,
+                              color: context.atelierAccent,
                             ),
                             title: Text(widgetPrivacyName(privacy)),
                             subtitle: Text(switch (privacy) {
@@ -557,7 +565,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                               _privacy == privacy
                                   ? Icons.check_circle_rounded
                                   : Icons.circle_outlined,
-                              color: teal,
+                              color: context.atelierAccent,
                             ),
                             onTap: _busy
                                 ? null
@@ -567,9 +575,13 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                       ),
                     ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Full Details shows goal names and money amounts to anyone who can see your home screen. Progress Only hides names, amounts, and task titles. App lock does not hide widget content.',
-                    style: TextStyle(fontSize: 12, color: muted, height: 1.5),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: context.atelierMuted,
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   const _StudioHeading('Additional options'),
@@ -603,9 +615,9 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                       style: const TextStyle(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Optional amounts. Every contribution is reviewed and confirmed in SaveTrack.',
-                      style: TextStyle(color: muted),
+                      style: TextStyle(color: context.atelierMuted),
                     ),
                     const SizedBox(height: 12),
                     for (var index = 0; index < _amounts.length; index++)
@@ -640,7 +652,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                   if (_error != null) ...[
                     Text(
                       _error!,
-                      style: const TextStyle(color: SaveTrackDesign.error),
+                      style: TextStyle(color: context.atelierError),
                     ),
                     TextButton(
                       onPressed: _busy ? null : _load,
@@ -663,9 +675,9 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                     child: const Text('Cancel'),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'Resize the widget from your Android home screen. The launcher controls the available sizes.',
-                    style: TextStyle(color: muted, fontSize: 12),
+                    style: TextStyle(color: context.atelierMuted, fontSize: 12),
                   ),
                 ],
               ),
@@ -685,10 +697,10 @@ class _StudioHeading extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 12),
     child: Text(
       title,
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.w800,
-        color: ink,
+        color: context.atelierInk,
       ),
     ),
   );
@@ -711,10 +723,12 @@ class _StudioOption extends StatelessWidget {
     selected: selected,
     enabled: onTap != null,
     child: Material(
-      color: selected ? const Color(0xFFDCF8EB) : Colors.white,
+      color: selected ? context.atelierSelected : context.atelierSurface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: selected ? teal : SaveTrackDesign.border),
+        side: BorderSide(
+          color: selected ? context.atelierAccent : context.atelierBorder,
+        ),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(14),
@@ -726,19 +740,23 @@ class _StudioOption extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(icon, size: 20, color: ink),
+                Icon(icon, size: 20, color: context.atelierInk),
                 const SizedBox(width: 8),
                 Text(
                   label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
-                    color: ink,
+                    color: context.atelierInk,
                   ),
                 ),
                 if (selected) ...[
                   const SizedBox(width: 6),
-                  const Icon(Icons.check_rounded, size: 18, color: ink),
+                  Icon(
+                    Icons.check_rounded,
+                    size: 18,
+                    color: context.atelierInk,
+                  ),
                 ],
               ],
             ),

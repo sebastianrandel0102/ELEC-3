@@ -11,6 +11,39 @@ const ink = Color(0xFF14362B);
 // A darker supporting tone than the decorative muted mint, for readable text.
 const muted = Color(0xFF526E61);
 
+/// Semantic surface and text roles used by every application feature.
+extension AtelierColors on BuildContext {
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
+  Color get atelierInk => Theme.of(this).colorScheme.onSurface;
+  Color get atelierMuted => Theme.of(this).colorScheme.onSurfaceVariant;
+  Color get atelierAccent => Theme.of(this).colorScheme.primary;
+  Color get atelierSurface => Theme.of(this).colorScheme.surface;
+  Color get atelierCanvas => Theme.of(this).scaffoldBackgroundColor;
+  Color get atelierBorder => Theme.of(this).colorScheme.outlineVariant;
+  Color get atelierTonal => Theme.of(this).colorScheme.surfaceContainer;
+  Color get atelierSelected => Theme.of(this).colorScheme.secondaryContainer;
+  Color get atelierError => Theme.of(this).colorScheme.error;
+  Color get atelierWarning =>
+      isDark ? const Color(0xFFFFD38A) : SaveTrackDesign.warning;
+  Color atelierColor(Color value) => !isDark
+      ? value
+      : switch (value) {
+          teal ||
+          SaveTrackDesign.emerald ||
+          SaveTrackDesign.success => atelierAccent,
+          ink => atelierInk,
+          muted || SaveTrackDesign.textMuted => atelierMuted,
+          SaveTrackDesign.error => atelierError,
+          SaveTrackDesign.warning => atelierWarning,
+          _ => value,
+        };
+  LinearGradient get atelierSurfaceGradient => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [atelierSurface, atelierTonal],
+  );
+}
+
 abstract final class SaveTrackDesign {
   static const obsidian = Color(0xFF052F28);
   static const onHeroMuted = Color(0xFFD9F6E9);
@@ -140,6 +173,8 @@ abstract final class SaveTrackDesign {
         secondary: teal,
         surface: Colors.white,
         onSurface: ink,
+        onSurfaceVariant: muted,
+        surfaceContainer: mist,
         error: error,
         outline: muted,
         outlineVariant: border,
@@ -403,6 +438,159 @@ abstract final class SaveTrackDesign {
       dividerTheme: const DividerThemeData(color: divider, thickness: 1),
     );
   }
+
+  static ThemeData get darkTheme {
+    final scheme = ColorScheme.fromSeed(
+      seedColor: fresh,
+      brightness: Brightness.dark,
+      primary: luminous,
+      onPrimary: obsidian,
+      secondary: fresh,
+      onSecondary: obsidian,
+      surface: const Color(0xFF103D33),
+      onSurface: const Color(0xFFF2FAF5),
+      onSurfaceVariant: const Color(0xFFB8CEC2),
+      surfaceContainer: const Color(0xFF16483B),
+      surfaceContainerHighest: const Color(0xFF205745),
+      secondaryContainer: const Color(0xFF225B47),
+      onSecondaryContainer: mint,
+      outlineVariant: const Color(0xFF346052),
+      outline: const Color(0xFF9BB9AA),
+      error: const Color(0xFFFFB4BA),
+      onError: const Color(0xFF650D20),
+    );
+    final base = ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      fontFamily: 'Manrope',
+      colorScheme: scheme,
+    );
+    return base.copyWith(
+      scaffoldBackgroundColor: obsidian,
+      textTheme: theme.textTheme.apply(
+        bodyColor: scheme.onSurface,
+        displayColor: scheme.onSurface,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: obsidian,
+        foregroundColor: scheme.onSurface,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        toolbarHeight: 72,
+      ),
+      cardTheme: theme.cardTheme.copyWith(
+        color: scheme.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radius),
+          side: BorderSide(color: scheme.outlineVariant),
+        ),
+      ),
+      inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+        fillColor: scheme.surfaceContainer,
+        labelStyle: TextStyle(color: scheme.onSurfaceVariant),
+        hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: scheme.primary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: scheme.error),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(48, 52),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          backgroundColor: scheme.primary,
+          foregroundColor: scheme.onPrimary,
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          foregroundColor: scheme.primary,
+          side: BorderSide(color: scheme.outline),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          foregroundColor: scheme.primary,
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        textColor: scheme.onSurface,
+        iconColor: scheme.primary,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: scheme.surface,
+        indicatorColor: scheme.secondaryContainer,
+        elevation: 0,
+        labelTextStyle: WidgetStatePropertyAll(
+          TextStyle(
+            fontFamily: 'Manrope',
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: scheme.onSurface,
+          ),
+        ),
+        iconTheme: WidgetStatePropertyAll(IconThemeData(color: scheme.primary)),
+      ),
+      tabBarTheme: theme.tabBarTheme.copyWith(
+        labelColor: scheme.primary,
+        unselectedLabelColor: scheme.onSurfaceVariant,
+        indicator: BoxDecoration(
+          color: scheme.secondaryContainer,
+          borderRadius: BorderRadius.circular(14),
+        ),
+      ),
+      chipTheme: base.chipTheme.copyWith(
+        backgroundColor: scheme.surface,
+        selectedColor: scheme.secondaryContainer,
+        labelStyle: TextStyle(color: scheme.onSurface),
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        showDragHandle: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(color: scheme.surface),
+      dividerTheme: DividerThemeData(
+        color: scheme.outlineVariant,
+        thickness: 1,
+      ),
+      progressIndicatorTheme: ProgressIndicatorThemeData(
+        color: scheme.primary,
+        linearTrackColor: scheme.secondaryContainer,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: scheme.surfaceContainerHighest,
+        contentTextStyle: TextStyle(color: scheme.onSurface),
+      ),
+    );
+  }
 }
 
 /// Static light and contour artwork; it never represents financial data.
@@ -467,8 +655,8 @@ class TonalPanel extends StatelessWidget {
     width: double.infinity,
     padding: padding,
     decoration: BoxDecoration(
-      gradient: SaveTrackDesign.surface,
-      border: Border.all(color: SaveTrackDesign.border),
+      gradient: context.atelierSurfaceGradient,
+      border: Border.all(color: context.atelierBorder),
       borderRadius: BorderRadius.circular(20),
     ),
     child: child,
@@ -501,7 +689,7 @@ class AuroraMetricCard extends StatelessWidget {
                   value,
                   style: SaveTrackDesign.amount.copyWith(
                     fontSize: 28,
-                    color: ink,
+                    color: context.atelierInk,
                     letterSpacing: -.6,
                   ),
                 ),
@@ -631,7 +819,7 @@ class AuroraLoadingSurface extends StatelessWidget {
                         Container(
                           height: 8,
                           decoration: BoxDecoration(
-                            color: SaveTrackDesign.border,
+                            color: context.atelierBorder,
                             borderRadius: BorderRadius.circular(6),
                           ),
                         ),
@@ -651,7 +839,7 @@ class AuroraLoadingSurface extends StatelessWidget {
                               child: Container(
                                 height: 12,
                                 decoration: BoxDecoration(
-                                  color: SaveTrackDesign.border,
+                                  color: context.atelierBorder,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
@@ -662,7 +850,7 @@ class AuroraLoadingSurface extends StatelessWidget {
                               child: Container(
                                 height: 8,
                                 decoration: BoxDecoration(
-                                  color: SaveTrackDesign.mist,
+                                  color: context.atelierTonal,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                               ),
@@ -763,7 +951,9 @@ class AmountText extends StatelessWidget {
           ? Text.rich(span, softWrap: softWrap)
           : Text(text, style: style, softWrap: softWrap);
       if (!overflow) return figure();
-      final hintColor = onDark ? SaveTrackDesign.onHeroMuted : muted;
+      final hintColor = onDark
+          ? SaveTrackDesign.onHeroMuted
+          : context.atelierMuted;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -802,18 +992,20 @@ class AuroraNotice extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: error ? SaveTrackDesign.errorSurface : SaveTrackDesign.mist,
+        color: error
+            ? Theme.of(context).colorScheme.errorContainer
+            : context.atelierTonal,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: error
-              ? SaveTrackDesign.error.withValues(alpha: .18)
-              : SaveTrackDesign.border,
+              ? context.atelierError.withValues(alpha: .18)
+              : context.atelierBorder,
         ),
       ),
       child: DetailLine(
         icon: error ? Icons.error_outline_rounded : Icons.info_outline_rounded,
         label: message,
-        color: error ? SaveTrackDesign.error : muted,
+        color: error ? context.atelierError : context.atelierMuted,
       ),
     ),
   );
@@ -827,8 +1019,8 @@ class AuroraTabs extends StatelessWidget {
     margin: const EdgeInsets.fromLTRB(20, 4, 20, 12),
     padding: const EdgeInsets.all(5),
     decoration: BoxDecoration(
-      color: Colors.white,
-      border: Border.all(color: SaveTrackDesign.border),
+      color: context.atelierSurface,
+      border: Border.all(color: context.atelierBorder),
       borderRadius: BorderRadius.circular(19),
     ),
     child: TabBar(
@@ -847,12 +1039,12 @@ class PageSurface extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      color: canvas,
+    decoration: BoxDecoration(
+      color: context.atelierCanvas,
       gradient: RadialGradient(
         center: Alignment(1, -1),
         radius: 1.6,
-        colors: [SaveTrackDesign.lightMint, canvas],
+        colors: [context.atelierSelected, context.atelierCanvas],
         stops: [0, .75],
       ),
     ),
@@ -927,10 +1119,10 @@ class MintIcon extends StatelessWidget {
     width: size,
     height: size,
     decoration: BoxDecoration(
-      color: SaveTrackDesign.mist,
+      color: context.atelierTonal,
       borderRadius: BorderRadius.circular(SaveTrackDesign.radiusSmall),
     ),
-    child: Icon(icon, color: color, size: 23),
+    child: Icon(icon, color: context.atelierColor(color), size: 23),
   );
 }
 
@@ -942,13 +1134,19 @@ class StatusPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
-      color: color.withValues(alpha: .08),
-      border: Border.all(color: color.withValues(alpha: .12)),
+      color: context.atelierColor(color).withValues(alpha: .08),
+      border: Border.all(
+        color: context.atelierColor(color).withValues(alpha: .12),
+      ),
       borderRadius: BorderRadius.circular(30),
     ),
     child: Text(
       label,
-      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color),
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: context.atelierColor(color),
+      ),
     ),
   );
 }
@@ -976,7 +1174,7 @@ class MintProgress extends StatelessWidget {
               height: 8,
               color: onDark
                   ? SaveTrackDesign.heroTrack
-                  : SaveTrackDesign.lightMint,
+                  : context.atelierSelected,
             ),
             FractionallySizedBox(
               widthFactor: progress.clamp(0, 1),
@@ -1027,7 +1225,7 @@ class _GradientButtonState extends State<GradientButton> {
       child: DecoratedBox(
         decoration: BoxDecoration(
           gradient: widget.onPressed == null ? null : SaveTrackDesign.signature,
-          color: widget.onPressed == null ? muted : null,
+          color: widget.onPressed == null ? context.atelierMuted : null,
           borderRadius: BorderRadius.circular(16),
           boxShadow: widget.onPressed == null ? null : SaveTrackDesign.shadows,
         ),
@@ -1035,6 +1233,7 @@ class _GradientButtonState extends State<GradientButton> {
           onPressed: widget.onPressed,
           style: FilledButton.styleFrom(
             backgroundColor: Colors.transparent,
+            foregroundColor: Colors.white,
             disabledBackgroundColor: Colors.transparent,
             disabledForegroundColor: SaveTrackDesign.onHeroMuted,
             minimumSize: widget.expand
@@ -1067,23 +1266,26 @@ class ScreenIntro extends StatelessWidget {
           children: [
             Text(
               eyebrow,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: teal,
+                color: context.atelierAccent,
               ),
             ),
             const SizedBox(height: 8),
             LayoutBuilder(
               builder: (context, constraints) => Text(
                 title,
-                style: SaveTrackDesign.heading.copyWith(
-                  fontSize: constraints.maxWidth < 340 ? 26 : 29,
-                ),
+                style: SaveTrackDesign.heading
+                    .copyWith(color: context.atelierInk)
+                    .copyWith(fontSize: constraints.maxWidth < 340 ? 26 : 29),
               ),
             ),
             const SizedBox(height: 6),
-            Text(detail, style: const TextStyle(color: muted, height: 1.5)),
+            Text(
+              detail,
+              style: TextStyle(color: context.atelierMuted, height: 1.5),
+            ),
           ],
         ),
       ),
@@ -1121,7 +1323,7 @@ class SaveActionLabel extends StatelessWidget {
     mainAxisSize: MainAxisSize.min,
     children: [
       if (busy) ...[
-        const SizedBox.square(
+        SizedBox.square(
           dimension: 16,
           child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
         ),
@@ -1134,6 +1336,100 @@ class SaveActionLabel extends StatelessWidget {
 
 /// Disposes controllers only after the dialog's exit transition has unmounted
 /// its fields. Popping a route completes its result before that transition.
+/// Protects local form edits. Successful saves retain their existing close path.
+class UnsavedChangesGuard extends StatefulWidget {
+  const UnsavedChangesGuard({
+    super.key,
+    required this.controllers,
+    required this.child,
+    this.hasChanges,
+    this.busy = false,
+    this.enabled = true,
+  });
+  final List<TextEditingController> controllers;
+  final Widget child;
+  final bool Function()? hasChanges;
+  final bool busy, enabled;
+  @override
+  State<UnsavedChangesGuard> createState() => UnsavedChangesGuardState();
+}
+
+class UnsavedChangesGuardState extends State<UnsavedChangesGuard> {
+  late final initial = widget.controllers.map((c) => c.text).toList();
+  bool asking = false, approved = false;
+  bool get dirty =>
+      widget.enabled &&
+      ((widget.hasChanges?.call() ?? false) ||
+          widget.controllers.indexed.any(
+            (entry) => entry.$2.text != initial[entry.$1],
+          ));
+  @override
+  void initState() {
+    super.initState();
+    for (final c in widget.controllers) {
+      c.addListener(_changed);
+    }
+  }
+
+  void _changed() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    for (final c in widget.controllers) {
+      c.removeListener(_changed);
+    }
+    super.dispose();
+  }
+
+  Future<void> requestClose() async {
+    if (asking || widget.busy) return;
+    if (!dirty || approved) {
+      Navigator.pop(context);
+      return;
+    }
+    asking = true;
+    final discard = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        scrollable: true,
+        title: const Text('Discard changes?'),
+        content: const Text('Your unsaved edits will be lost.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Keep editing'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+              foregroundColor: Theme.of(context).colorScheme.onError,
+            ),
+            child: const Text('Discard changes'),
+          ),
+        ],
+      ),
+    );
+    asking = false;
+    if (discard != true || !mounted) return;
+    setState(() => approved = true);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.pop(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: !widget.busy && (!dirty || approved),
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop && !widget.busy) requestClose();
+    },
+    child: widget.child,
+  );
+}
+
 class FormControllerScope extends StatefulWidget {
   const FormControllerScope({
     super.key,
@@ -1273,7 +1569,7 @@ class FormHeading extends StatelessWidget {
       Text(
         detail,
         style: Theme.of(context).textTheme.bodySmall
-            ?.copyWith(color: muted, height: 1.5),
+            ?.copyWith(color: context.atelierMuted, height: 1.5),
       ),
     ],
   );
@@ -1289,8 +1585,8 @@ class FieldCaption extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Text(
         label,
-        style: const TextStyle(
-          color: muted,
+        style: TextStyle(
+          color: context.atelierMuted,
           fontWeight: FontWeight.w600,
           fontSize: 13,
           letterSpacing: .3,
@@ -1316,13 +1612,17 @@ class DetailLine extends StatelessWidget {
     children: [
       Padding(
         padding: const EdgeInsets.only(top: 2),
-        child: Icon(icon, size: 16, color: color),
+        child: Icon(icon, size: 16, color: context.atelierColor(color)),
       ),
       const SizedBox(width: 8),
       Expanded(
         child: Text(
           label,
-          style: TextStyle(color: color, fontSize: 13, height: 1.5),
+          style: TextStyle(
+            color: context.atelierColor(color),
+            fontSize: 13,
+            height: 1.5,
+          ),
         ),
       ),
     ],
@@ -1362,7 +1662,7 @@ class ProgressRing extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: onDark ? Colors.white : teal,
+                  color: onDark ? Colors.white : context.atelierAccent,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
               ),

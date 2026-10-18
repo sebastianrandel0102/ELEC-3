@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import 'auth_service.dart';
 import 'app_record_repository.dart';
@@ -41,7 +42,9 @@ import 'home_widgets/widget_settings_screen.dart';
 import 'shared_savings_models.dart';
 
 import 'design_system.dart';
+import 'atelier_preferences.dart';
 export 'design_system.dart';
+part 'home_atelier.dart';
 
 final _appNavigator = GlobalKey<NavigatorState>();
 final _homeShellKey = GlobalKey<_HomeShellState>();
@@ -68,23 +71,30 @@ class SaveTrackApp extends StatelessWidget {
   final Object? startupError;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    navigatorKey: _appNavigator,
-    title: 'SaveTrack',
-    debugShowCheckedModeBanner: false,
-    theme: SaveTrackDesign.theme,
-    builder: startupError == null
-        ? (context, child) => HomeWidgetHost(
-            openTarget: _openHomeWidgetTarget,
-            child: ReminderHost(
-              openTarget: _openReminderTarget,
-              child: CurrencyHost(child: SharedSavingsHost(child: child!)),
-            ),
-          )
-        : null,
-    home: startupError != null
-        ? SetupScreen(error: startupError!)
-        : const AuthGate(),
+  Widget build(BuildContext context) => AtelierHost(
+    child: ValueListenableBuilder<ThemeMode>(
+      valueListenable: AtelierPreferences.themeMode,
+      builder: (context, mode, _) => MaterialApp(
+        navigatorKey: _appNavigator,
+        title: 'SaveTrack',
+        debugShowCheckedModeBanner: false,
+        theme: SaveTrackDesign.theme,
+        darkTheme: SaveTrackDesign.darkTheme,
+        themeMode: mode,
+        builder: startupError == null
+            ? (context, child) => HomeWidgetHost(
+                openTarget: _openHomeWidgetTarget,
+                child: ReminderHost(
+                  openTarget: _openReminderTarget,
+                  child: CurrencyHost(child: SharedSavingsHost(child: child!)),
+                ),
+              )
+            : null,
+        home: startupError != null
+            ? SetupScreen(error: startupError!)
+            : const AuthGate(),
+      ),
+    ),
   );
 }
 
@@ -105,18 +115,18 @@ class SetupScreen extends StatelessWidget {
               children: [
                 const BrandMark(),
                 const SizedBox(height: 28),
-                const Text(
+                Text(
                   'Connect your Firebase project',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
-                    color: ink,
+                    color: context.atelierInk,
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'SaveTrack needs Firebase Authentication and Cloud Firestore to keep your data private and in sync.',
-                  style: TextStyle(color: muted, height: 1.5),
+                  style: TextStyle(color: context.atelierMuted, height: 1.5),
                 ),
                 const SizedBox(height: 20),
                 const Text(
@@ -126,7 +136,7 @@ class SetupScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 Text(
                   'Startup detail: $error',
-                  style: const TextStyle(color: muted, fontSize: 12),
+                  style: TextStyle(color: context.atelierMuted, fontSize: 12),
                 ),
               ],
             ),
@@ -163,7 +173,11 @@ class AuthGate extends StatelessWidget {
             : GoalCoverSession(
                 key: ValueKey(snapshot.data!.uid),
                 uid: snapshot.data!.uid,
-                child: HomeShell(key: _homeShellKey),
+                child: AtelierHost(
+                  key: ValueKey('atelier-${snapshot.data!.uid}'),
+                  account: snapshot.data!.uid,
+                  child: HomeShell(key: _homeShellKey),
+                ),
               ),
       );
     },
@@ -185,7 +199,7 @@ class SessionLoading extends StatelessWidget {
               children: [
                 const AuroraEmblem(size: 80, onDark: true, animate: true),
                 const SizedBox(height: 24),
-                const Text(
+                Text(
                   'SaveTrack',
                   style: TextStyle(
                     color: Colors.white,
@@ -354,11 +368,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     children: [
                       Text(
                         _register ? 'Create your account' : 'Welcome back',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -.6,
-                          color: ink,
+                          color: context.atelierInk,
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -366,7 +380,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         _register
                             ? 'Start building a future you look forward to.'
                             : 'Continue building your goals, one day at a time.',
-                        style: TextStyle(color: muted),
+                        style: TextStyle(color: context.atelierMuted),
                       ),
                       const SizedBox(height: 26),
                       if (_register) ...[
@@ -441,7 +455,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       GradientButton(
                         onPressed: _busy ? null : _submit,
                         child: _busy && !_googleBusy
-                            ? const SizedBox.square(
+                            ? SizedBox.square(
                                 dimension: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
@@ -451,7 +465,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             : Text(_register ? 'Create account' : 'Sign in'),
                       ),
                       if (!_register && _authService.supportsGoogleSignIn) ...[
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.symmetric(vertical: 18),
                           child: Row(
                             children: [
@@ -460,7 +474,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 padding: EdgeInsets.symmetric(horizontal: 14),
                                 child: Text(
                                   'OR',
-                                  style: TextStyle(color: muted),
+                                  style: TextStyle(color: context.atelierMuted),
                                 ),
                               ),
                               Expanded(child: Divider()),
@@ -556,6 +570,8 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
+  final _visited = <int>{0};
+  String? _account;
   static const _titles = [
     'Today',
     'Savings goals',
@@ -570,12 +586,22 @@ class _HomeShellState extends State<HomeShell> {
 
   @override
   Widget build(BuildContext context) {
+    final account = FirebaseAuth.instance.currentUser!.uid;
+    if (_account != account) {
+      _account = account;
+      _visited.clear();
+      _index = 0;
+    }
+    _visited.add(_index);
     final pages = [
-      const DashboardScreen(),
-      const GoalsScreen(),
-      PlannerScreen(active: _index == 2),
-      const ReportsScreen(),
-      const ProfileScreen(),
+      HomeAtelier(
+        key: ValueKey(FirebaseAuth.instance.currentUser!.uid),
+        uid: FirebaseAuth.instance.currentUser!.uid,
+      ),
+      GoalsScreen(key: ValueKey('goals-$account')),
+      PlannerScreen(key: ValueKey('planner-$account'), active: _index == 2),
+      ReportsScreen(key: ValueKey('reports-$account')),
+      ProfileScreen(key: ValueKey('profile-$account')),
     ];
     return Scaffold(
       appBar: AppBar(
@@ -598,41 +624,64 @@ class _HomeShellState extends State<HomeShell> {
           ],
         ),
         actions: [
-          IconButton(
-            tooltip: 'Open Agent Studio',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) =>
-                    const AgentStudioScreen(onOpen: _openAgentDestination),
+          if (_index == 0)
+            IconButton(
+              tooltip: 'Smart Reminders',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const SmartRemindersScreen(),
+                ),
+              ),
+              icon: const Icon(Icons.notifications_outlined),
+            ),
+          if (_index != 0)
+            IconButton(
+              tooltip: 'Open Agent Studio',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const AgentStudioScreen(onOpen: _openAgentDestination),
+                ),
+              ),
+              icon: Icon(Icons.hub_outlined, color: context.atelierAccent),
+            ),
+          if (_index != 0)
+            IconButton(
+              tooltip: 'Open AI Coach',
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
+              ),
+              icon: Icon(
+                Icons.auto_awesome_rounded,
+                color: context.atelierAccent,
+                size: 26,
               ),
             ),
-            icon: const Icon(Icons.hub_outlined, color: teal),
-          ),
-          IconButton(
-            tooltip: 'Open AI Coach',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
-            ),
-            icon: const Icon(Icons.auto_awesome_rounded, color: teal, size: 26),
-          ),
           if (_index != 4)
             IconButton(
               tooltip: 'Profile',
               onPressed: () => setState(() => _index = 4),
               icon: ProfileAvatar(
                 name: FirebaseAuth.instance.currentUser?.displayName ?? '',
+                googlePhotoUrl: FirebaseAuth.instance.currentUser?.photoURL,
                 size: 36,
               ),
             ),
         ],
       ),
       body: PageSurface(
-        child: IndexedStack(index: _index, children: pages),
+        child: IndexedStack(
+          index: _index,
+          children: [
+            for (var i = 0; i < pages.length; i++)
+              _visited.contains(i) ? pages[i] : const SizedBox.shrink(),
+          ],
+        ),
       ),
       floatingActionButton: _index == 1 || _index == 2
           ? FloatingActionButton.extended(
-              backgroundColor: teal,
-              foregroundColor: Colors.white,
+              backgroundColor: context.atelierAccent,
+              foregroundColor: context.atelierSurface,
               onPressed: () => _index == 1
                   ? showGoalTypeChoice(context)
                   : showTaskForm(context),
@@ -668,9 +717,9 @@ class SaveTrackNavigation extends StatelessWidget {
           child: Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.atelierSurface,
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: SaveTrackDesign.elevatedBorder),
+              border: Border.all(color: context.atelierBorder),
               boxShadow: SaveTrackDesign.shadows,
             ),
             child: LayoutBuilder(
@@ -745,12 +794,15 @@ class SaveTrackNavigation extends StatelessWidget {
                       scrollDirection: Axis.horizontal,
                       child: SizedBox(width: needed, child: navigation),
                     ),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.fromLTRB(12, 0, 12, 8),
                       child: Text(
                         'Swipe for all tabs',
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 12, color: muted),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.atelierMuted,
+                        ),
                       ),
                     ),
                   ],
@@ -1112,13 +1164,21 @@ class GoalsScreen extends StatelessWidget {
   );
 }
 
-class PersonalGoalsScreen extends StatelessWidget {
+class PersonalGoalsScreen extends StatefulWidget {
   const PersonalGoalsScreen({super.key});
   @override
+  State<PersonalGoalsScreen> createState() => _PersonalGoalsScreenState();
+}
+
+class _PersonalGoalsScreenState extends State<PersonalGoalsScreen> {
+  late final uid = FirebaseAuth.instance.currentUser!.uid;
+  late final records = _goals(uid)
+      .orderBy('createdAt', descending: true)
+      .snapshots();
+  @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
     return StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-      stream: _goals(uid).orderBy('createdAt', descending: true).snapshots(),
+      stream: records,
       builder: (context, snap) {
         if (snap.hasError) {
           return ErrorPanel(message: 'Could not load goals. ${snap.error}');
@@ -1136,19 +1196,7 @@ class PersonalGoalsScreen extends StatelessWidget {
             onTap: () => showGoalForm(context),
           );
         }
-        return AdaptiveCardList(
-          itemCount: docs.length,
-          itemBuilder: (context, index) => GoalCard(
-            key: ValueKey(docs[index].id),
-            uid: uid,
-            doc: docs[index],
-          ),
-          header: const ScreenIntro(
-            eyebrow: 'Personal savings',
-            title: 'Save for what matters.',
-            detail: 'Your milestones, one contribution at a time.',
-          ),
-        );
+        return GoalBrowser(uid: uid, records: docs);
       },
     );
   }
@@ -1265,10 +1313,10 @@ class GoalCard extends StatelessWidget {
                       ? const SizedBox.shrink()
                       : Text(
                           '${data['title']}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                            color: ink,
+                            color: context.atelierInk,
                           ),
                         ),
                 ),
@@ -1352,10 +1400,10 @@ class GoalCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 16),
                 child: Text(
                   '${data['title']}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
-                    color: ink,
+                    color: context.atelierInk,
                   ),
                 ),
               ),
@@ -1365,7 +1413,7 @@ class GoalCard extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 12),
                 child: Text(
                   data['note'] as String,
-                  style: const TextStyle(color: muted, fontSize: 13),
+                  style: TextStyle(color: context.atelierMuted, fontSize: 13),
                 ),
               ),
             const SizedBox(height: 20),
@@ -1378,14 +1426,14 @@ class GoalCard extends StatelessWidget {
                   supportingSuffix: ' saved',
                   style: SaveTrackDesign.amount.copyWith(
                     fontSize: 28,
-                    color: teal,
+                    color: context.atelierAccent,
                     letterSpacing: -.4,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   '${money(target)} target',
-                  style: const TextStyle(color: muted, fontSize: 13),
+                  style: TextStyle(color: context.atelierMuted, fontSize: 13),
                 ),
                 CurrencyContextLabel(source: code),
                 const SizedBox(height: 16),
@@ -1401,7 +1449,10 @@ class GoalCard extends StatelessWidget {
                     ),
                     Text(
                       '${money((target - saved).clamp(0, double.infinity))} to go',
-                      style: const TextStyle(color: muted, fontSize: 13),
+                      style: TextStyle(
+                        color: context.atelierMuted,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -1436,7 +1487,9 @@ class GoalCard extends StatelessWidget {
                       label: isOverdue
                           ? 'Overdue  ${money(needed)} remaining'
                           : 'Suggested pace: ${money(needed / days)} daily, ${money(needed * 7 / days)} weekly',
-                      color: isOverdue ? SaveTrackDesign.error : muted,
+                      color: isOverdue
+                          ? context.atelierError
+                          : context.atelierMuted,
                     ),
                   );
                 },
@@ -1550,6 +1603,7 @@ class _PlannerScreenState extends State<PlannerScreen>
   bool _followToday = true;
   Timer? _midnightTimer;
   bool _foreground = true;
+  bool _weekly = false;
 
   @override
   void initState() {
@@ -1625,16 +1679,49 @@ class _PlannerScreenState extends State<PlannerScreen>
   Widget build(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final key = _dateKey(_day);
+    final modeSwitch = Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Wrap(
+        spacing: 8,
+        children: [
+          ChoiceChip(
+            label: const Text('Daily'),
+            selected: !_weekly,
+            onSelected: (_) => setState(() => _weekly = false),
+          ),
+          ChoiceChip(
+            label: const Text('Weekly'),
+            selected: _weekly,
+            onSelected: (_) => setState(() => _weekly = true),
+          ),
+        ],
+      ),
+    );
+    if (_weekly) {
+      return WeeklyPlanner(
+        uid: uid,
+        selected: _day,
+        onSelect: _selectDay,
+        header: modeSwitch,
+      );
+    }
     return TasksList(
       uid: uid,
       dateKey: key,
       suggestionsActive: widget.active,
-      header: PlannerDateHeader(
-        title: _dateTitle(_day),
-        onPrevious: () =>
-            _selectDay(DateTime(_day.year, _day.month, _day.day - 1)),
-        onNext: () => _selectDay(DateTime(_day.year, _day.month, _day.day + 1)),
-        onToday: () => _selectDay(DateTime.now()),
+      header: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          modeSwitch,
+          PlannerDateHeader(
+            title: _dateTitle(_day),
+            onPrevious: () =>
+                _selectDay(DateTime(_day.year, _day.month, _day.day - 1)),
+            onNext: () =>
+                _selectDay(DateTime(_day.year, _day.month, _day.day + 1)),
+            onToday: () => _selectDay(DateTime.now()),
+          ),
+        ],
       ),
     );
   }
@@ -1661,10 +1748,10 @@ class PlannerDateHeader extends StatelessWidget {
       ),
       Row(
         children: [
-          const Expanded(
+          Expanded(
             child: Text(
               'Your schedule',
-              style: TextStyle(color: muted, fontSize: 13),
+              style: TextStyle(color: context.atelierMuted, fontSize: 13),
             ),
           ),
           TextButton.icon(
@@ -1678,9 +1765,9 @@ class PlannerDateHeader extends StatelessWidget {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.atelierSurface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: SaveTrackDesign.border),
+          border: Border.all(color: context.atelierBorder),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -1702,7 +1789,7 @@ class PlannerDateHeader extends StatelessWidget {
               curve: SaveTrackDesign.motionCurve,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
               decoration: BoxDecoration(
-                color: SaveTrackDesign.lightMint,
+                color: context.atelierSelected,
                 borderRadius: BorderRadius.circular(14),
               ),
               child: AnimatedSwitcher(
@@ -1714,10 +1801,10 @@ class PlannerDateHeader extends StatelessWidget {
                   title,
                   key: ValueKey(title),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: teal,
+                    color: context.atelierAccent,
                   ),
                 ),
               ),
@@ -1770,10 +1857,10 @@ class DailyCompletion extends StatelessWidget {
           final label = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Daily progress',
                 style: TextStyle(
-                  color: ink,
+                  color: context.atelierInk,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -1781,8 +1868,8 @@ class DailyCompletion extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 '$done of $total tasks completed',
-                style: const TextStyle(
-                  color: muted,
+                style: TextStyle(
+                  color: context.atelierMuted,
                   fontSize: 14,
                   height: 1.45,
                 ),
@@ -1819,10 +1906,12 @@ class TasksList extends StatefulWidget {
     this.taskStream,
     this.recommendationService,
     this.asSliver = false,
+    this.maxPreview,
   });
   final String uid, dateKey;
   final bool compact;
   final bool asSliver;
+  final int? maxPreview;
   final Widget? header;
   final bool suggestionsActive;
   final Stream<QuerySnapshot<Map<String, dynamic>>>? taskStream;
@@ -1902,6 +1991,7 @@ class _TasksListState extends State<TasksList> {
         }
         return Column(
           children: docs
+              .take(widget.maxPreview ?? docs.length)
               .map(
                 (d) => TaskTile(
                   key: ValueKey('dashboard-task-${d.id}'),
@@ -2001,12 +2091,10 @@ class TaskTile extends StatelessWidget {
         duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
         curve: SaveTrackDesign.motionCurve,
         decoration: BoxDecoration(
-          color: done ? SaveTrackDesign.completed : Colors.white,
+          color: done ? context.atelierTonal : context.atelierSurface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: done
-                ? SaveTrackDesign.elevatedBorder
-                : SaveTrackDesign.border,
+            color: done ? context.atelierBorder : context.atelierBorder,
           ),
         ),
         child: Padding(
@@ -2017,7 +2105,7 @@ class TaskTile extends StatelessWidget {
               Checkbox(
                 semanticLabel: 'Complete ${d['title']}',
                 value: done,
-                activeColor: teal,
+                activeColor: context.atelierAccent,
                 onChanged: (v) async {
                   try {
                     await setPlannerTaskCompleted(doc, v == true);
@@ -2050,7 +2138,9 @@ class TaskTile extends StatelessWidget {
                           fontSize: 15,
                           fontWeight: FontWeight.w600,
                           decoration: done ? TextDecoration.lineThrough : null,
-                          color: done ? muted : ink,
+                          color: done
+                              ? context.atelierMuted
+                              : context.atelierInk,
                         ),
                         child: Text('${d['title']}'),
                       ),
@@ -2064,17 +2154,17 @@ class TaskTile extends StatelessWidget {
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.schedule_outlined,
                                     size: 14,
-                                    color: muted,
+                                    color: context.atelierMuted,
                                   ),
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
                                       time,
-                                      style: const TextStyle(
-                                        color: muted,
+                                      style: TextStyle(
+                                        color: context.atelierMuted,
                                         fontSize: 13,
                                       ),
                                     ),
@@ -2084,8 +2174,8 @@ class TaskTile extends StatelessWidget {
                             StatusPill(
                               '${d['priority'] ?? 'Normal'} priority',
                               color: d['priority'] == 'High'
-                                  ? SaveTrackDesign.warning
-                                  : teal,
+                                  ? context.atelierWarning
+                                  : context.atelierAccent,
                             ),
                             if (done) const StatusPill('Completed'),
                           ],
@@ -2134,11 +2224,17 @@ class TaskTile extends StatelessWidget {
   }
 }
 
-class ReportsScreen extends StatelessWidget {
+class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
   @override
+  State<ReportsScreen> createState() => _ReportsScreenState();
+}
+
+class _ReportsScreenState extends State<ReportsScreen> {
+  late final uid = FirebaseAuth.instance.currentUser!.uid;
+  late final records = _goals(uid).snapshots();
+  @override
   Widget build(BuildContext context) {
-    final uid = FirebaseAuth.instance.currentUser!.uid;
     final today = _dateKey(DateTime.now());
     final start = DateTime.now().subtract(
       Duration(days: DateTime.now().weekday - 1),
@@ -2146,7 +2242,7 @@ class ReportsScreen extends StatelessWidget {
     final weekStart = _dateKey(start);
     return ReportsLayout(
       savings: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _goals(uid).snapshots(),
+        stream: records,
         builder: (context, s) {
           if (s.hasError) {
             return ErrorPanel(message: 'Could not load savings. ${s.error}');
@@ -2167,16 +2263,33 @@ class ReportsScreen extends StatelessWidget {
               )
               .toList();
           final summary = currencySummary(currency, balances, targets);
-          return ReportMetric(
-            title: 'Savings balance',
-            featured: true,
-            progress: summary.$3
-                ? (summary.$2 == 0 ? 0 : (summary.$1 / summary.$2).clamp(0, 1))
-                : null,
-            value: currency?.totalDisplay(balances) ?? _money(summary.$1),
-            caption:
-                'Across ${ds.length} personal goals \u00b7 ${currency?.totalDisplay(targets) ?? _money(summary.$2)} total target. Current-rate estimates; stored amounts remain authoritative.',
-            icon: Icons.savings_outlined,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ReportMetric(
+                title: 'Savings balance',
+                featured: true,
+                progress: summary.$3
+                    ? (summary.$2 == 0
+                          ? 0
+                          : (summary.$1 / summary.$2).clamp(0, 1))
+                    : null,
+                value:
+                    currency?.totalDisplay(balances) ??
+                    (summary.$3
+                        ? _money(summary.$1)
+                        : 'Conversion unavailable'),
+                caption:
+                    'Across ${ds.length} personal goals \u00b7 Target: ${currency?.totalDisplay(targets) ?? (summary.$3 ? _money(summary.$2) : 'See each goal in its original currency')}. Current-rate estimates; stored amounts remain authoritative.',
+                icon: Icons.savings_outlined,
+              ),
+              const SizedBox(height: 24),
+              const AtelierSectionHeader(
+                title: 'Savings activity',
+                subtitle: 'Contributions, withdrawals and net change.',
+              ),
+              SavingsPulse(uid: uid, goals: ds),
+            ],
           );
         },
       ),
@@ -2440,11 +2553,47 @@ class ProfileContent extends StatelessWidget {
             padding: const EdgeInsets.only(top: 12),
             child: Text(
               profileError!,
-              style: const TextStyle(color: SaveTrackDesign.error),
+              style: TextStyle(color: context.atelierError),
             ),
           ),
         const SizedBox(height: 24),
         const FieldCaption('Preferences & app'),
+        if (AtelierScope.maybeOf(context) != null) ...[
+          Card(
+            child: Column(
+              children: [
+                ListTile(
+                  leading: const MintIcon(Icons.palette_outlined),
+                  title: const Text('Appearance'),
+                  subtitle: Text(AtelierPreferences.themeMode.value.name),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => showAppearancePicker(
+                    context,
+                    AtelierScope.maybeOf(context)!,
+                  ),
+                ),
+                const Divider(height: 1, indent: 20, endIndent: 20),
+                ListTile(
+                  leading: const MintIcon(Icons.dashboard_customize_outlined),
+                  title: const Text('Customize Home'),
+                  subtitle: const Text(
+                    'Your views, sections and featured goal.',
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => CustomizeHomeScreen(
+                        preferences: AtelierScope.maybeOf(context)!,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
         Card(
           child: Column(
             children: [
@@ -2526,7 +2675,7 @@ class ProfileContent extends StatelessWidget {
           icon: const Icon(Icons.logout),
           label: const Text('Sign out'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: SaveTrackDesign.error,
+            foregroundColor: context.atelierError,
             minimumSize: const Size.fromHeight(50),
           ),
         ),
@@ -2599,14 +2748,14 @@ class ReportMetric extends StatelessWidget {
                   value,
                   style: SaveTrackDesign.amount.copyWith(
                     fontSize: 22,
-                    color: ink,
+                    color: context.atelierInk,
                     letterSpacing: -.5,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   caption,
-                  style: const TextStyle(color: muted, fontSize: 13),
+                  style: TextStyle(color: context.atelierMuted, fontSize: 13),
                 ),
                 if (progress != null) ...[
                   const SizedBox(height: 16),
@@ -2721,10 +2870,10 @@ class SectionHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 21,
-              color: ink,
+              color: context.atelierInk,
             ),
           ),
         ),
@@ -2739,7 +2888,7 @@ class SectionHeader extends StatelessWidget {
 class BrandMark extends StatelessWidget {
   const BrandMark({super.key});
   @override
-  Widget build(BuildContext context) => const Row(
+  Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
       BrandDot(),
@@ -2752,7 +2901,7 @@ class BrandMark extends StatelessWidget {
             fontSize: 20,
             fontWeight: FontWeight.w700,
             letterSpacing: -.5,
-            color: teal,
+            color: context.atelierAccent,
           ),
         ),
       ),
@@ -2788,22 +2937,20 @@ class ErrorPanel extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: SaveTrackDesign.errorSurface,
-          border: Border.all(
-            color: SaveTrackDesign.error.withValues(alpha: .2),
-          ),
+          color: Theme.of(context).colorScheme.errorContainer,
+          border: Border.all(color: context.atelierError.withValues(alpha: .2)),
           borderRadius: BorderRadius.circular(16),
         ),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            const icon = Icon(
+            final icon = Icon(
               Icons.error_outline,
-              color: SaveTrackDesign.error,
+              color: context.atelierError,
               size: 22,
             );
             final text = Text(
               message,
-              style: const TextStyle(color: SaveTrackDesign.error, height: 1.5),
+              style: TextStyle(color: context.atelierError, height: 1.5),
             );
             return constraints.maxWidth < 220
                 ? Column(
@@ -2843,9 +2990,9 @@ class EmptyPanel extends StatelessWidget {
     child: Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: SaveTrackDesign.surface,
+        gradient: context.atelierSurfaceGradient,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: SaveTrackDesign.border),
+        border: Border.all(color: context.atelierBorder),
       ),
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -2862,7 +3009,7 @@ class EmptyPanel extends StatelessWidget {
           Text(
             detail,
             textAlign: TextAlign.center,
-            style: const TextStyle(color: muted, height: 1.5),
+            style: TextStyle(color: context.atelierMuted, height: 1.5),
           ),
           const SizedBox(height: 16),
           GradientButton(expand: false, onPressed: onTap, child: Text(action)),
@@ -3068,92 +3215,107 @@ Future<void> showTransactionHistory(
                       ),
                     );
                   }
-                  return ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    itemCount: records.length,
-                    separatorBuilder: (_, _) =>
-                        const Divider(height: 1, indent: 56),
-                    itemBuilder: (context, index) {
-                      final record = records[index];
-                      final data = record.data();
-                      final withdrawal = data['type'] == 'withdrawal';
-                      final timestamp = data['date'];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            MintIcon(
-                              withdrawal ? Icons.south_east : Icons.south_west,
-                              color: withdrawal ? SaveTrackDesign.error : teal,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AmountText(
-                                    '${withdrawal ? '-' : '+'}${displayMoney(context, _number(data['amount']), data['currencyCode'] as String? ?? goalCurrency(goal.data()))}',
-                                    style: TextStyle(
-                                      fontSize: 21,
-                                      fontWeight: FontWeight.w700,
-                                      color: withdrawal
-                                          ? SaveTrackDesign.error
-                                          : teal,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  CurrencyContextLabel(
-                                    source:
-                                        data['currencyCode'] as String? ??
-                                        goalCurrency(goal.data()),
-                                    historical: true,
-                                  ),
-                                  Text(
-                                    originalMoney(
-                                      _number(data['amount']),
-                                      data['currencyCode'] as String? ??
-                                          goalCurrency(goal.data()),
-                                    ),
-                                    style: const TextStyle(
-                                      color: muted,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                  if (data['conversion'] is Map)
-                                    TransactionConversionDetails(
-                                      data: Map<String, dynamic>.from(
-                                        data['conversion'] as Map,
+                  return TransactionFilters(
+                    records: records,
+                    builder: (context, records) => ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      itemCount: records.length,
+                      separatorBuilder: (_, _) =>
+                          const Divider(height: 1, indent: 56),
+                      itemBuilder: (context, index) {
+                        final record = records[index];
+                        final data = record.data();
+                        final withdrawal = data['type'] == 'withdrawal';
+                        final timestamp = data['date'];
+                        return TransactionDateGroup(
+                          at: timestamp,
+                          previous: index == 0
+                              ? null
+                              : records[index - 1].data()['date'],
+                          first: index == 0,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                MintIcon(
+                                  withdrawal
+                                      ? Icons.south_east
+                                      : Icons.south_west,
+                                  color: withdrawal
+                                      ? context.atelierError
+                                      : context.atelierAccent,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      AmountText(
+                                        '${withdrawal ? '-' : '+'}${displayMoney(context, _number(data['amount']), data['currencyCode'] as String? ?? goalCurrency(goal.data()))}',
+                                        style: TextStyle(
+                                          fontSize: 21,
+                                          fontWeight: FontWeight.w700,
+                                          color: withdrawal
+                                              ? context.atelierError
+                                              : context.atelierAccent,
+                                        ),
                                       ),
-                                    ),
-                                  if (withdrawal) ...[
-                                    const Text('Savings Decreased'),
-                                    const SizedBox(height: 4),
-                                  ],
-                                  Text(
-                                    (data['note'] as String? ?? '').isEmpty
-                                        ? (withdrawal
-                                              ? 'Savings withdrawal'
-                                              : 'Savings deposit')
-                                        : '${withdrawal ? 'Reason: ' : ''}${data['note']}',
+                                      const SizedBox(height: 4),
+                                      CurrencyContextLabel(
+                                        source:
+                                            data['currencyCode'] as String? ??
+                                            goalCurrency(goal.data()),
+                                        historical: true,
+                                      ),
+                                      Text(
+                                        originalMoney(
+                                          _number(data['amount']),
+                                          data['currencyCode'] as String? ??
+                                              goalCurrency(goal.data()),
+                                        ),
+                                        style: TextStyle(
+                                          color: context.atelierMuted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      if (data['conversion'] is Map)
+                                        TransactionConversionDetails(
+                                          data: Map<String, dynamic>.from(
+                                            data['conversion'] as Map,
+                                          ),
+                                        ),
+                                      if (withdrawal) ...[
+                                        const Text('Savings Decreased'),
+                                        const SizedBox(height: 4),
+                                      ],
+                                      Text(
+                                        (data['note'] as String? ?? '').isEmpty
+                                            ? (withdrawal
+                                                  ? 'Savings withdrawal'
+                                                  : 'Savings deposit')
+                                            : '${withdrawal ? 'Reason: ' : ''}${data['note']}',
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        timestamp is Timestamp
+                                            ? _shortDate(timestamp.toDate())
+                                            : 'Date unavailable',
+                                        style: TextStyle(
+                                          color: context.atelierMuted,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    timestamp is Timestamp
-                                        ? _shortDate(timestamp.toDate())
-                                        : 'Today',
-                                    style: const TextStyle(
-                                      color: muted,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
-                    },
+                          ),
+                        );
+                      },
+                    ),
                   );
                 },
               ),
@@ -3174,7 +3336,7 @@ Future<void> confirmDelete(
     context: context,
     builder: (ctx) => AlertDialog(
       scrollable: true,
-      icon: const Icon(Icons.delete_outline, color: SaveTrackDesign.error),
+      icon: Icon(Icons.delete_outline, color: context.atelierError),
       title: const Text('Please confirm'),
       content: Text(message),
       actions: [
@@ -3184,7 +3346,7 @@ Future<void> confirmDelete(
         ),
         FilledButton(
           onPressed: () => Navigator.pop(ctx, true),
-          style: FilledButton.styleFrom(backgroundColor: SaveTrackDesign.error),
+          style: FilledButton.styleFrom(backgroundColor: context.atelierError),
           child: const Text('Delete'),
         ),
       ],
@@ -3271,6 +3433,8 @@ Future<void> showGoalForm(
               .toStringAsFixed(CurrencyCatalog.byCode[code]?.digits ?? 2),
   );
   DateTime? deadline = (doc?.data()['deadline'] as Timestamp?)?.toDate();
+  final originalDeadline = deadline, originalCode = code;
+  final discardGuard = GlobalKey<UnsavedChangesGuardState>();
   bool busy = false;
   final coverSession = goalAuth.authStateChanges().map(
     (user) => user?.uid == uid,
@@ -3283,8 +3447,15 @@ Future<void> showGoalForm(
       child: FormControllerScope(
         controllers: [title, note, target],
         child: StatefulBuilder(
-          builder: (ctx, setState) => PopScope(
-            canPop: !busy && !photoBusy,
+          builder: (ctx, setState) => UnsavedChangesGuard(
+            key: discardGuard,
+            controllers: [title, note, target],
+            enabled: !goalSaved,
+            busy: busy || photoBusy,
+            hasChanges: () =>
+                deadline != originalDeadline ||
+                code != originalCode ||
+                pendingCover != null,
             child: AlertDialog(
               scrollable: true,
               insetPadding: const EdgeInsets.symmetric(
@@ -3340,9 +3511,7 @@ Future<void> showGoalForm(
                         if (goalSaved && coverError != null)
                           Text(
                             'Goal saved. Its cover could not be confirmed. $coverError',
-                            style: const TextStyle(
-                              color: SaveTrackDesign.error,
-                            ),
+                            style: TextStyle(color: context.atelierError),
                           ),
                         if (busy && goalSaved && pendingCover != null) ...[
                           const Text('Uploading Goal Cover'),
@@ -3363,8 +3532,8 @@ Future<void> showGoalForm(
                               if (doc != null)
                                 Text(
                                   'Stored denomination: $code ? fixed after creation',
-                                  style: const TextStyle(
-                                    color: muted,
+                                  style: TextStyle(
+                                    color: context.atelierMuted,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -3385,7 +3554,7 @@ Future<void> showGoalForm(
                                 controller: target,
                                 style: SaveTrackDesign.amount.copyWith(
                                   fontSize: 24,
-                                  color: teal,
+                                  color: context.atelierAccent,
                                 ),
                                 keyboardType:
                                     const TextInputType.numberWithOptions(
@@ -3449,7 +3618,7 @@ Future<void> showGoalForm(
                 TextButton(
                   onPressed: busy || photoBusy
                       ? null
-                      : () => Navigator.pop(ctx),
+                      : () => discardGuard.currentState?.requestClose(),
                   child: Text(goalSaved ? 'Done without photo' : 'Cancel'),
                 ),
                 GradientButton(
@@ -3656,251 +3825,271 @@ Future<void> showTaskForm(
   if (!priorities.contains(priority)) priorities.add(priority);
   String day =
       doc?.data()['dateKey'] as String? ?? dateKey ?? _dateKey(DateTime.now());
+  final originalDay = day, originalPriority = priority;
+  final discardGuard = GlobalKey<UnsavedChangesGuardState>();
   bool busy = false;
   await showDialog<void>(
     context: context,
+    barrierDismissible: false,
     builder: (ctx) => WidgetAccountGuard(
       uid: widgetAccount,
       child: FormControllerScope(
         controllers: [title, time],
         child: StatefulBuilder(
-          builder: (ctx, setState) => AlertDialog(
-            scrollable: true,
-            insetPadding: const EdgeInsets.symmetric(
-              horizontal: 24,
-              vertical: 24,
-            ),
-            title: FormHeading(
-              icon: Icons.edit_calendar_outlined,
-              title: doc == null ? 'Add a task' : 'Edit task',
-              detail: 'Make space for what matters in your day.',
-            ),
-            content: Form(
-              key: form,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const FieldCaption('The plan'),
-                  TextFormField(
-                    controller: title,
-                    decoration: const InputDecoration(
-                      labelText: 'Task',
-                      prefixIcon: Icon(Icons.checklist_outlined),
+          builder: (ctx, setState) => UnsavedChangesGuard(
+            key: discardGuard,
+            controllers: [title, time],
+            busy: busy,
+            enabled: !savedThisSession,
+            hasChanges: () =>
+                day != originalDay ||
+                priority != originalPriority ||
+                reminderChanged,
+            child: AlertDialog(
+              scrollable: true,
+              insetPadding: const EdgeInsets.symmetric(
+                horizontal: 24,
+                vertical: 24,
+              ),
+              title: FormHeading(
+                icon: Icons.edit_calendar_outlined,
+                title: doc == null ? 'Add a task' : 'Edit task',
+                detail: 'Make space for what matters in your day.',
+              ),
+              content: Form(
+                key: form,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const FieldCaption('The plan'),
+                    TextFormField(
+                      controller: title,
+                      decoration: const InputDecoration(
+                        labelText: 'Task',
+                        prefixIcon: Icon(Icons.checklist_outlined),
+                      ),
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? 'Enter a task.'
+                          : null,
                     ),
-                    validator: (v) =>
-                        v == null || v.trim().isEmpty ? 'Enter a task.' : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: time,
-                    decoration: const InputDecoration(
-                      labelText: 'Time (optional)',
-                      prefixIcon: Icon(Icons.schedule_outlined),
-                      hintText: 'e.g. 9:30 AM',
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: time,
+                      decoration: const InputDecoration(
+                        labelText: 'Time (optional)',
+                        prefixIcon: Icon(Icons.schedule_outlined),
+                        hintText: 'e.g. 9:30 AM',
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 24),
-                  const FieldCaption('When & how important'),
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: priority,
-                    decoration: const InputDecoration(
-                      labelText: 'Priority',
-                      prefixIcon: Icon(Icons.low_priority),
+                    const SizedBox(height: 24),
+                    const FieldCaption('When & how important'),
+                    DropdownButtonFormField<String>(
+                      isExpanded: true,
+                      initialValue: priority,
+                      decoration: const InputDecoration(
+                        labelText: 'Priority',
+                        prefixIcon: Icon(Icons.low_priority),
+                      ),
+                      items: priorities
+                          .map(
+                            (p) => DropdownMenuItem(
+                              value: p,
+                              child: Text(p, overflow: TextOverflow.ellipsis),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (v) =>
+                          setState(() => priority = v ?? 'Normal'),
                     ),
-                    items: priorities
-                        .map(
-                          (p) => DropdownMenuItem(
-                            value: p,
-                            child: Text(p, overflow: TextOverflow.ellipsis),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (v) => setState(() => priority = v ?? 'Normal'),
-                  ),
-                  const SizedBox(height: 8),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      final d = DateTime.tryParse(day) ?? DateTime.now();
-                      final chosen = await showDatePicker(
-                        context: ctx,
-                        firstDate: DateTime(2020),
-                        lastDate: DateTime(2100),
-                        initialDate: d,
-                      );
-                      if (chosen != null) {
-                        setState(() => day = _dateKey(chosen));
-                      }
-                    },
-                    icon: const Icon(Icons.calendar_today),
-                    label: Text(_shortDate(DateTime.parse(day))),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.notifications_outlined),
-                    label: Text(
-                      reminderDraft == null
-                          ? 'Set Task Reminder'
-                          : reminderSummary(ctx, reminderDraft!),
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
+                      onPressed: () async {
+                        final d = DateTime.tryParse(day) ?? DateTime.now();
+                        final chosen = await showDatePicker(
+                          context: ctx,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2100),
+                          initialDate: d,
+                        );
+                        if (chosen != null) {
+                          setState(() => day = _dateKey(chosen));
+                        }
+                      },
+                      icon: const Icon(Icons.calendar_today),
+                      label: Text(_shortDate(DateTime.parse(day))),
                     ),
-                    onPressed: busy
-                        ? null
-                        : () async {
-                            if (account == null || taskReference == null) {
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Sign in to configure a task reminder.',
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.notifications_outlined),
+                      label: Text(
+                        reminderDraft == null
+                            ? 'Set Task Reminder'
+                            : reminderSummary(ctx, reminderDraft!),
+                      ),
+                      onPressed: busy
+                          ? null
+                          : () async {
+                              if (account == null || taskReference == null) {
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Sign in to configure a task reminder.',
+                                    ),
                                   ),
-                                ),
+                                );
+                                return;
+                              }
+                              final target = ReminderTarget.fromData(
+                                ReminderTargetType.task,
+                                taskReference!.id,
+                                {
+                                  'title': title.text.trim().isEmpty
+                                      ? 'Your task'
+                                      : title.text.trim(),
+                                  'time': time.text.trim(),
+                                  'dateKey': day,
+                                  'completed': doc?.data()['completed'] == true,
+                                },
                               );
-                              return;
+                              final draft = await configureReminderDraft(
+                                ctx,
+                                uid: account,
+                                target: target,
+                                initial: reminderDraft,
+                              );
+                              if (draft != null && ctx.mounted) {
+                                setState(() {
+                                  reminderDraft = draft;
+                                  reminderChanged = true;
+                                });
+                              }
+                            },
+                    ),
+                    if (reminderDraft != null)
+                      Text(
+                        'Reminder time is separate from the task schedule. Save the task to apply reminder changes.',
+                        style: TextStyle(
+                          color: context.atelierMuted,
+                          fontSize: 12,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: busy
+                      ? null
+                      : () => discardGuard.currentState?.requestClose(),
+                  child: const Text('Cancel'),
+                ),
+                GradientButton(
+                  expand: false,
+                  onPressed: busy
+                      ? null
+                      : () async {
+                          if (!form.currentState!.validate()) return;
+                          setState(() => busy = true);
+                          try {
+                            final activeAccount = reminderCoordinator != null
+                                ? reminderCoordinator.uid
+                                : doc == null
+                                ? FirebaseAuth.instance.currentUser!.uid
+                                : null;
+                            if (account != null && activeAccount != account) {
+                              throw const ReminderFailure(
+                                'Your account changed. Open the task again.',
+                              );
                             }
+                            taskReference ??= _tasks(activeAccount!).doc();
+                            final data = {
+                              'title': title.text.trim(),
+                              'time': time.text.trim(),
+                              'priority': priority,
+                              'dateKey': day,
+                              'updatedAt': FieldValue.serverTimestamp(),
+                            };
                             final target = ReminderTarget.fromData(
                               ReminderTargetType.task,
-                              taskReference!.id,
+                              doc?.id ?? taskReference!.id,
                               {
-                                'title': title.text.trim().isEmpty
-                                    ? 'Your task'
-                                    : title.text.trim(),
-                                'time': time.text.trim(),
-                                'dateKey': day,
+                                ...data,
                                 'completed': doc?.data()['completed'] == true,
                               },
                             );
-                            final draft = await configureReminderDraft(
-                              ctx,
-                              uid: account,
-                              target: target,
-                              initial: reminderDraft,
-                            );
-                            if (draft != null && ctx.mounted) {
-                              setState(() {
-                                reminderDraft = draft;
-                                reminderChanged = true;
+                            if (reminderChanged &&
+                                reminderDraft?.enabled == true) {
+                              final zone = reminderCoordinator?.zone;
+                              if (zone == null ||
+                                  const ReminderTimeCalculator().next(
+                                        reminderDraft!,
+                                        target,
+                                        zone,
+                                        DateTime.now(),
+                                      ) ==
+                                      null) {
+                                throw const ReminderFailure(
+                                  'Choose a valid future reminder before saving.',
+                                );
+                              }
+                            }
+                            if (!taskSaved) {
+                              data.addAll({
+                                'completed': false,
+                                'createdAt': FieldValue.serverTimestamp(),
                               });
-                            }
-                          },
-                  ),
-                  if (reminderDraft != null)
-                    const Text(
-                      'Reminder time is separate from the task schedule. Save the task to apply reminder changes.',
-                      style: TextStyle(color: muted, fontSize: 12),
-                    ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: busy ? null : () => Navigator.pop(ctx),
-                child: const Text('Cancel'),
-              ),
-              GradientButton(
-                expand: false,
-                onPressed: busy
-                    ? null
-                    : () async {
-                        if (!form.currentState!.validate()) return;
-                        setState(() => busy = true);
-                        try {
-                          final activeAccount = reminderCoordinator != null
-                              ? reminderCoordinator.uid
-                              : doc == null
-                              ? FirebaseAuth.instance.currentUser!.uid
-                              : null;
-                          if (account != null && activeAccount != account) {
-                            throw const ReminderFailure(
-                              'Your account changed. Open the task again.',
-                            );
-                          }
-                          taskReference ??= _tasks(activeAccount!).doc();
-                          final data = {
-                            'title': title.text.trim(),
-                            'time': time.text.trim(),
-                            'priority': priority,
-                            'dateKey': day,
-                            'updatedAt': FieldValue.serverTimestamp(),
-                          };
-                          final target = ReminderTarget.fromData(
-                            ReminderTargetType.task,
-                            doc?.id ?? taskReference!.id,
-                            {
-                              ...data,
-                              'completed': doc?.data()['completed'] == true,
-                            },
-                          );
-                          if (reminderChanged &&
-                              reminderDraft?.enabled == true) {
-                            final zone = reminderCoordinator?.zone;
-                            if (zone == null ||
-                                const ReminderTimeCalculator().next(
-                                      reminderDraft!,
-                                      target,
-                                      zone,
-                                      DateTime.now(),
-                                    ) ==
-                                    null) {
-                              throw const ReminderFailure(
-                                'Choose a valid future reminder before saving.',
+                              await AppRecordRepository().create(
+                                uid: activeAccount!,
+                                collection: 'tasks',
+                                id: taskReference!.id,
+                                data: data,
                               );
+                            } else {
+                              await taskReference!.update(data);
                             }
-                          }
-                          if (!taskSaved) {
-                            data.addAll({
-                              'completed': false,
-                              'createdAt': FieldValue.serverTimestamp(),
-                            });
-                            await AppRecordRepository().create(
-                              uid: activeAccount!,
-                              collection: 'tasks',
-                              id: taskReference!.id,
-                              data: data,
-                            );
-                          } else {
-                            await taskReference!.update(data);
-                          }
-                          taskSaved = true;
-                          savedThisSession = true;
-                          if (reminderChanged && reminderDraft != null) {
-                            if (reminderCoordinator == null) {
-                              throw const ReminderFailure(
-                                'Task saved. Reminder service unavailable.',
+                            taskSaved = true;
+                            savedThisSession = true;
+                            if (reminderChanged && reminderDraft != null) {
+                              if (reminderCoordinator == null) {
+                                throw const ReminderFailure(
+                                  'Task saved. Reminder service unavailable.',
+                                );
+                              }
+                              await reminderCoordinator.save(
+                                reminderDraft!,
+                                target,
                               );
+                              if (ctx.mounted) {
+                                ScaffoldMessenger.of(ctx).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      reminderCoordinator
+                                          .status(reminderDraft!.key)
+                                          .message,
+                                    ),
+                                  ),
+                                );
+                              }
                             }
-                            await reminderCoordinator.save(
-                              reminderDraft!,
-                              target,
-                            );
+                            if (ctx.mounted) Navigator.pop(ctx);
+                          } catch (e) {
+                            setState(() => busy = false);
                             if (ctx.mounted) {
                               ScaffoldMessenger.of(ctx).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    reminderCoordinator
-                                        .status(reminderDraft!.key)
-                                        .message,
+                                    '${savedThisSession && reminderChanged ? 'Task saved; reminder change could not be confirmed' : 'Could not save task'}: $e',
                                   ),
                                 ),
                               );
                             }
                           }
-                          if (ctx.mounted) Navigator.pop(ctx);
-                        } catch (e) {
-                          setState(() => busy = false);
-                          if (ctx.mounted) {
-                            ScaffoldMessenger.of(ctx).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  '${savedThisSession && reminderChanged ? 'Task saved; reminder change could not be confirmed' : 'Could not save task'}: $e',
-                                ),
-                              ),
-                            );
-                          }
-                        }
-                      },
-                child: SaveActionLabel(busy: busy, label: 'Save'),
-              ),
-            ],
+                        },
+                  child: SaveActionLabel(busy: busy, label: 'Save'),
+                ),
+              ],
+            ),
           ),
         ),
       ),

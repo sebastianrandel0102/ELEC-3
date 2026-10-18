@@ -160,10 +160,10 @@ class _SmartSuggestionsState extends State<SmartSuggestions>
               ],
               if (recommendation.hasScheduleConflict) ...[
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'These tasks have overlapping schedules.',
                   style: TextStyle(
-                    color: SaveTrackDesign.warning,
+                    color: context.atelierWarning,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -174,9 +174,9 @@ class _SmartSuggestionsState extends State<SmartSuggestions>
                   ),
               ],
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Suggestions use your recorded priorities and schedule. You decide what to work on.',
-                style: TextStyle(color: muted),
+                style: TextStyle(color: context.atelierMuted),
               ),
             ],
           ),
@@ -203,9 +203,9 @@ class _SmartSuggestionsState extends State<SmartSuggestions>
                     'Smart Suggestions',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  const Text(
+                  Text(
                     'Know what to focus on next.',
-                    style: TextStyle(color: muted, fontSize: 13),
+                    style: TextStyle(color: context.atelierMuted, fontSize: 13),
                   ),
                 ],
               ),
@@ -264,11 +264,14 @@ class SmartPlannerSummary extends StatelessWidget {
           children: [
             Text(
               '${plan.remainingTasks} remaining',
-              style: const TextStyle(color: teal, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: context.atelierAccent,
+                fontWeight: FontWeight.w600,
+              ),
             ),
             Text(
               '${plan.highPriorityRemaining} high priority',
-              style: const TextStyle(color: teal),
+              style: TextStyle(color: context.atelierAccent),
             ),
           ],
         ),
@@ -276,12 +279,12 @@ class SmartPlannerSummary extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             'Next schedule: ${plan.nextScheduledTask!.title} · ${_clockLabel(context, plan.nextScheduledStart!)}',
-            style: const TextStyle(color: teal, fontSize: 13),
+            style: TextStyle(color: context.atelierAccent, fontSize: 13),
           ),
           const SizedBox(height: 4),
           Text(
             'You have ${plan.minutesBeforeNextSchedule} minutes before it starts.',
-            style: const TextStyle(color: muted, fontSize: 13),
+            style: TextStyle(color: context.atelierMuted, fontSize: 13),
           ),
         ],
       ],
@@ -470,13 +473,13 @@ class RecommendedTaskTile extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: SaveTrackDesign.mist,
+                        color: context.atelierTonal,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         recommendation.rank.toString().padLeft(2, '0'),
-                        style: const TextStyle(
-                          color: teal,
+                        style: TextStyle(
+                          color: context.atelierAccent,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -488,7 +491,11 @@ class RecommendedTaskTile extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: muted, size: 20),
+                    Icon(
+                      Icons.chevron_right,
+                      color: context.atelierMuted,
+                      size: 20,
+                    ),
                   ],
                 ),
               ),
@@ -501,12 +508,12 @@ class RecommendedTaskTile extends StatelessWidget {
                 StatusPill(
                   '${recommendation.task.priority} priority',
                   color: recommendation.task.priority == 'High'
-                      ? SaveTrackDesign.warning
-                      : teal,
+                      ? context.atelierWarning
+                      : context.atelierAccent,
                 ),
                 Text(
                   recommendation.timeLabel,
-                  style: const TextStyle(fontSize: 12, color: muted),
+                  style: TextStyle(fontSize: 12, color: context.atelierMuted),
                 ),
               ],
             ),
@@ -514,13 +521,13 @@ class RecommendedTaskTile extends StatelessWidget {
               const SizedBox(height: 6),
               Text(
                 'Scheduled: ${recommendation.task.time}',
-                style: const TextStyle(color: muted, fontSize: 12),
+                style: TextStyle(color: context.atelierMuted, fontSize: 12),
               ),
             ],
             const SizedBox(height: 8),
             Text(
               recommendation.explanation,
-              style: const TextStyle(color: muted, fontSize: 13),
+              style: TextStyle(color: context.atelierMuted, fontSize: 13),
             ),
             if (recommendation.hasScheduleConflict) ...[
               const SizedBox(height: 8),
@@ -548,7 +555,7 @@ class SmartSuggestionsEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    color: SaveTrackDesign.lightMint,
+    color: context.atelierSelected,
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -556,7 +563,7 @@ class SmartSuggestionsEmptyState extends StatelessWidget {
         children: [
           Icon(
             plan.allCompleted ? Icons.task_alt : Icons.event_available_outlined,
-            color: teal,
+            color: context.atelierAccent,
             size: 28,
           ),
           const SizedBox(height: 12),
@@ -573,7 +580,7 @@ class SmartSuggestionsEmptyState extends StatelessWidget {
             plan.allCompleted
                 ? 'You’ve completed the tasks for this day.'
                 : 'Add a task to get personalized suggestions.',
-            style: const TextStyle(color: muted),
+            style: TextStyle(color: context.atelierMuted),
           ),
           if (!plan.allCompleted) ...[
             const SizedBox(height: 12),

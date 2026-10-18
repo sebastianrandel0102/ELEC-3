@@ -159,7 +159,7 @@ class MemberAvatar extends StatelessWidget {
       label: name,
       child: CircleAvatar(
         backgroundColor: mint,
-        foregroundColor: teal,
+        foregroundColor: context.atelierAccent,
         child: Text(
           words.isEmpty
               ? '?'
@@ -245,7 +245,7 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
               children: [
                 Text(
                   '${all.length} goals joined · ${all.where((g) => g.ownerId == uid).length} owned',
-                  style: const TextStyle(color: muted, fontSize: 13),
+                  style: TextStyle(color: context.atelierMuted, fontSize: 13),
                 ),
                 const SizedBox(height: 20),
                 const FieldCaption('Combined group balances'),
@@ -253,13 +253,13 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
                   sharedTotalMoney(context, all.map((g) => g.balance)),
                   style: SaveTrackDesign.amount.copyWith(
                     fontSize: 26,
-                    color: teal,
+                    color: context.atelierAccent,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   'Your recorded deposits: ${sharedTotalMoney(context, all.map((g) => (g.data['personalDeposits'] as Map?)?[uid] as num? ?? 0))}',
-                  style: const TextStyle(color: muted, fontSize: 13),
+                  style: TextStyle(color: context.atelierMuted, fontSize: 13),
                 ),
                 const SharedNotice(
                   'Current-rate display estimates; all shared goals are stored in PHP. Group balances are shared tracking totals. They are separate from personal savings. Deposits remain attributed to members after a group decrease.',
@@ -310,7 +310,11 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  const Icon(Icons.groups_outlined, size: 40, color: teal),
+                  Icon(
+                    Icons.groups_outlined,
+                    size: 40,
+                    color: context.atelierAccent,
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     all.isEmpty
@@ -397,10 +401,10 @@ class SharedGoalCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Icon(
+                  Icon(
                     Icons.arrow_forward_rounded,
                     size: 20,
-                    color: teal,
+                    color: context.atelierAccent,
                   ),
                 ],
               ),
@@ -422,20 +426,20 @@ class SharedGoalCard extends StatelessWidget {
                 compactCurrency: true,
                 style: SaveTrackDesign.amount.copyWith(
                   fontSize: 28,
-                  color: teal,
+                  color: context.atelierAccent,
                 ),
               ),
               const CurrencyContextLabel(source: 'PHP'),
               Text(
                 'Combined savings · ${sharedDisplayMoney(context, goal.target)} target',
-                style: const TextStyle(color: muted, fontSize: 13),
+                style: TextStyle(color: context.atelierMuted, fontSize: 13),
               ),
               const SizedBox(height: 12),
               MintProgress(value: goal.progress),
               const SizedBox(height: 12),
               Text(
                 '${(goal.progress * 100).round()}% · Due ${sharedDateText(goal.deadline)}',
-                style: const TextStyle(color: muted, fontSize: 13),
+                style: TextStyle(color: context.atelierMuted, fontSize: 13),
               ),
               if ((goal.data['memberNames'] as Map?)?.isNotEmpty ?? false)
                 Padding(
@@ -666,7 +670,7 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
                   TextFormField(
                     style: SaveTrackDesign.amount.copyWith(
                       fontSize: 26,
-                      color: teal,
+                      color: context.atelierAccent,
                     ),
                     controller: target,
                     enabled: !busy && pending == null,
@@ -1139,7 +1143,7 @@ class _OwnContributionState extends State<OwnContribution> {
                 ),
                 style: SaveTrackDesign.amount.copyWith(
                   fontSize: 27,
-                  color: teal,
+                  color: context.atelierAccent,
                 ),
               ),
       );
@@ -1288,7 +1292,7 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
                   'Current balance: ${sharedDisplayMoney(context, liveGoal.balance)}',
                   style: SaveTrackDesign.amount.copyWith(
                     fontSize: 26,
-                    color: teal,
+                    color: context.atelierAccent,
                   ),
                 ),
                 Text(
@@ -1321,7 +1325,7 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
                       TextFormField(
                         style: SaveTrackDesign.amount.copyWith(
                           fontSize: 28,
-                          color: teal,
+                          color: context.atelierAccent,
                         ),
                         controller: amount,
                         enabled: !busy && pending == null,
@@ -1351,9 +1355,12 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
                           from: inputCurrency,
                           to: 'PHP',
                         ),
-                      const Text(
+                      Text(
                         'The PHP goal amount is confirmed with a locked rate. Cross-currency entries require fresh rates.',
-                        style: TextStyle(fontSize: 12, color: muted),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: context.atelierMuted,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -1595,7 +1602,7 @@ class _SharedMembersScreenState extends State<SharedMembersScreen> {
                               '${sharedDisplayMoney(context, m.deposits)} recorded deposits',
                               style: SaveTrackDesign.amount.copyWith(
                                 fontSize: 22,
-                                color: teal,
+                                color: context.atelierAccent,
                               ),
                             ),
                             Text(
@@ -1720,11 +1727,11 @@ class _SharedInvitesScreenState extends State<SharedInvitesScreen> {
                   TonalPanel(
                     child: SelectableText(
                       token!,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontFamily: 'Manrope',
                         fontWeight: FontWeight.w700,
                         fontSize: 18,
-                        color: teal,
+                        color: context.atelierAccent,
                         letterSpacing: 1,
                       ),
                     ),
@@ -1896,7 +1903,7 @@ class _SharedInvitationScreenState extends State<SharedInvitationScreen> {
         ] else ...[
           Text(
             'You’re invited to save together!',
-            style: SaveTrackDesign.heading,
+            style: SaveTrackDesign.heading.copyWith(color: context.atelierInk),
           ),
           const SizedBox(height: 16),
           Text(
@@ -1961,14 +1968,16 @@ class SharedActivityTile extends StatelessWidget {
               '${record.withdrawal ? '−' : '+'}${sharedDisplayMoney(context, record.amount)}',
               style: TextStyle(
                 fontWeight: FontWeight.w700,
-                color: record.withdrawal ? SaveTrackDesign.error : teal,
+                color: record.withdrawal
+                    ? context.atelierError
+                    : context.atelierAccent,
                 fontSize: 24,
               ),
             ),
             const CurrencyContextLabel(source: 'PHP', historical: true),
             Text(
               'Recorded: ${originalMoney(record.amount)}',
-              style: const TextStyle(color: muted, fontSize: 12),
+              style: TextStyle(color: context.atelierMuted, fontSize: 12),
             ),
             if (record.data['conversion'] is Map)
               TransactionConversionDetails(
@@ -1984,7 +1993,10 @@ class SharedActivityTile extends StatelessWidget {
             if (record.note.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(record.note, style: const TextStyle(color: muted)),
+                child: Text(
+                  record.note,
+                  style: TextStyle(color: context.atelierMuted),
+                ),
               ),
           ],
         ),

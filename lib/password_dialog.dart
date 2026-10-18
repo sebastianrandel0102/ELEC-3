@@ -258,10 +258,13 @@ class _PasswordDialogState extends State<PasswordDialog> {
                               ],
                             ),
                           ),
-                          const Text(
+                          Text(
                             'Your new password must meet your account’s security rules. '
                             'These are checked before saving.',
-                            style: TextStyle(color: muted, fontSize: 12),
+                            style: TextStyle(
+                              color: context.atelierMuted,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                         if (_error != null) ...[
@@ -270,9 +273,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
                             liveRegion: true,
                             child: Text(
                               _error!,
-                              style: const TextStyle(
-                                color: SaveTrackDesign.error,
-                              ),
+                              style: TextStyle(color: context.atelierError),
                             ),
                           ),
                         ],

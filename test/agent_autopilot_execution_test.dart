@@ -53,51 +53,51 @@ void main() {
     expect(engine.mission!.status, MissionStatus.completed);
     expect(backend.calls, hasLength(2));
   });
-  test(
-    'production adapter is used by automatic goal and task creation',
-    () async {
-      final db = AutopilotDatabase(), auth = ContextAuth();
-      final backend = FirestoreAgentBackend(
-        uid: 'private-uid',
-        db: db,
-        auth: auth,
-        reminders: null,
-        openContribution: (_, _) async {},
-      );
-      final engine = AgentEngine(
-        uid: 'private-uid',
-        currentUid: () => auth.currentUser?.uid,
-        backend: backend,
-        store: MemoryAgentStore(),
-        ledger: MemoryExecutionLedger(),
-        clock: () => agentNow,
-      );
-      addTearDown(engine.dispose);
-      await enableAutopilot(engine);
-      await engine.handleUserPlan(
-        plan(
-          'Create a goal called Laptop, target ₱30,000, deadline December 15, 2027.',
-        ),
-      );
-      expect(engine.mission!.status, MissionStatus.completed);
-      final id = engine.mission!.steps.single.recordId;
-      expect(db.documents['users/private-uid/goals/$id']!['savedAmount'], 0);
-      await engine.handleUserPlan(
-        plan('Create a task called Research Laptop Prices tomorrow.'),
-      );
-      expect(engine.mission!.status, MissionStatus.completed);
-      expect(
-        db.documents.values.where(
-          (d) => d['title'] == 'Research Laptop Prices',
-        ),
-        hasLength(1),
-      );
-      expect(
-        db.documents.keys.where((p) => p.contains('/transactions/')),
-        isEmpty,
-      );
-    },
-  );
+  test('production adapter is used by automatic goal and task creation', () async {
+    final db = AutopilotDatabase(), auth = ContextAuth();
+    // This adapter intentionally validates against the real clock. Keep its
+    // integration fixture on the same date instead of a frozen past date.
+    final integrationNow = DateTime.now();
+    LocalAgentPlan integrationPlan(String text) =>
+        planner.plan(text, now: integrationNow, defaultCurrency: 'PHP');
+    final backend = FirestoreAgentBackend(
+      uid: 'private-uid',
+      db: db,
+      auth: auth,
+      reminders: null,
+      openContribution: (_, _) async {},
+    );
+    final engine = AgentEngine(
+      uid: 'private-uid',
+      currentUid: () => auth.currentUser?.uid,
+      backend: backend,
+      store: MemoryAgentStore(),
+      ledger: MemoryExecutionLedger(),
+      clock: () => integrationNow,
+    );
+    addTearDown(engine.dispose);
+    await enableAutopilot(engine);
+    await engine.handleUserPlan(
+      integrationPlan(
+        'Create a goal called Laptop, target ₱30,000, deadline December 15, ${integrationNow.year + 1}.',
+      ),
+    );
+    expect(engine.mission!.status, MissionStatus.completed);
+    final id = engine.mission!.steps.single.recordId;
+    expect(db.documents['users/private-uid/goals/$id']!['savedAmount'], 0);
+    await engine.handleUserPlan(
+      integrationPlan('Create a task called Research Laptop Prices tomorrow.'),
+    );
+    expect(engine.mission!.status, MissionStatus.completed);
+    expect(
+      db.documents.values.where((d) => d['title'] == 'Research Laptop Prices'),
+      hasLength(1),
+    );
+    expect(
+      db.documents.keys.where((p) => p.contains('/transactions/')),
+      isEmpty,
+    );
+  });
   test(
     'supported recurring reminder executes with a resolved personal goal',
     () async {

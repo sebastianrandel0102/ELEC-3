@@ -162,22 +162,22 @@ Future<TimeOfDay?> showReminderTimePicker(
   builder: (context, child) => Theme(
     data: Theme.of(context).copyWith(
       timePickerTheme: TimePickerThemeData(
-        backgroundColor: Colors.white,
+        backgroundColor: context.atelierSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         dialHandColor: SaveTrackDesign.emerald,
-        dialBackgroundColor: SaveTrackDesign.lightMint,
+        dialBackgroundColor: context.atelierSelected,
         hourMinuteColor: WidgetStateColor.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? SaveTrackDesign.lightMint
-              : SaveTrackDesign.input,
+              ? context.atelierSelected
+              : context.atelierTonal,
         ),
-        hourMinuteTextColor: SaveTrackDesign.midnight,
+        hourMinuteTextColor: context.atelierInk,
         dayPeriodColor: WidgetStateColor.resolveWith(
           (states) => states.contains(WidgetState.selected)
-              ? SaveTrackDesign.lightMint
-              : Colors.white,
+              ? context.atelierSelected
+              : context.atelierSurface,
         ),
-        dayPeriodTextColor: SaveTrackDesign.midnight,
+        dayPeriodTextColor: context.atelierInk,
       ),
     ),
     child: child!,
@@ -485,9 +485,9 @@ class _ReminderEditorState extends State<ReminderEditor> {
                   ),
                 ),
                 if (widget.target.type == ReminderTargetType.sharedGoal)
-                  const Text(
+                  Text(
                     'Only your reminder changes. Other members choose their own.',
-                    style: TextStyle(color: muted),
+                    style: TextStyle(color: context.atelierMuted),
                   ),
                 SwitchListTile.adaptive(
                   contentPadding: EdgeInsets.zero,
@@ -508,7 +508,7 @@ class _ReminderEditorState extends State<ReminderEditor> {
                             'Reminder time, ${time.format(context)}. Opens clock picker.',
                         button: true,
                         child: Card(
-                          color: SaveTrackDesign.mist,
+                          color: context.atelierTonal,
                           child: InkWell(
                             key: const ValueKey('reminder-time'),
                             borderRadius: BorderRadius.circular(22),
@@ -528,14 +528,19 @@ class _ReminderEditorState extends State<ReminderEditor> {
                               padding: const EdgeInsets.all(20),
                               child: Column(
                                 children: [
-                                  const Text(
+                                  Text(
                                     'Reminder time',
-                                    style: TextStyle(color: muted),
+                                    style: TextStyle(
+                                      color: context.atelierMuted,
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   Row(
                                     children: [
-                                      const Icon(Icons.schedule, color: teal),
+                                      Icon(
+                                        Icons.schedule,
+                                        color: context.atelierAccent,
+                                      ),
                                       const SizedBox(width: 10),
                                       Expanded(
                                         child: Text(
@@ -547,10 +552,10 @@ class _ReminderEditorState extends State<ReminderEditor> {
                                           ),
                                         ),
                                       ),
-                                      const Icon(
+                                      Icon(
                                         Icons.edit_outlined,
                                         size: 18,
-                                        color: teal,
+                                        color: context.atelierAccent,
                                       ),
                                     ],
                                   ),
@@ -682,9 +687,12 @@ class _ReminderEditorState extends State<ReminderEditor> {
                               : (value) => setState(() => offset = value!),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'Uses the task’s actual start time. The custom time card applies when Custom date & time is selected.',
-                          style: TextStyle(color: muted, fontSize: 12),
+                          style: TextStyle(
+                            color: context.atelierMuted,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                       SwitchListTile.adaptive(
@@ -702,9 +710,12 @@ class _ReminderEditorState extends State<ReminderEditor> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Notification Preview',
-                              style: TextStyle(fontSize: 12, color: muted),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: context.atelierMuted,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
@@ -721,9 +732,9 @@ class _ReminderEditorState extends State<ReminderEditor> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
+                Text(
                   'Android timing may be approximate unless precise alarms are allowed. System settings and battery restrictions can affect delivery.',
-                  style: TextStyle(fontSize: 12, color: muted),
+                  style: TextStyle(fontSize: 12, color: context.atelierMuted),
                 ),
                 if (error != null)
                   Padding(
@@ -911,8 +922,8 @@ class SmartRemindersScreen extends StatelessWidget {
                               Text(reminderSummary(context, config)),
                               Text(
                                 coordinator.status(config.key).message,
-                                style: const TextStyle(
-                                  color: muted,
+                                style: TextStyle(
+                                  color: context.atelierMuted,
                                   fontSize: 12,
                                 ),
                               ),

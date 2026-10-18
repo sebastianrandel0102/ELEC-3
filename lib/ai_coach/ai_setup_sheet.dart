@@ -15,7 +15,7 @@ Future<bool?> showAiSetup(
   useSafeArea: true,
   isScrollControlled: true,
   showDragHandle: true,
-  backgroundColor: Colors.white,
+  backgroundColor: context.atelierSurface,
   builder: (context) => AiSetupSheet(verify: verify),
 );
 
@@ -91,20 +91,20 @@ class _AiSetupSheetState extends State<AiSetupSheet> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.shield_outlined, color: teal, size: 32),
+        Icon(Icons.shield_outlined, color: context.atelierAccent, size: 32),
         const SizedBox(height: 14),
-        const Text(
+        Text(
           'Connect SaveTrack AI',
           style: TextStyle(
-            color: ink,
+            color: context.atelierInk,
             fontSize: 23,
             fontWeight: FontWeight.w700,
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           'Firebase must verify this app before it can ask Gemini a question. Your question stays in the composer until protection is ready.',
-          style: TextStyle(color: muted, height: 1.6),
+          style: TextStyle(color: context.atelierMuted, height: 1.6),
         ),
         const SizedBox(height: 18),
         _step(
@@ -134,9 +134,13 @@ class _AiSetupSheetState extends State<AiSetupSheet> {
             ),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'The public key is saved only for this browser. Future builds can also include it in their build configuration.',
-            style: TextStyle(color: muted, height: 1.5, fontSize: 12),
+            style: TextStyle(
+              color: context.atelierMuted,
+              height: 1.5,
+              fontSize: 12,
+            ),
           ),
         ],
         const SizedBox(height: 18),
@@ -158,17 +162,14 @@ class _AiSetupSheetState extends State<AiSetupSheet> {
               liveRegion: true,
               child: Text(
                 _failure!.message,
-                style: const TextStyle(
-                  color: SaveTrackDesign.error,
-                  height: 1.5,
-                ),
+                style: TextStyle(color: context.atelierError, height: 1.5),
               ),
             ),
           ),
         FilledButton(
           onPressed: _checking ? null : _verify,
           child: _checking
-              ? const Row(
+              ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox.square(
@@ -205,13 +206,16 @@ class _AiSetupSheetState extends State<AiSetupSheet> {
           width: 28,
           height: 28,
           alignment: Alignment.center,
-          decoration: const BoxDecoration(
-            color: SaveTrackDesign.lightMint,
+          decoration: BoxDecoration(
+            color: context.atelierSelected,
             shape: BoxShape.circle,
           ),
           child: Text(
             number,
-            style: const TextStyle(color: teal, fontWeight: FontWeight.w700),
+            style: TextStyle(
+              color: context.atelierAccent,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -221,12 +225,19 @@ class _AiSetupSheetState extends State<AiSetupSheet> {
             children: [
               Text(
                 title,
-                style: const TextStyle(color: ink, fontWeight: FontWeight.w700),
+                style: TextStyle(
+                  color: context.atelierInk,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
               const SizedBox(height: 5),
               Text(
                 detail,
-                style: const TextStyle(color: muted, fontSize: 12, height: 1.6),
+                style: TextStyle(
+                  color: context.atelierMuted,
+                  fontSize: 12,
+                  height: 1.6,
+                ),
               ),
             ],
           ),

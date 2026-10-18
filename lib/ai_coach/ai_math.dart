@@ -100,7 +100,7 @@ class AiMathBuilder extends MarkdownElementBuilder {
     TextStyle? parentStyle,
   ) {
     final style = (parentStyle ?? const TextStyle(fontSize: 15)).copyWith(
-      color: ink,
+      color: context.atelierInk,
       height: 1.4,
     );
     // Give wide equations their own scroll area, including at large text sizes.

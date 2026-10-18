@@ -1,6 +1,6 @@
 <resources>
     <color name="st_day_background">#EDFAF3</color>
-    <color name="st_day_surface">#FFFFFF</color>
+    <color name="st_day_surface">#FFFDF9</color>
     <color name="st_day_secondary_surface">#E3F5EA</color>
     <color name="st_day_text">#14362B</color>
     <color name="st_day_secondary_text">#526E61</color>
@@ -13,10 +13,10 @@
     <color name="st_night_background">#073F34</color>
     <color name="st_night_gradient_start">#052F28</color>
     <color name="st_night_gradient_end">#0B5B4B</color>
-    <color name="st_night_surface">#165346</color>
-    <color name="st_night_secondary_surface">#0B5B4B</color>
-    <color name="st_night_text">#FFFFFF</color>
-    <color name="st_night_secondary_text">#DCF8EB</color>
+    <color name="st_night_surface">#103D33</color>
+    <color name="st_night_secondary_surface">#16483B</color>
+    <color name="st_night_text">#F2FAF5</color>
+    <color name="st_night_secondary_text">#B8CEC2</color>
     <color name="st_night_accent">#75E7BF</color>
     <color name="st_night_track">#286A5B</color>
     <color name="st_night_action">#4BD4A8</color>

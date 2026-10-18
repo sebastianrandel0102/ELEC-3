@@ -108,7 +108,7 @@ class _DecreaseSavingsDialogState extends State<DecreaseSavingsDialog> {
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: SaveTrackDesign.lightMint,
+                    color: context.atelierSelected,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -137,7 +137,7 @@ class _DecreaseSavingsDialogState extends State<DecreaseSavingsDialog> {
                   controller: _amount,
                   style: SaveTrackDesign.amount.copyWith(
                     fontSize: 28,
-                    color: teal,
+                    color: context.atelierAccent,
                   ),
                   enabled: !locked && available,
                   keyboardType: const TextInputType.numberWithOptions(
@@ -170,8 +170,8 @@ class _DecreaseSavingsDialogState extends State<DecreaseSavingsDialog> {
                     valid
                         ? 'Decrease Amount: ${widget.formatMoney(amount!)}\nNew Savings Balance: ${widget.formatMoney(decreasedSavingsBalance(balance, amount))}'
                         : 'New Savings Balance: —',
-                    style: const TextStyle(
-                      color: teal,
+                    style: TextStyle(
+                      color: context.atelierAccent,
                       fontWeight: FontWeight.w600,
                       height: 1.6,
                     ),
@@ -185,7 +185,7 @@ class _DecreaseSavingsDialogState extends State<DecreaseSavingsDialog> {
                         : snapshot.hasError
                         ? 'Unable to load your savings balance. Please try again.'
                         : 'This goal has no available savings to decrease.',
-                    style: const TextStyle(color: SaveTrackDesign.error),
+                    style: TextStyle(color: context.atelierError),
                   ),
                 ],
                 if (_error != null) ...[
@@ -194,7 +194,7 @@ class _DecreaseSavingsDialogState extends State<DecreaseSavingsDialog> {
                     liveRegion: true,
                     child: Text(
                       _error!,
-                      style: const TextStyle(color: SaveTrackDesign.error),
+                      style: TextStyle(color: context.atelierError),
                     ),
                   ),
                 ],
