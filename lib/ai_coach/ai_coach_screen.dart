@@ -7,7 +7,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../design_system.dart';
 import 'ai_controller.dart';
 import 'ai_domain.dart';
-import 'ai_response.dart';
+import 'ai_conversation_widgets.dart';
+import 'ai_settings_sheet.dart';
+import 'ai_theme.dart';
 import 'ai_widgets.dart';
 import 'ai_setup_sheet.dart';
 import 'firebase_ai_gateway.dart';
@@ -33,6 +35,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
   _ContextStep _contextStep = _ContextStep.idle;
   bool get _loadingContext => _contextStep != _ContextStep.idle;
   bool _showLatest = false;
+  bool _submitting = false;
   String? _lastSessionId;
   // Focus/selection can retain an outgoing scroll position for a frame when
   // the welcome list becomes a conversation. Operate on the current position.
@@ -224,32 +227,60 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
   }
 
   Future<void> _submit() async {
-    if (_controller.busy || _loadingContext || _input.text.trim().isEmpty) {
+    if (_submitting ||
+        _controller.busy ||
+        _loadingContext ||
+        _input.text.trim().isEmpty) {
       return;
     }
+    setState(() => _submitting = true);
     final mode = _controller.mode, question = _input.text;
+    final session = _controller.active.id;
     final previousLastId = _controller.active.messages.isEmpty
         ? null
         : _controller.active.messages.last.id;
-    if (!await _providerNotice() || !mounted || _controller.mode != mode) {
-      return;
+    try {
+      if (!await _providerNotice() ||
+          !mounted ||
+          _controller.mode != mode ||
+          _controller.active.id != session) {
+        return;
+      }
+      final sent = _controller.send(question);
+      if (_controller.busy) {
+        _input.clear();
+        _drafts[mode] = '';
+        _showLatest = false;
+        _followLatest(force: true);
+      }
+      await sent;
+      if (mounted &&
+          _controller.mode == mode &&
+          _controller.active.id == session &&
+          _input.text.isEmpty &&
+          (_controller.active.messages.isEmpty ||
+              _controller.active.messages.last.id == previousLastId) &&
+          _controller.active.failure != null) {
+        _input.text = question;
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
-    final sent = _controller.send(question);
-    if (_controller.busy) {
-      _input.clear();
-      _drafts[mode] = '';
-      _showLatest = false;
-      _followLatest(force: true);
-    }
-    await sent;
-    if (mounted &&
-        _controller.mode == mode &&
-        _input.text.isEmpty &&
-        (_controller.active.messages.isEmpty ||
-            _controller.active.messages.last.id == previousLastId) &&
-        _controller.active.failure != null) {
-      _input.text = question;
-    }
+  }
+
+  Future<void> _settings() async {
+    _focus.unfocus();
+    await showAiSettings(
+      context,
+      mode: _controller.mode,
+      onModeChanged: _switch,
+      onPrivacy: () => _providerNotice(always: true),
+    );
+  }
+
+  void _viewFacts() {
+    _focus.unfocus();
+    _position?.jumpTo(0);
   }
 
   Future<void> _setup() async {
@@ -270,6 +301,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     if (_controller.active.messages.isEmpty &&
         _controller.active.facts == null) {
       _input.clear();
+      _drafts[_controller.mode] = '';
       _controller.newChat();
       return;
     }
@@ -465,7 +497,9 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
     body: SafeArea(
       child: Center(
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 760),
+          constraints: const BoxConstraints(
+            maxWidth: AiLayout.conversationWidth,
+          ),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final largeText = MediaQuery.textScalerOf(context).scale(14) > 21;
@@ -479,12 +513,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                       horizontal: compact ? 8 : 12,
                       vertical: compact ? 2 : 10,
                     ),
-                    decoration: BoxDecoration(
-                      color: context.atelierSurface,
-                      border: Border(
-                        bottom: BorderSide(color: context.atelierBorder),
-                      ),
-                    ),
+                    decoration: BoxDecoration(color: context.atelierCanvas),
                     child: Row(
                       children: [
                         IconButton(
@@ -511,7 +540,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                               ),
                               if (!compact)
                                 Text(
-                                  'Your intelligent companion',
+                                  'A little space to think',
                                   style: TextStyle(
                                     color: context.atelierMuted,
                                     fontSize: 11,
@@ -520,12 +549,22 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                             ],
                           ),
                         ),
+                        if (!largeText && constraints.maxWidth >= 360)
+                          IconButton(
+                            tooltip: 'New chat',
+                            onPressed: _clear,
+                            icon: const Icon(Icons.edit_square, size: 21),
+                          ),
                         PopupMenuButton<String>(
                           tooltip: 'Chat actions',
                           icon: const Icon(Icons.more_horiz_rounded),
                           onSelected: (value) {
                             if (value == 'privacy') {
                               _providerNotice(always: true);
+                            } else if (value == 'settings') {
+                              _settings();
+                            } else if (value == 'facts') {
+                              _viewFacts();
                             } else if (value == 'revoke') {
                               _controller.revokeContext();
                             } else {
@@ -534,6 +573,10 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                           },
                           itemBuilder: (context) => [
                             const PopupMenuItem(
+                              value: 'settings',
+                              child: Text('AI settings'),
+                            ),
+                            const PopupMenuItem(
                               value: 'new',
                               child: Text('New Chat'),
                             ),
@@ -541,6 +584,11 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                               value: 'clear',
                               child: Text('Clear Chat'),
                             ),
+                            if (active.facts != null)
+                              const PopupMenuItem(
+                                value: 'facts',
+                                child: Text('View verified facts'),
+                              ),
                             if (active.facts != null)
                               const PopupMenuItem(
                                 value: 'revoke',
@@ -555,18 +603,20 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      inset,
-                      compact ? 4 : 12,
-                      inset,
-                      compact ? 4 : 10,
+                  if (constraints.maxHeight >= 280 &&
+                      !(compact && active.failure != null))
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(
+                        inset,
+                        compact ? 4 : 12,
+                        inset,
+                        compact ? 4 : 10,
+                      ),
+                      child: AiModeSelector(
+                        mode: _controller.mode,
+                        onChanged: _switch,
+                      ),
                     ),
-                    child: AiModeSelector(
-                      mode: _controller.mode,
-                      onChanged: _switch,
-                    ),
-                  ),
                   if (!compact)
                     Padding(
                       padding: EdgeInsets.fromLTRB(inset, 0, inset, 10),
@@ -581,17 +631,26 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                           Expanded(
                             child: Text(
                               _controller.mode == AiMode.askAnything
-                                  ? 'No SaveTrack data is shared'
+                                  ? 'Curiosity starts here · no SaveTrack records shared'
                                   : active.approval != null
                                   ? 'Anonymous summary approved · exact facts stay local'
                                   : 'Personalized insights use only information you approve',
                               style: TextStyle(
                                 color: context.atelierMuted,
-                                fontSize: 10,
+                                fontSize: 11,
                                 height: 1.5,
                               ),
                             ),
                           ),
+                          if (active.facts != null)
+                            IconButton(
+                              tooltip: 'View verified SaveTrack facts',
+                              onPressed: _viewFacts,
+                              icon: const Icon(
+                                Icons.fact_check_outlined,
+                                size: 18,
+                              ),
+                            ),
                           if (active.facts != null)
                             IconButton(
                               tooltip: 'Revoke context and clear Coach history',
@@ -612,7 +671,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                             right: inset,
                             child: FilledButton.tonalIcon(
                               onPressed: () {
-                                _showLatest = false;
+                                setState(() => _showLatest = false);
                                 _followLatest(force: true);
                               },
                               icon: const Icon(
@@ -628,44 +687,21 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                   if (active.failure != null)
                     Padding(
                       padding: EdgeInsets.fromLTRB(inset, 4, inset, 4),
-                      child: Semantics(
-                        liveRegion: true,
-                        child: Container(
-                          padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.errorContainer,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  active.failure!.message,
-                                  style: TextStyle(
-                                    color: context.atelierError,
-                                    fontSize: 12,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ),
-                              if (active.failure!.kind ==
-                                  AiErrorKind.configuration)
-                                TextButton(
-                                  onPressed: _controller.busy ? null : _setup,
-                                  child: const Text('AI setup'),
-                                )
-                              else if (active.messages.isNotEmpty &&
+                      child: AiErrorNotice(
+                        failure: active.failure!,
+                        actionLabel:
+                            active.failure!.kind == AiErrorKind.configuration
+                            ? 'AI setup'
+                            : active.messages.isNotEmpty &&
                                   active.messages.last.status !=
-                                      AiMessageStatus.complete)
-                                TextButton(
-                                  onPressed: _controller.busy
-                                      ? null
-                                      : _controller.retry,
-                                  child: const Text('Retry'),
-                                ),
-                            ],
-                          ),
-                        ),
+                                      AiMessageStatus.complete
+                            ? 'Retry'
+                            : null,
+                        onAction: _controller.busy
+                            ? null
+                            : active.failure!.kind == AiErrorKind.configuration
+                            ? _setup
+                            : _controller.retry,
                       ),
                     ),
                   _composer(inset, compact),
@@ -686,7 +722,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         padding: EdgeInsets.fromLTRB(inset, 4, inset, 20),
         children: [
           AiWelcomeHero(mode: _controller.mode),
-          const SizedBox(height: 24),
+          const SizedBox(height: 8),
           if (active.facts != null) ...[
             AiFactCard(facts: active.facts!),
             const SizedBox(height: 24),
@@ -720,25 +756,38 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           _prompts(),
           const SizedBox(height: 20),
           Text(
-            'Powered by Gemini · Guidance, with you in control',
+            'POWERED BY GEMINI · GUIDED BY YOU',
             textAlign: TextAlign.center,
-            style: TextStyle(color: context.atelierMuted, fontSize: 10),
+            style: TextStyle(
+              color: context.atelierMuted,
+              fontSize: 10,
+              letterSpacing: 1,
+            ),
           ),
         ],
       );
     }
     final offset = active.facts == null ? 0 : 1;
+    final followUps =
+        !_controller.busy &&
+        active.failure == null &&
+        active.messages.isNotEmpty &&
+        active.messages.last.role == AiRole.assistant &&
+        active.messages.last.status == AiMessageStatus.complete;
     return ListView.builder(
       controller: _scroll,
       padding: EdgeInsets.fromLTRB(inset, 8, inset, 20),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-      itemCount: active.messages.length + offset,
+      itemCount: active.messages.length + offset + (followUps ? 1 : 0),
       itemBuilder: (context, index) {
         if (offset == 1 && index == 0) {
           return Padding(
             padding: const EdgeInsets.only(bottom: 20),
             child: AiFactCard(facts: active.facts!),
           );
+        }
+        if (index == active.messages.length + offset) {
+          return AiFollowUpSuggestions(onSelected: _fill);
         }
         final message = active.messages[index - offset];
         return ListenableBuilder(
@@ -751,175 +800,40 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
               (m) => m.id == message.id,
               orElse: () => message,
             );
-            return _bubble(current);
+            return AiMessageEntrance(
+              child: AiConversationMessage(message: current),
+            );
           },
         );
       },
     );
   }
 
-  Widget _bubble(AiMessage message) {
-    final user = message.role == AiRole.user;
-    if (!user &&
-        message.text.trim().isEmpty &&
-        message.status != AiMessageStatus.streaming) {
-      return const SizedBox.shrink();
-    }
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 18),
-      child: Align(
-        alignment: user ? Alignment.centerRight : Alignment.centerLeft,
-        child: FractionallySizedBox(
-          widthFactor: user ? .85 : .94,
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-            decoration: BoxDecoration(
-              color: user ? SaveTrackDesign.midnight : context.atelierSurface,
-              borderRadius: BorderRadius.circular(20),
-              border: user ? null : Border.all(color: context.atelierBorder),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                if (!user) ...[
-                  Row(
-                    children: [
-                      AiEmblem(size: 24),
-                      SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'SaveTrack AI',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: context.atelierAccent,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                ],
-                if (!user &&
-                    message.status == AiMessageStatus.streaming &&
-                    message.text.isEmpty)
-                  Semantics(
-                    liveRegion: true,
-                    label: 'AI is thinking',
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: context.atelierAccent,
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Thinking…',
-                            style: TextStyle(
-                              color: context.atelierMuted,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (user)
-                  SelectableText(
-                    message.text,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      height: 1.7,
-                    ),
-                  )
-                else if (message.text.isNotEmpty)
-                  AiMarkdownResponse(
-                    text: message.text,
-                    streaming: message.status == AiMessageStatus.streaming,
-                  ),
-                if (!user)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          message.status == AiMessageStatus.streaming
-                              ? 'Writing…'
-                              : message.status == AiMessageStatus.canceled
-                              ? 'Stopped · partial answer'
-                              : message.status == AiMessageStatus.failed
-                              ? 'Incomplete · AI-generated'
-                              : 'AI-generated · verify important details',
-                          style: TextStyle(
-                            color: context.atelierMuted,
-                            fontSize: 10,
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-                      if (message.text.isNotEmpty &&
-                          message.status != AiMessageStatus.streaming)
-                        IconButton(
-                          tooltip: 'Copy answer',
-                          onPressed: () => copyAiText(context, message.text),
-                          icon: Icon(
-                            Icons.copy_rounded,
-                            size: 16,
-                            color: context.atelierMuted,
-                          ),
-                        ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _prompts() {
     final general = [
       (
-        Icons.school_outlined,
-        'Learn',
-        'Explain a difficult topic simply.',
-        'Explain how photosynthesis works in simple terms.',
+        Icons.savings_outlined,
+        'Save consistently',
+        'Small habits, lasting change.',
+        'How can I save more consistently? Give me practical habits without using personal data.',
       ),
       (
-        Icons.calculate_outlined,
-        'Solve',
-        'Work through a math problem.',
-        'Help me solve a math problem step by step. Ask me for the problem.',
+        Icons.event_note_outlined,
+        'Plan my week',
+        'Make room for what matters.',
+        'Help me plan a balanced weekly routine. Ask me where I would like to start.',
       ),
       (
-        Icons.edit_note_rounded,
-        'Write',
-        'Give your words a little polish.',
-        'Help me improve a paragraph. Ask me for a non-sensitive example.',
+        Icons.pie_chart_outline_rounded,
+        'Make sense of money',
+        'The 50/30/20 rule, simply.',
+        'Explain the 50/30/20 rule with a clearly labeled hypothetical example.',
       ),
       (
         Icons.code_rounded,
         'Code',
         'Make a Flutter concept click.',
         'Explain Flutter widgets with a small Dart example.',
-      ),
-      (
-        Icons.lightbulb_outline_rounded,
-        'Create',
-        'Turn a spark into an idea.',
-        'Brainstorm five interesting school project ideas.',
-      ),
-      (
-        Icons.explore_outlined,
-        'Explore',
-        'Learn something unexpected.',
-        'Teach me an interesting science concept.',
       ),
     ];
     final coach = [
@@ -994,85 +908,16 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
   }
 
   Widget _composer(double inset, bool compact) => Padding(
-    padding: EdgeInsets.fromLTRB(inset, 6, inset, compact ? 4 : 10),
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: const EdgeInsets.fromLTRB(8, 4, 6, 4),
-          decoration: BoxDecoration(
-            color: context.atelierSurface,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: context.atelierBorder),
-            boxShadow: SaveTrackDesign.shadows,
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _input,
-                  focusNode: _focus,
-                  minLines: 1,
-                  maxLines: compact ? 2 : 4,
-                  maxLength: AiConfig.maxQuestionCharacters,
-                  textInputAction: TextInputAction.newline,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: context.atelierInk,
-                    height: 1.5,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: _controller.mode == AiMode.askAnything
-                        ? 'Ask anything…'
-                        : 'Ask your Coach…',
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    filled: false,
-                    counterText: '',
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-              ),
-              ValueListenableBuilder<TextEditingValue>(
-                valueListenable: _input,
-                builder: (context, value, _) => IconButton.filled(
-                  tooltip: _controller.busy ? 'Stop response' : 'Send question',
-                  style: IconButton.styleFrom(
-                    backgroundColor: context.atelierAccent,
-                    foregroundColor: context.atelierSurface,
-                    minimumSize: const Size(48, 48),
-                  ),
-                  onPressed: _controller.busy
-                      ? _controller.cancel
-                      : _loadingContext || value.text.trim().isEmpty
-                      ? null
-                      : _submit,
-                  icon: Icon(
-                    _controller.busy
-                        ? Icons.stop_rounded
-                        : Icons.arrow_upward_rounded,
-                    size: 21,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!compact)
-          Padding(
-            padding: EdgeInsets.only(top: 7),
-            child: Text(
-              'Keep questions free of personal or sensitive information.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: context.atelierMuted, fontSize: 10),
-            ),
-          ),
-      ],
+    padding: EdgeInsets.fromLTRB(inset, 8, inset, compact ? 4 : 12),
+    child: AiComposer(
+      controller: _input,
+      focusNode: _focus,
+      mode: _controller.mode,
+      busy: _controller.busy,
+      blocked: _loadingContext || _submitting,
+      compact: compact,
+      onSend: _submit,
+      onStop: _controller.cancel,
     ),
   );
 }

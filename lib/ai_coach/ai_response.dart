@@ -63,10 +63,21 @@ bool isSafeAiLink(String href) {
 }
 
 Future<void> copyAiText(BuildContext context, String text) async {
-  await Clipboard.setData(ClipboardData(text: text));
+  var copied = false;
+  try {
+    await Clipboard.setData(ClipboardData(text: text));
+    copied = true;
+  } catch (_) {
+    // Clipboard access can fail on web or be denied by the platform.
+  }
   if (context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Copied'), duration: Duration(seconds: 1)),
+      SnackBar(
+        content: Text(
+          copied ? 'Copied' : 'Could not copy. Try selecting the text.',
+        ),
+        duration: Duration(seconds: copied ? 1 : 3),
+      ),
     );
   }
 }
@@ -126,11 +137,11 @@ class AiMarkdownResponse extends StatelessWidget {
     super.key,
     required this.text,
     this.streaming = false,
-    this.foregroundColor = ink,
+    this.foregroundColor,
   });
   final String text;
   final bool streaming;
-  final Color foregroundColor;
+  final Color? foregroundColor;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) => Column(
@@ -148,6 +159,7 @@ class AiMarkdownResponse extends StatelessWidget {
   );
 
   Widget _markdown(BuildContext context, String value, double maxWidth) {
+    final foregroundColor = this.foregroundColor ?? context.atelierInk;
     Widget body(String data) => MarkdownBody(
       data: data,
       blockSyntaxes: [AiMathBlockSyntax(streaming: streaming)],
@@ -161,9 +173,11 @@ class AiMarkdownResponse extends StatelessWidget {
         'ai-math-pending': AiPendingMathBuilder(),
       },
       selectable: true,
-      softLineBreak: false,
-      imageBuilder: (_, _, _) =>
-          const Text('[Image omitted]', style: TextStyle(color: muted)),
+      softLineBreak: true,
+      imageBuilder: (_, _, _) => Text(
+        '[Image omitted]',
+        style: TextStyle(color: context.atelierMuted),
+      ),
       onTapLink: (_, href, _) async {
         if (href == null || !isSafeAiLink(href)) return;
         final approved = await showDialog<bool>(
@@ -223,11 +237,11 @@ class AiMarkdownResponse extends StatelessWidget {
           fontWeight: FontWeight.w700,
           height: 1.4,
         ),
-        code: const TextStyle(
+        code: TextStyle(
           fontFamily: 'monospace',
           fontSize: 13,
-          color: teal,
-          backgroundColor: SaveTrackDesign.mist,
+          color: context.atelierAccent,
+          backgroundColor: context.atelierTonal,
         ),
         blockquoteDecoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
@@ -235,29 +249,46 @@ class AiMarkdownResponse extends StatelessWidget {
               : SaveTrackDesign.mist,
           borderRadius: BorderRadius.circular(8),
         ),
-        tableBorder: TableBorder.all(color: SaveTrackDesign.border),
+        blockquote: TextStyle(
+          color: foregroundColor,
+          fontSize: 15,
+          height: 1.7,
+        ),
+        listBullet: TextStyle(color: context.atelierAccent, fontSize: 15),
+        tableHead: TextStyle(
+          color: foregroundColor,
+          fontWeight: FontWeight.w700,
+        ),
+        tableBody: TextStyle(color: foregroundColor, fontSize: 14, height: 1.6),
+        tableHeadAlign: TextAlign.left,
+        tableBorder: TableBorder.all(color: context.atelierBorder),
+        tableColumnWidth: const FlexColumnWidth(),
+        tableVerticalAlignment: TableCellVerticalAlignment.top,
         tableCellsPadding: const EdgeInsets.all(10),
         blockSpacing: 14,
       ),
     );
     // GFM table blocks get their own horizontal viewport rather than squeezing
     // wide cells into a phone. Other paragraphs keep natural line wrapping.
-    final table = RegExp(
-      r'^.*\|.*\n[ \t]*\|?[: \t-]+\|[:| \t-]+\n(?:[^\n]*\|[^\n]*(?:\n|$))*',
+    final structured = RegExp(
+      r'(^.*\|.*\n[ \t]*\|?[: \t-]+\|[:| \t-]+\n(?:[^\n]*\|[^\n]*(?:\n|$))*)|(^ {0,3}>[^\n]*(?:\n {0,3}>[^\n]*)*)',
       multiLine: true,
     );
     final children = <Widget>[];
     var start = 0;
-    for (final match in table.allMatches(value)) {
+    for (final match in structured.allMatches(value)) {
       if (match.start > start) {
         children.add(body(value.substring(start, match.start)));
       }
-      children.add(
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: SizedBox(width: 560, child: body(match[0]!)),
-        ),
-      );
+      if (match[1] != null) {
+        children.add(AiComparisonCard(child: body(match[1]!)));
+      } else {
+        final quote = match[2]!.replaceAll(
+          RegExp(r'^ {0,3}> ?', multiLine: true),
+          '',
+        );
+        children.add(AiInsightCard(child: body(quote)));
+      }
       start = match.end;
     }
     if (start < value.length) children.add(body(value.substring(start)));
@@ -266,4 +297,87 @@ class AiMarkdownResponse extends StatelessWidget {
       children: children,
     );
   }
+}
+
+/// Render only content present in the answer; never infer financial facts.
+class AiInsightCard extends StatelessWidget {
+  const AiInsightCard({super.key, required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.symmetric(vertical: 12),
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: context.atelierTonal,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: context.atelierBorder),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Icon(
+            Icons.lightbulb_outline_rounded,
+            color: context.atelierAccent,
+            size: 20,
+          ),
+        ),
+        const SizedBox(height: 12),
+        child,
+      ],
+    ),
+  );
+}
+
+class AiComparisonCard extends StatelessWidget {
+  const AiComparisonCard({super.key, required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.symmetric(vertical: 12),
+    clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(
+      color: context.atelierSurface,
+      border: Border.all(color: context.atelierBorder),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 4,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Icon(
+                Icons.table_chart_outlined,
+                size: 18,
+                color: context.atelierAccent,
+              ),
+              Text(
+                'At a glance',
+                style: TextStyle(
+                  color: context.atelierInk,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                'Scroll to explore →',
+                style: TextStyle(color: context.atelierMuted, fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: SizedBox(width: 560, child: child),
+        ),
+      ],
+    ),
+  );
 }

@@ -92,12 +92,12 @@ void main() {
     testWidgets('welcome modes and composer fit width $width', (tester) async {
       await mount(tester, size: Size(width, 844));
       expect(find.text('SaveTrack AI'), findsOneWidget);
-      expect(find.text('What can we\nexplore today?'), findsOneWidget);
+      expect(find.text('A little clarity\ngoes a long way.'), findsOneWidget);
       expect(gateway.requests, isEmpty);
       expect(tester.takeException(), isNull);
       await tester.tap(find.text('SaveTrack Coach'));
       await tester.pumpAndSettle();
-      expect(find.text('Your goals.\nSmarter decisions.'), findsOneWidget);
+      expect(find.text('Small steps.\nMeaningful progress.'), findsOneWidget);
       expect(gateway.requests, isEmpty);
       expect(tester.takeException(), isNull);
       expect(find.byType(TextField), findsOneWidget);
@@ -422,6 +422,8 @@ void main() {
       await tester.pumpAndSettle();
       expect(controller.active.facts!.values['Saved'], contains('250.00'));
       expect(controller.active.messages.last.text, contains('999,999.99'));
+      await tester.tap(find.byTooltip('View verified SaveTrack facts'));
+      await tester.pumpAndSettle();
       expect(find.byType(AiFactCard), findsOneWidget);
       await tester.tap(
         find.byTooltip('Revoke context and clear Coach history'),

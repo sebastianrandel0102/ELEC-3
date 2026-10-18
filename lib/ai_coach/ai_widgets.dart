@@ -23,17 +23,37 @@ class AiEmblem extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: SaveTrackDesign.midnight,
-        borderRadius: BorderRadius.circular(size * .3),
-        border: Border.all(color: SaveTrackDesign.fresh.withValues(alpha: .3)),
+        color: context.isDark
+            ? context.atelierSelected
+            : SaveTrackDesign.lightMint,
+        shape: BoxShape.circle,
+        border: Border.all(color: context.atelierAccent.withValues(alpha: .16)),
       ),
-      child: Icon(
-        Icons.auto_awesome_rounded,
-        size: size * .56,
-        color: SaveTrackDesign.luminous,
-      ),
+      child: CustomPaint(painter: _AiSparklePainter(context.atelierAccent)),
     ),
   );
+}
+
+class _AiSparklePainter extends CustomPainter {
+  const _AiSparklePainter(this.color);
+  final Color color;
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width / 2, size.height / 2);
+    final r = size.width * .27;
+    final path = Path()
+      ..moveTo(c.dx, c.dy - r)
+      ..quadraticBezierTo(c.dx + r * .2, c.dy - r * .2, c.dx + r, c.dy)
+      ..quadraticBezierTo(c.dx + r * .2, c.dy + r * .2, c.dx, c.dy + r)
+      ..quadraticBezierTo(c.dx - r * .2, c.dy + r * .2, c.dx - r, c.dy)
+      ..quadraticBezierTo(c.dx - r * .2, c.dy - r * .2, c.dx, c.dy - r)
+      ..close();
+    canvas.drawPath(path, Paint()..color = color);
+  }
+
+  @override
+  bool shouldRepaint(_AiSparklePainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class AiDashboardCard extends StatelessWidget {
@@ -112,8 +132,9 @@ class AiModeSelector extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(4),
     decoration: BoxDecoration(
-      color: context.atelierSelected,
-      borderRadius: BorderRadius.circular(16),
+      color: context.atelierTonal,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: context.atelierBorder),
     ),
     child: LayoutBuilder(
       builder: (context, constraints) {
@@ -146,14 +167,17 @@ class AiModeSelector extends StatelessWidget {
         SaveTrackDesign.selectionMotion,
       ),
       decoration: BoxDecoration(
-        color: item == mode ? context.atelierAccent : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        color: item == mode ? context.atelierSurface : Colors.transparent,
+        border: Border.all(
+          color: item == mode ? context.atelierBorder : Colors.transparent,
+        ),
+        borderRadius: BorderRadius.circular(16),
       ),
       child: TextButton(
         style: TextButton.styleFrom(
           foregroundColor: item == mode
-              ? context.atelierSurface
-              : context.atelierInk,
+              ? context.atelierAccent
+              : context.atelierMuted,
           minimumSize: const Size(48, 48),
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         ),
@@ -172,93 +196,69 @@ class AiWelcomeHero extends StatelessWidget {
   const AiWelcomeHero({super.key, required this.mode});
   final AiMode mode;
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(24),
-    decoration: BoxDecoration(
-      gradient: aiGradient,
-      borderRadius: BorderRadius.circular(28),
-    ),
-    child: Stack(
-      children: [
-        Positioned(
-          right: -36,
-          top: -40,
-          child: ExcludeSemantics(
-            child: Container(
-              width: 140,
-              height: 140,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    SaveTrackDesign.fresh.withValues(alpha: .18),
-                    Colors.transparent,
-                  ],
-                ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Padding(
+      padding: const EdgeInsets.fromLTRB(12, 20, 12, 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [context.atelierSelected, context.atelierCanvas],
               ),
             ),
+            child: const AiEmblem(size: 52),
           ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                AiEmblem(size: 42),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'YOUR AI COMPANION',
-                    style: TextStyle(
-                      color: mint,
-                      fontSize: 10,
-                      letterSpacing: 1.4,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 16),
+          Text(
+            mode == AiMode.askAnything
+                ? 'A SPACE FOR YOUR CURIOSITY'
+                : 'AI COACH LITE · READ ONLY',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: context.atelierAccent,
+              fontSize: 10,
+              letterSpacing: 1.6,
+              fontWeight: FontWeight.w700,
             ),
-            const SizedBox(height: 22),
-            Text(
+          ),
+          const SizedBox(height: 12),
+          Semantics(
+            header: true,
+            child: Text(
               mode == AiMode.askAnything
-                  ? 'What can we\nexplore today?'
-                  : 'Your goals.\nSmarter decisions.',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 29,
-                height: 1.2,
-                letterSpacing: -.7,
+                  ? 'A little clarity\ngoes a long way.'
+                  : 'Small steps.\nMeaningful progress.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.atelierInk,
+                fontSize: constraints.maxWidth < 340 ? 28 : 34,
+                height: 1.23,
+                letterSpacing: -1.2,
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
+          ),
+          const SizedBox(height: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 380),
+            child: Text(
               mode == AiMode.askAnything
-                  ? 'Ask questions, learn something new, write better, or solve a problem.'
-                  : 'Understand your progress, explore realistic plans, and organize your day.',
-              style: const TextStyle(
-                color: SaveTrackDesign.onHeroMuted,
-                height: 1.6,
+                  ? 'Explore ideas, untangle a question, and find a little direction.'
+                  : 'Understand your savings and make room for what matters, one thoughtful step at a time.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: context.atelierMuted,
+                height: 1.7,
                 fontSize: 13,
               ),
             ),
-            const SizedBox(height: 22),
-            const Row(
-              children: [
-                Icon(Icons.shield_outlined, size: 15, color: mint),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Thoughtful answers. You stay in control.',
-                    style: TextStyle(color: mint, fontSize: 11),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -275,50 +275,61 @@ class AiPromptCard extends StatelessWidget {
   final String title, detail;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Material(
-    color: context.atelierSurface,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(18),
-      side: BorderSide(color: context.atelierBorder),
-    ),
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: context.atelierAccent, size: 21),
-                const Spacer(),
-                Icon(
-                  Icons.north_east_rounded,
-                  color: context.atelierMuted,
-                  size: 14,
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    child: Material(
+      color: context.atelierSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(color: context.atelierBorder),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: context.atelierTonal,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(icon, color: context.atelierAccent, size: 20),
+                  ),
+                  const Spacer(),
+                  Icon(
+                    Icons.north_east_rounded,
+                    color: context.atelierMuted,
+                    size: 16,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: context.atelierInk,
+                  fontSize: 14,
+                  height: 1.5,
                 ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.w700,
-                color: context.atelierInk,
-                fontSize: 14,
               ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              detail,
-              style: TextStyle(
-                color: context.atelierMuted,
-                height: 1.5,
-                fontSize: 12,
+              const SizedBox(height: 4),
+              Text(
+                detail,
+                style: TextStyle(
+                  color: context.atelierMuted,
+                  height: 1.6,
+                  fontSize: 12,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     ),
