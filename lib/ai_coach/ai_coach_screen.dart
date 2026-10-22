@@ -407,7 +407,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                       subtitle: Text(
                         goals[index].shared
                             ? 'Local facts only'
-                            : 'Review an anonymous summary',
+                            : 'Personal goal · Review summary',
                       ),
                       trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () => Navigator.pop(context, goals[index]),

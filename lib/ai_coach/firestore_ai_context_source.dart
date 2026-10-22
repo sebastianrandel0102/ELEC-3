@@ -56,7 +56,7 @@ class FirestoreAiContextSource implements AiContextSource, AiContextWatcher {
               : data[key],
       });
   static const _goalFields = [
-    'name',
+    'title',
     'savedAmount',
     'targetAmount',
     'currencyCode',
@@ -68,7 +68,7 @@ class FirestoreAiContextSource implements AiContextSource, AiContextWatcher {
       aiGoalFacts(
         key: 'goal/$id',
         uid: owner,
-        title: data['name'] as String? ?? 'Savings goal',
+        title: data['title'] as String? ?? 'Savings goal',
         saved: _amount(data['savedAmount']),
         target: _amount(data['targetAmount']),
         currency: goalCurrency(data),

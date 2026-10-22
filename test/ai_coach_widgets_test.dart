@@ -10,10 +10,12 @@ import 'package:myproject/ai_coach/ai_controller.dart';
 import 'package:myproject/ai_coach/ai_domain.dart';
 import 'package:myproject/ai_coach/ai_response.dart';
 import 'package:myproject/ai_coach/ai_widgets.dart';
+import 'package:myproject/ai_coach/firestore_ai_context_source.dart';
 import 'package:myproject/design_system.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ai_coach_fixtures.dart';
+import 'ai_coach_firestore_test.dart' show ContextAuth, ContextDb;
 import 'redesign_test.dart' as preview;
 import 'ui_preview_fonts.dart';
 
@@ -393,6 +395,85 @@ void main() {
     expect(gateway.requests, hasLength(1));
     expect(tester.takeException(), isNull);
   });
+  for (final action in ['Analyze a Goal', 'Build a Savings Plan']) {
+    testWidgets(
+      '$action identifies and selects personal goals by saved title',
+      (tester) async {
+        final db = ContextDb();
+        for (final (id, title) in [
+          ('emergency', 'Emergency fund'),
+          ('laptop', 'New laptop for school'),
+        ]) {
+          db.documents['users/private-uid/goals/$id'] = {
+            'title': title,
+            'savedAmount': 250,
+            'targetAmount': 1000,
+            'currencyCode': 'PHP',
+            'archived': false,
+          };
+        }
+        final coach =
+            AiCoachController(
+                gateway: gateway,
+                contextSource: FirestoreAiContextSource(
+                  firestore: db,
+                  auth: ContextAuth(),
+                ),
+                currentUid: () => 'private-uid',
+              )
+              ..acknowledgeProvider()
+              ..switchMode(AiMode.coach);
+        addTearDown(coach.dispose);
+        await mount(tester, withController: coach, size: const Size(360, 800));
+        await tester.scrollUntilVisible(
+          find.text(action),
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(action));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Emergency fund'), findsOneWidget);
+        expect(find.text('New laptop for school'), findsOneWidget);
+        expect(find.text('Personal goal · Review summary'), findsNWidgets(2));
+        expect(find.text('Savings goal'), findsNothing);
+        expect(gateway.requests, isEmpty);
+        expect(tester.takeException(), isNull);
+        await preview.capture(
+          tester,
+          action == 'Analyze a Goal'
+              ? 'ai-analyze-goal-picker'
+              : 'ai-plan-goal-picker',
+        );
+
+        await tester.tap(find.text('New laptop for school'));
+        await tester.pumpAndSettle();
+        expect(find.text('Review AI Context'), findsOneWidget);
+        await tester.ensureVisible(find.text('Approve this summary'));
+        await tester.tap(find.text('Approve this summary'));
+        await tester.pumpAndSettle();
+        expect(coach.active.facts!.subjectKey, 'goal/laptop');
+        expect(coach.active.facts!.title, 'New laptop for school');
+        expect(gateway.requests, isEmpty);
+
+        await tester.tap(find.byTooltip('Send question'));
+        await tester.pumpAndSettle();
+        final outgoing = gateway.requests.single.providerQuestion;
+        expect(outgoing, contains('Application-approved categorical summary'));
+        for (final localText in [
+          'Emergency fund',
+          'New laptop for school',
+          'goal/laptop',
+        ]) {
+          expect(outgoing, isNot(contains(localText)));
+        }
+        expect(tester.takeException(), isNull);
+        coach.revokeContext();
+        await tester.pumpWidget(const SizedBox.shrink());
+      },
+    );
+  }
   testWidgets(
     'Coach review approval is required and exact local facts remain separate',
     (tester) async {
