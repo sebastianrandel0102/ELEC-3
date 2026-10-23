@@ -45,6 +45,7 @@ import 'design_system.dart';
 import 'atelier_preferences.dart';
 export 'design_system.dart';
 part 'home_atelier.dart';
+part 'precision_flows.dart';
 
 final _appNavigator = GlobalKey<NavigatorState>();
 final _homeShellKey = GlobalKey<_HomeShellState>();
@@ -572,13 +573,7 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
   final _visited = <int>{0};
   String? _account;
-  static const _titles = [
-    'Today',
-    'Savings goals',
-    'Planner',
-    'Reports',
-    'Profile',
-  ];
+  static const _titles = ['Today', 'Goals', 'Planner', 'Reports', 'Profile'];
 
   void selectTab(int index) {
     if (mounted) setState(() => _index = index);
@@ -604,77 +599,56 @@ class _HomeShellState extends State<HomeShell> {
       ProfileScreen(key: ValueKey('profile-$account')),
     ];
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: MediaQuery.textScalerOf(context).scale(20) > 28
-            ? MediaQuery.textScalerOf(context).scale(20) * 3 + 24
-            : 64,
-        title: Row(
-          children: [
-            const BrandDot(),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _titles[_index],
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          if (_index == 0)
-            IconButton(
-              tooltip: 'Smart Reminders',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const SmartRemindersScreen(),
-                ),
-              ),
-              icon: const Icon(Icons.notifications_outlined),
-            ),
-          if (_index != 0)
-            IconButton(
-              tooltip: 'Open Agent Studio',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      const AgentStudioScreen(onOpen: _openAgentDestination),
-                ),
-              ),
-              icon: Icon(Icons.hub_outlined, color: context.atelierAccent),
-            ),
-          if (_index != 0)
-            IconButton(
-              tooltip: 'Open AI Coach',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
-              ),
-              icon: Icon(
-                Icons.auto_awesome_rounded,
-                color: context.atelierAccent,
-                size: 26,
-              ),
-            ),
-          if (_index != 4)
-            IconButton(
-              tooltip: 'Profile',
-              onPressed: () => setState(() => _index = 4),
-              icon: ProfileAvatar(
-                name: FirebaseAuth.instance.currentUser?.displayName ?? '',
-                googlePhotoUrl: FirebaseAuth.instance.currentUser?.photoURL,
-                size: 36,
-              ),
-            ),
-        ],
-      ),
       body: PageSurface(
         child: IndexedStack(
           index: _index,
           children: [
             for (var i = 0; i < pages.length; i++)
-              _visited.contains(i) ? pages[i] : const SizedBox.shrink(),
+              if (_visited.contains(i))
+                TickerMode(
+                  enabled: _index == i,
+                  child: AuroraPage(
+                    title: _titles[i],
+                    storageKey: 'tab-$account-$i',
+                    actions: [
+                      if (i == 0)
+                        IconButton(
+                          tooltip: 'Smart Reminders',
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const SmartRemindersScreen(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.notifications_outlined),
+                        ),
+                      IconButton(
+                        tooltip: 'Assist',
+                        onPressed: () => showAssistChooser(context),
+                        icon: const Icon(Icons.auto_awesome_outlined),
+                      ),
+                      if (i != 4)
+                        IconButton(
+                          tooltip: 'Profile',
+                          onPressed: () => selectTab(4),
+                          icon: ProfileAvatar(
+                            name:
+                                FirebaseAuth
+                                    .instance
+                                    .currentUser
+                                    ?.displayName ??
+                                '',
+                            googlePhotoUrl:
+                                FirebaseAuth.instance.currentUser?.photoURL,
+                            size: 32,
+                          ),
+                        ),
+                    ],
+                    child: pages[i],
+                  ),
+                )
+              else
+                const SizedBox.shrink(),
           ],
         ),
       ),
@@ -720,7 +694,6 @@ class SaveTrackNavigation extends StatelessWidget {
               color: context.atelierSurface,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: context.atelierBorder),
-              boxShadow: SaveTrackDesign.shadows,
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -841,7 +814,7 @@ class DashboardScreen extends StatelessWidget {
             builder: (context, snap) {
               if (snap.hasError) {
                 return ErrorPanel(
-                  message: 'Could not load your goals. ${snap.error}',
+                  message: 'Could not load your goals. Check your connection and try again.',
                 );
               }
               if (!snap.hasData) return const LoadingPanel(featured: true);
@@ -1181,7 +1154,10 @@ class _PersonalGoalsScreenState extends State<PersonalGoalsScreen> {
       stream: records,
       builder: (context, snap) {
         if (snap.hasError) {
-          return ErrorPanel(message: 'Could not load goals. ${snap.error}');
+          return ErrorPanel(
+            message:
+                'Could not load goals. Check your connection and try again.',
+          );
         }
         if (!snap.hasData) return const LoadingPanel();
         final docs = snap.data!.docs
@@ -1214,7 +1190,10 @@ class GoalsPreview extends StatelessWidget {
             .snapshots(),
         builder: (context, s) {
           if (s.hasError) {
-            return ErrorPanel(message: 'Could not load goals. ${s.error}');
+            return ErrorPanel(
+              message:
+                  'Could not load goals. Check your connection and try again.',
+            );
           }
           if (!s.hasData) return const LoadingPanel();
           if (s.data!.docs.isEmpty) {
@@ -1552,7 +1531,7 @@ class PersonalGoalDetailsScreen extends StatefulWidget {
 class _PersonalGoalDetailsScreenState extends State<PersonalGoalDetailsScreen> {
   late final stream = _goals(widget.uid)
       .where(FieldPath.documentId, isEqualTo: widget.goalId)
-      .snapshots();
+      .snapshots(includeMetadataChanges: true);
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Goal Details')),
@@ -1575,10 +1554,18 @@ class _PersonalGoalDetailsScreenState extends State<PersonalGoalDetailsScreen> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 860),
-                child: GoalCard(
-                  uid: widget.uid,
-                  doc: snapshot.data!.docs.single,
-                  details: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuroraSyncStatus(
+                      cached: snapshot.data!.metadata.isFromCache,
+                      pending: snapshot.data!.metadata.hasPendingWrites,
+                    ),
+                    PersonalGoalOverview(
+                      uid: widget.uid,
+                      doc: snapshot.data!.docs.single,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1681,20 +1668,10 @@ class _PlannerScreenState extends State<PlannerScreen>
     final key = _dateKey(_day);
     final modeSwitch = Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Wrap(
-        spacing: 8,
-        children: [
-          ChoiceChip(
-            label: const Text('Daily'),
-            selected: !_weekly,
-            onSelected: (_) => setState(() => _weekly = false),
-          ),
-          ChoiceChip(
-            label: const Text('Weekly'),
-            selected: _weekly,
-            onSelected: (_) => setState(() => _weekly = true),
-          ),
-        ],
+      child: AuroraModeSelector<bool>(
+        selected: _weekly,
+        options: const {false: 'Daily', true: 'Weekly'},
+        onSelected: (value) => setState(() => _weekly = value),
       ),
     );
     if (_weekly) {
@@ -1963,7 +1940,12 @@ class _TasksListState extends State<TasksList> {
               children: [?widget.header, child],
             );
       if (s.hasError) {
-        return state(ErrorPanel(message: 'Could not load tasks. ${s.error}'));
+        return state(
+          ErrorPanel(
+            message:
+                'Could not load tasks. Check your connection and try again.',
+          ),
+        );
       }
       if (!s.hasData) return state(const LoadingPanel());
       final docs = s.data!.docs;
@@ -2245,7 +2227,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
         stream: records,
         builder: (context, s) {
           if (s.hasError) {
-            return ErrorPanel(message: 'Could not load savings. ${s.error}');
+            return ErrorPanel(
+              message: 'Could not load savings. Check your connection and try again.',
+            );
           }
           if (!s.hasData) return const LoadingPanel(featured: true);
           final ds = s.data!.docs;
@@ -2352,10 +2336,9 @@ class ReportsLayout extends StatelessWidget {
         key: const PageStorageKey('reports-scroll'),
         padding: SaveTrackDesign.pagePadding(constraints.maxWidth),
         children: [
-          const ScreenIntro(
-            eyebrow: 'Reports & analytics',
-            title: 'Progress, in perspective.',
-            detail: 'A clear view of your savings and planning.',
+          const Padding(
+            padding: EdgeInsets.only(bottom: 20),
+            child: Text('Your savings and planning, at a glance.'),
           ),
           if (expanded)
             Row(
@@ -2411,7 +2394,7 @@ class ReportTaskMetric extends StatelessWidget {
         builder: (context, s) {
           if (s.hasError) {
             return ErrorPanel(
-              message: 'Could not load task report. ${s.error}',
+              message: 'Could not load task report. Check your connection and try again.',
             );
           }
           if (!s.hasData) return const LoadingPanel(minHeight: 236);
@@ -2499,185 +2482,169 @@ class ProfileContent extends StatelessWidget {
   final String? profileError;
   @override
   Widget build(BuildContext context) {
+    final preferences = AtelierScope.maybeOf(context);
     return ListView(
-      padding: const EdgeInsets.all(20),
+      key: const PageStorageKey('profile-scroll'),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       children: [
-        const ScreenIntro(
-          eyebrow: 'Your space',
-          title: 'Made for your everyday.',
-          detail: 'A little clarity for your goals and plans.',
-        ),
-        MintHero(
-          deep: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'YOUR ACCOUNT',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: SaveTrackDesign.onHeroMuted,
-                  fontSize: 11,
-                  letterSpacing: 1.4,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Center(child: avatar ?? ProfileAvatar(name: name)),
-              const SizedBox(height: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    email,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        AuroraIdentity(
+          name: name,
+          email: email,
+          avatar: avatar ?? ProfileAvatar(name: name, size: 56),
         ),
         if (profileError != null)
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: Text(
-              profileError!,
-              style: TextStyle(color: context.atelierError),
-            ),
+            child: AuroraNotice(profileError!, error: true),
           ),
         const SizedBox(height: 24),
-        const FieldCaption('Preferences & app'),
-        if (AtelierScope.maybeOf(context) != null) ...[
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const MintIcon(Icons.palette_outlined),
-                  title: const Text('Appearance'),
-                  subtitle: Text(AtelierPreferences.themeMode.value.name),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showAppearancePicker(
-                    context,
-                    AtelierScope.maybeOf(context)!,
-                  ),
-                ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const MintIcon(Icons.dashboard_customize_outlined),
-                  title: const Text('Customize Home'),
-                  subtitle: const Text(
-                    'Your views, sections and featured goal.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => CustomizeHomeScreen(
-                        preferences: AtelierScope.maybeOf(context)!,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-        Card(
-          child: Column(
+        if (preferences != null) ...[
+          AuroraGroupedSection(
+            title: 'Make it yours',
             children: [
               ListTile(
-                key: const ValueKey('open-currency-settings'),
-                leading: const MintIcon(Icons.currency_exchange),
-                title: const Text('Currency Settings'),
-                subtitle: Text(
-                  'Display savings in your preferred currency.\nCurrent: ${CurrencyScope.maybeOf(context)?.preferred ?? 'PHP'}',
-                ),
+                leading: const MintIcon(Icons.palette_outlined, size: 36),
+                title: const Text('Appearance'),
+                subtitle: Text(switch (AtelierPreferences.themeMode.value) {
+                  ThemeMode.system => 'System',
+                  ThemeMode.light => 'Light',
+                  ThemeMode.dark => 'Dark',
+                }),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const CurrencySettingsScreen(),
-                  ),
-                ),
+                onTap: () => showAppearancePicker(context, preferences),
               ),
-              const Divider(indent: 20, endIndent: 20, height: 1),
               ListTile(
-                leading: const MintIcon(Icons.notifications_outlined),
-                title: const Text('Smart Reminders'),
-                subtitle: const Text(
-                  'Manage reminders and phone notification settings.',
+                leading: const MintIcon(
+                  Icons.dashboard_customize_outlined,
+                  size: 36,
                 ),
+                title: const Text('Customize Home'),
+                subtitle: const Text('Views, sections and your featured goal'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
+                onTap: () => Navigator.push(
+                  context,
                   MaterialPageRoute<void>(
-                    builder: (_) => const SmartRemindersScreen(),
+                    builder: (_) =>
+                        CustomizeHomeScreen(preferences: preferences),
                   ),
                 ),
-              ),
-              const Divider(indent: 20, endIndent: 20, height: 1),
-              if (HomeWidgetScope.maybeOf(context)?.bridge.supported ==
-                  true) ...[
-                ListTile(
-                  leading: const MintIcon(Icons.widgets_outlined),
-                  title: const Text('Home Screen Widgets'),
-                  subtitle: const Text(
-                    'Savings and daily plans on your Android home screen.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    final owner = FirebaseAuth.instance.currentUser?.uid;
-                    if (owner == null) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => WidgetAccountGuard(
-                          uid: owner,
-                          child: const HomeWidgetsSettingsScreen(),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(indent: 20, endIndent: 20, height: 1),
-              ],
-              const ListTile(
-                leading: MintIcon(Icons.info_outline),
-                title: Text('SaveTrack'),
-                subtitle: Text('Your goals, your progress.'),
               ),
             ],
           ),
+          const SizedBox(height: 24),
+        ],
+        AuroraGroupedSection(
+          title: 'Everyday preferences',
+          children: [
+            ListTile(
+              key: const ValueKey('open-currency-settings'),
+              leading: const MintIcon(Icons.currency_exchange, size: 36),
+              title: const Text('Currency Settings'),
+              subtitle: Text(
+                'Display currency · ${CurrencyScope.maybeOf(context)?.preferred ?? 'PHP'}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const CurrencySettingsScreen(),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const MintIcon(Icons.notifications_outlined, size: 36),
+              title: const Text('Smart Reminders'),
+              subtitle: const Text(
+                'Your agenda and phone notification settings',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const SmartRemindersScreen(),
+                ),
+              ),
+            ),
+            if (HomeWidgetScope.maybeOf(context)?.bridge.supported == true)
+              ListTile(
+                leading: const MintIcon(Icons.widgets_outlined, size: 36),
+                title: const Text('Home Screen Widgets'),
+                subtitle: const Text('Savings and daily plans, at a glance'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  final owner = FirebaseAuth.instance.currentUser?.uid;
+                  if (owner == null) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => WidgetAccountGuard(
+                        uid: owner,
+                        child: const HomeWidgetsSettingsScreen(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
         ),
         const SizedBox(height: 24),
-        const FieldCaption('Account security'),
-        Card(
-          child: ListTile(
-            leading: const MintIcon(Icons.lock_outline),
-            title: const Text('Change Password'),
-            subtitle: const Text('Keep your account secure'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: onPassword,
-          ),
+        AuroraGroupedSection(
+          title: 'AI & Assist',
+          children: [
+            ListTile(
+              leading: const MintIcon(Icons.auto_awesome_outlined, size: 36),
+              title: const Text('SaveTrack AI'),
+              subtitle: const Text(
+                'Questions, guidance and read-only coaching',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const MintIcon(Icons.hub_outlined, size: 36),
+              title: const Text('Agent Studio Pro'),
+              subtitle: const Text('Plans, missions and execution settings'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const AgentStudioScreen(onOpen: _openAgentDestination),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 24),
+        AuroraGroupedSection(
+          title: 'Account security',
+          children: [
+            ListTile(
+              leading: const MintIcon(Icons.lock_outline, size: 36),
+              title: const Text('Change Password'),
+              subtitle: const Text('Keep your account secure'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: onPassword,
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
         OutlinedButton.icon(
           onPressed: onSignOut,
           icon: const Icon(Icons.logout),
           label: const Text('Sign out'),
           style: OutlinedButton.styleFrom(
             foregroundColor: context.atelierError,
-            minimumSize: const Size.fromHeight(50),
           ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'SaveTrack · Beautiful progress. Effortless control.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );
@@ -2703,7 +2670,10 @@ class SummaryTile extends StatelessWidget {
     stream: stream,
     builder: (context, s) {
       if (s.hasError) {
-        return ErrorPanel(message: 'Could not load $label. ${s.error}');
+        return ErrorPanel(
+          message:
+              'Could not load $label. Check your connection and try again.',
+        );
       }
       if (!s.hasData) return const LoadingPanel();
       return AuroraMetricCard(
@@ -2922,7 +2892,10 @@ class LoadingPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
-    child: AuroraLoadingSurface(featured: featured, minHeight: minHeight),
+    child: ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: AuroraSkeleton(featured: featured),
+    ),
   );
 }
 
@@ -3188,8 +3161,7 @@ Future<void> showTransactionHistory(
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return ErrorPanel(
-                      message:
-                          'Could not load savings history. ${snapshot.error}',
+                      message: 'Could not load savings history. Check your connection and try again.',
                     );
                   }
                   if (!snapshot.hasData) return const LoadingPanel();
@@ -3225,7 +3197,6 @@ Future<void> showTransactionHistory(
                       itemBuilder: (context, index) {
                         final record = records[index];
                         final data = record.data();
-                        final withdrawal = data['type'] == 'withdrawal';
                         final timestamp = data['date'];
                         return TransactionDateGroup(
                           at: timestamp,
@@ -3234,83 +3205,12 @@ Future<void> showTransactionHistory(
                               : records[index - 1].data()['date'],
                           first: index == 0,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                MintIcon(
-                                  withdrawal
-                                      ? Icons.south_east
-                                      : Icons.south_west,
-                                  color: withdrawal
-                                      ? context.atelierError
-                                      : context.atelierAccent,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      AmountText(
-                                        '${withdrawal ? '-' : '+'}${displayMoney(context, _number(data['amount']), data['currencyCode'] as String? ?? goalCurrency(goal.data()))}',
-                                        style: TextStyle(
-                                          fontSize: 21,
-                                          fontWeight: FontWeight.w700,
-                                          color: withdrawal
-                                              ? context.atelierError
-                                              : context.atelierAccent,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      CurrencyContextLabel(
-                                        source:
-                                            data['currencyCode'] as String? ??
-                                            goalCurrency(goal.data()),
-                                        historical: true,
-                                      ),
-                                      Text(
-                                        originalMoney(
-                                          _number(data['amount']),
-                                          data['currencyCode'] as String? ??
-                                              goalCurrency(goal.data()),
-                                        ),
-                                        style: TextStyle(
-                                          color: context.atelierMuted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      if (data['conversion'] is Map)
-                                        TransactionConversionDetails(
-                                          data: Map<String, dynamic>.from(
-                                            data['conversion'] as Map,
-                                          ),
-                                        ),
-                                      if (withdrawal) ...[
-                                        const Text('Savings Decreased'),
-                                        const SizedBox(height: 4),
-                                      ],
-                                      Text(
-                                        (data['note'] as String? ?? '').isEmpty
-                                            ? (withdrawal
-                                                  ? 'Savings withdrawal'
-                                                  : 'Savings deposit')
-                                            : '${withdrawal ? 'Reason: ' : ''}${data['note']}',
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        timestamp is Timestamp
-                                            ? _shortDate(timestamp.toDate())
-                                            : 'Date unavailable',
-                                        style: TextStyle(
-                                          color: context.atelierMuted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Card(
+                              child: PersonalTransactionTile(
+                                data: data,
+                                currency: goalCurrency(goal.data()),
+                              ),
                             ),
                           ),
                         );

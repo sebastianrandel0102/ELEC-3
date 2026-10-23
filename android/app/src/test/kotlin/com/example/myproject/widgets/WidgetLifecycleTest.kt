@@ -4,7 +4,6 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -99,7 +98,7 @@ class WidgetLifecycleTest {
             for (theme in listOf("emerald", "mint", "white")) {
                 val config = configure(id, type, theme = theme)
                 val root = WidgetRenderer.render(context, id, type, config, snapshot(config), 350f, 300f).apply(context, FrameLayout(context))
-                val expected = if (theme == "emerald") Color.rgb(220, 248, 235) else Color.rgb(82, 110, 97)
+                val expected = context.getColor(if (theme == "emerald") R.color.st_night_secondary_text else R.color.st_day_secondary_text)
                 assertEquals("$type $theme", expected, root.findViewById<TextView>(R.id.st_brand).currentTextColor)
             }
         }

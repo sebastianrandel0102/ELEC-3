@@ -55,11 +55,11 @@ class WidgetAtelierPalette {
   Color get background => white
       ? Colors.white
       : dark
-      ? const Color(0xFF073F34)
-      : const Color(0xFFEDFAF3);
-  Color get surface => dark ? const Color(0xFF165346) : Colors.white;
+      ? const Color(0xFF052F28)
+      : const Color(0xFFF6FBF8);
+  Color get surface => dark ? const Color(0xFF103D33) : Colors.white;
   Color get secondarySurface =>
-      dark ? const Color(0xFF0B5B4B) : const Color(0xFFE3F5EA);
+      dark ? const Color(0xFF16483B) : const Color(0xFFE3F5EA);
   Color get text => dark ? Colors.white : const Color(0xFF14362B);
   Color get secondary =>
       dark ? const Color(0xFFDCF8EB) : const Color(0xFF526E61);
@@ -68,9 +68,5 @@ class WidgetAtelierPalette {
   Color get action => dark ? const Color(0xFF4BD4A8) : const Color(0xFF0F745D);
   Color get onAction => dark ? const Color(0xFF052F28) : Colors.white;
   Color get border => dark ? const Color(0xFF286A5B) : const Color(0xFFD5EEDF);
-  Gradient? get gradient => dark
-      ? const LinearGradient(
-          colors: [Color(0xFF052F28), Color(0xFF073F34), Color(0xFF0B5B4B)],
-        )
-      : null;
+  Gradient? get gradient => null;
 }

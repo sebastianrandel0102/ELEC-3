@@ -372,7 +372,7 @@ class SharedGoalCard extends StatelessWidget {
     padding: const EdgeInsets.only(bottom: 16),
     child: Card(
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
         onTap: () => openSharedGoal(context, goal.id),
         child: Padding(
           padding: const EdgeInsets.all(20),

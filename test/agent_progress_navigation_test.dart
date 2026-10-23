@@ -199,7 +199,10 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Review my progress'));
         await tester.pumpAndSettle();
-        expect(find.text('Progress, in perspective.'), findsOneWidget);
+        expect(
+          find.text('Your savings and planning, at a glance.'),
+          findsOneWidget,
+        );
         expect(find.text('PHP ₱1,000.00'), findsWidgets);
         expect(tester.takeException(), isNull);
         await tester.scrollUntilVisible(
@@ -235,7 +238,7 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.pageBack();
         await tester.pumpAndSettle();
-        expect(find.text('Agent Studio'), findsOneWidget);
+        expect(find.text('Agent Studio Pro'), findsOneWidget);
         await tester.pageBack();
         await tester.pumpAndSettle();
         expect(repository.cancellations, 0);

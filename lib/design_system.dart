@@ -4,6 +4,8 @@ import 'dart:math' as math;
 
 import 'branding/savetrack_logo.dart';
 
+part 'precision_components.dart';
+
 const mint = Color(0xFFABF2D7);
 const teal = Color(0xFF0B5B4B);
 const canvas = Color(0xFFF6FBF8);
@@ -81,10 +83,10 @@ abstract final class SaveTrackDesign {
   static const region = 32.0;
   static const spaceXl = 40.0;
   static const spaceXxl = 48.0;
-  static const radius = 22.0;
+  static const radius = 20.0;
   static const radiusSmall = 12.0;
   static const radiusMedium = 16.0;
-  static const radiusHero = 30.0;
+  static const radiusHero = 26.0;
   static const maxWidth = 1080.0;
   static const pressMotion = Duration(milliseconds: 120);
   static const selectionMotion = Duration(milliseconds: 190);
@@ -135,7 +137,7 @@ abstract final class SaveTrackDesign {
   );
   static const heading = TextStyle(
     fontFamily: 'Manrope',
-    fontSize: 29,
+    fontSize: 34,
     fontWeight: FontWeight.w700,
     letterSpacing: -.7,
     color: ink,
@@ -218,7 +220,7 @@ abstract final class SaveTrackDesign {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        toolbarHeight: 72,
+        toolbarHeight: 56,
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
@@ -477,7 +479,7 @@ abstract final class SaveTrackDesign {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        toolbarHeight: 72,
+        toolbarHeight: 56,
       ),
       cardTheme: theme.cardTheme.copyWith(
         color: scheme.surface,
@@ -490,6 +492,12 @@ abstract final class SaveTrackDesign {
         fillColor: scheme.surfaceContainer,
         labelStyle: TextStyle(color: scheme.onSurfaceVariant),
         hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+        floatingLabelStyle: TextStyle(
+          color: scheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+        prefixIconColor: scheme.primary,
+        suffixIconColor: scheme.onSurfaceVariant,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: scheme.outlineVariant),
@@ -501,6 +509,10 @@ abstract final class SaveTrackDesign {
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: scheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: scheme.error, width: 2),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -529,9 +541,15 @@ abstract final class SaveTrackDesign {
           foregroundColor: scheme.primary,
         ),
       ),
-      listTileTheme: ListTileThemeData(
+      listTileTheme: theme.listTileTheme.copyWith(
         textColor: scheme.onSurface,
         iconColor: scheme.primary,
+        titleTextStyle: theme.listTileTheme.titleTextStyle?.copyWith(
+          color: scheme.onSurface,
+        ),
+        subtitleTextStyle: theme.listTileTheme.subtitleTextStyle?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       ),
       navigationBarTheme: NavigationBarThemeData(
@@ -556,16 +574,22 @@ abstract final class SaveTrackDesign {
           borderRadius: BorderRadius.circular(14),
         ),
       ),
-      chipTheme: base.chipTheme.copyWith(
+      chipTheme: theme.chipTheme.copyWith(
         backgroundColor: scheme.surface,
         selectedColor: scheme.secondaryContainer,
-        labelStyle: TextStyle(color: scheme.onSurface),
+        labelStyle: theme.chipTheme.labelStyle?.copyWith(
+          color: scheme.onSurface,
+        ),
+        checkmarkColor: scheme.primary,
         side: BorderSide(color: scheme.outlineVariant),
       ),
-      dialogTheme: DialogThemeData(
+      dialogTheme: theme.dialogTheme.copyWith(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        titleTextStyle: theme.dialogTheme.titleTextStyle?.copyWith(
+          color: scheme.onSurface,
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.surface,
@@ -591,40 +615,6 @@ abstract final class SaveTrackDesign {
       ),
     );
   }
-}
-
-/// Static light and contour artwork; it never represents financial data.
-class _AuroraPainter extends CustomPainter {
-  const _AuroraPainter();
-  @override
-  void paint(Canvas canvas, Size size) {
-    final glow = Rect.fromCircle(
-      center: Offset(size.width * 1.05, size.height * .04),
-      radius: size.width * .65,
-    );
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [
-            SaveTrackDesign.heroHighlight,
-            SaveTrackDesign.luminous.withValues(alpha: 0),
-          ],
-        ).createShader(glow),
-    );
-    final center = Offset(size.width * 1.2, size.height * 1.1);
-    final stroke = Paint()
-      ..color = mint.withValues(alpha: .09)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    for (var i = 0; i < 4; i++) {
-      final radius = size.width * (.38 + i * .12);
-      canvas.drawCircle(center, radius, stroke);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_AuroraPainter oldDelegate) => false;
 }
 
 class AuroraEmblem extends StatelessWidget {
@@ -655,7 +645,7 @@ class TonalPanel extends StatelessWidget {
     width: double.infinity,
     padding: padding,
     decoration: BoxDecoration(
-      gradient: context.atelierSurfaceGradient,
+      color: context.atelierTonal,
       border: Border.all(color: context.atelierBorder),
       borderRadius: BorderRadius.circular(20),
     ),
@@ -982,9 +972,10 @@ class AmountText extends StatelessWidget {
 }
 
 class AuroraNotice extends StatelessWidget {
-  const AuroraNotice(this.message, {super.key, this.error = false});
+  const AuroraNotice(this.message, {super.key, this.error = false, this.icon});
   final String message;
   final bool error;
+  final IconData? icon;
   @override
   Widget build(BuildContext context) => Semantics(
     liveRegion: error,
@@ -1003,7 +994,9 @@ class AuroraNotice extends StatelessWidget {
         ),
       ),
       child: DetailLine(
-        icon: error ? Icons.error_outline_rounded : Icons.info_outline_rounded,
+        icon:
+            icon ??
+            (error ? Icons.error_outline_rounded : Icons.info_outline_rounded),
         label: message,
         color: error ? context.atelierError : context.atelierMuted,
       ),
@@ -1039,15 +1032,7 @@ class PageSurface extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: context.atelierCanvas,
-      gradient: RadialGradient(
-        center: Alignment(1, -1),
-        radius: 1.6,
-        colors: [context.atelierSelected, context.atelierCanvas],
-        stops: [0, .75],
-      ),
-    ),
+    decoration: BoxDecoration(color: context.atelierCanvas),
     child: SafeArea(
       top: false,
       bottom: false,
@@ -1083,17 +1068,9 @@ class MintHero extends StatelessWidget {
           ? BorderRadius.zero
           : BorderRadius.circular(SaveTrackDesign.radiusHero),
       border: Border.all(color: mint.withValues(alpha: .16)),
-      boxShadow: edgeToEdge ? null : SaveTrackDesign.shadows,
     ),
     child: Stack(
       children: [
-        const Positioned.fill(
-          child: IgnorePointer(
-            child: ExcludeSemantics(
-              child: CustomPaint(painter: _AuroraPainter()),
-            ),
-          ),
-        ),
         Padding(
           padding: padding,
           child: DefaultTextStyle.merge(
@@ -1224,18 +1201,18 @@ class _GradientButtonState extends State<GradientButton> {
       curve: SaveTrackDesign.motionCurve,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: widget.onPressed == null ? null : SaveTrackDesign.signature,
-          color: widget.onPressed == null ? context.atelierMuted : null,
+          color: widget.onPressed == null
+              ? context.atelierTonal
+              : context.atelierAccent,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: widget.onPressed == null ? null : SaveTrackDesign.shadows,
         ),
         child: FilledButton(
           onPressed: widget.onPressed,
           style: FilledButton.styleFrom(
             backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
+            foregroundColor: Theme.of(context).colorScheme.onPrimary,
             disabledBackgroundColor: Colors.transparent,
-            disabledForegroundColor: SaveTrackDesign.onHeroMuted,
+            disabledForegroundColor: context.atelierMuted,
             minimumSize: widget.expand
                 ? const Size.fromHeight(54)
                 : const Size(48, 52),
@@ -1557,20 +1534,20 @@ class FormHeading extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MintIcon(icon, size: 48),
+          MintIcon(icon, size: 40),
           const SizedBox(width: 12),
-          const Expanded(child: Divider()),
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+            ),
+          ),
         ],
       ),
-      const SizedBox(height: 20),
-      Text(title, style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 6),
-      Text(
-        detail,
-        style: Theme.of(context).textTheme.bodySmall
-            ?.copyWith(color: context.atelierMuted, height: 1.5),
-      ),
+      const SizedBox(height: 10),
+      Text(detail, style: Theme.of(context).textTheme.bodySmall),
     ],
   );
 }
@@ -1804,8 +1781,6 @@ class AuthComposition extends StatelessWidget {
               ],
             )
           else ...[
-            _showcase(compact: true),
-            const SizedBox(height: 32),
             form,
           ],
         ],

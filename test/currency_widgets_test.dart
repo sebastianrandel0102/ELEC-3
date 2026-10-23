@@ -378,7 +378,10 @@ void main() {
         '150',
       );
       await tester.pumpAndSettle();
-      expect(find.text('New Savings Balance: PHP ₱850.00'), findsOneWidget);
+      expect(
+        find.text('Preview · New Savings Balance: PHP ₱850.00'),
+        findsOneWidget,
+      );
       FocusManager.instance.primaryFocus?.unfocus();
       await tester.pumpAndSettle();
       await ui.capture(tester, 'decrease-savings');
@@ -441,7 +444,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const ValueKey('deposit-amount')), '10');
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('New Savings Balance: PHP ₱1,500.00'));
+    await tester.ensureVisible(
+      find.text('Preview · New Savings Balance: PHP ₱1,500.00'),
+    );
     expect(find.text('PHP ₱500.00'), findsOneWidget);
     expect(tester.takeException(), isNull);
     FocusManager.instance.primaryFocus?.unfocus();

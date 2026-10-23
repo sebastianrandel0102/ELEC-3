@@ -232,7 +232,7 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                       ),
                       if (validBalance)
                         Text(
-                          'New Savings Balance: ${formatCurrency(widget.withdrawal ? ExactDecimal.fromNum(balance) - preview.amount : ExactDecimal.fromNum(balance) + preview.amount, code)}',
+                          'Preview · New Savings Balance: ${formatCurrency(widget.withdrawal ? ExactDecimal.fromNum(balance) - preview.amount : ExactDecimal.fromNum(balance) + preview.amount, code)}',
                         ),
                       if (inputCurrency != code)
                         Text(

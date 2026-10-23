@@ -51,7 +51,7 @@ void main() {
       'Agent home fits $width without auto-starting voice or writes',
       (tester) async {
         await mount(tester, size: Size(width, 844));
-        expect(find.text('Agent Studio'), findsOneWidget);
+        expect(find.text('Agent Studio Pro'), findsOneWidget);
         expect(adapter.starts, isEmpty);
         expect(backend.calls, isEmpty);
         expect(tester.takeException(), isNull);

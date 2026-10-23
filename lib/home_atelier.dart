@@ -45,7 +45,7 @@ class HomeAtelier extends StatefulWidget {
 class _HomeAtelierState extends State<HomeAtelier> {
   late final goals = _goals(widget.uid)
       .orderBy('createdAt', descending: true)
-      .snapshots();
+      .snapshots(includeMetadataChanges: true);
   @override
   Widget build(BuildContext context) {
     final preferences = AtelierScope.maybeOf(context);
@@ -213,10 +213,9 @@ class _HomeAtelierState extends State<HomeAtelier> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: ScreenIntro(
-                          eyebrow: DateFormat('EEEE, MMMM d').format(now),
-                          title: greeting,
-                          detail: 'Your progress, beautifully organized.',
+                        child: AuroraGreeting(
+                          date: DateFormat('EEEE, MMMM d').format(now),
+                          greeting: greeting,
                         ),
                       ),
                       if (preferences != null)
@@ -253,52 +252,61 @@ class _HomeAtelierState extends State<HomeAtelier> {
                           (summary.$3 ? null : 'See individual goals'),
                       showProgress: summary.$3,
                     ),
-                  if (snapshot.data?.metadata.isFromCache == true)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Showing cached goals. Reconnect for the latest updates.',
-                      ),
+                  if (snapshot.hasData)
+                    AuroraSyncStatus(
+                      cached: snapshot.data!.metadata.isFromCache,
+                      pending: snapshot.data!.metadata.hasPendingWrites,
                     ),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      FilledButton.icon(
-                        onPressed: () => showGoalTypeChoice(context),
-                        icon: const Icon(Icons.add),
-                        label: const Text('New goal'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: records.isEmpty
-                            ? null
-                            : () => _chooseSavingsGoal(
-                                context,
-                                widget.uid,
-                                records,
-                              ),
-                        icon: const Icon(Icons.savings_outlined),
-                        label: const Text('Add savings'),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => _openTab(context, 2),
-                        icon: const Icon(Icons.calendar_today_outlined),
-                        label: const Text('Planner'),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => const AgentStudioScreen(
-                              onOpen: _openAgentDestination,
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final columns =
+                          MediaQuery.textScalerOf(context).scale(12) > 20
+                          ? 2
+                          : 4;
+                      final actions = [
+                        AuroraQuickAction(
+                          icon: Icons.add_rounded,
+                          label: 'Add savings',
+                          onTap: records.isEmpty
+                              ? null
+                              : () => _chooseSavingsGoal(
+                                  context,
+                                  widget.uid,
+                                  records,
+                                ),
+                        ),
+                        AuroraQuickAction(
+                          icon: Icons.flag_outlined,
+                          label: 'New goal',
+                          onTap: () => showGoalTypeChoice(context),
+                        ),
+                        AuroraQuickAction(
+                          icon: Icons.checklist_rounded,
+                          label: 'Add task',
+                          onTap: () => showTaskForm(context),
+                        ),
+                        AuroraQuickAction(
+                          icon: Icons.notifications_outlined,
+                          label: 'Reminders',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const SmartRemindersScreen(),
                             ),
                           ),
                         ),
-                        icon: const Icon(Icons.hub_outlined),
-                        label: const Text('Agent'),
-                      ),
-                    ],
+                      ];
+                      return Wrap(
+                        children: [
+                          for (final action in actions)
+                            SizedBox(
+                              width: constraints.maxWidth / columns,
+                              child: action,
+                            ),
+                        ],
+                      );
+                    },
                   ),
                   const SizedBox(height: 28),
                 ],
@@ -857,11 +865,6 @@ class _GoalBrowserState extends State<GoalBrowser> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
           sliver: SliverList.list(
             children: [
-              const ScreenIntro(
-                eyebrow: 'Personal savings',
-                title: 'Save for what matters.',
-                detail: 'Your milestones, one contribution at a time.',
-              ),
               TextField(
                 decoration: const InputDecoration(
                   labelText: 'Search goals',

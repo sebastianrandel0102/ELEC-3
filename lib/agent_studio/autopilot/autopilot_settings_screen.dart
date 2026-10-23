@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../presentation/agent_theme.dart';
+import '../../design_system.dart';
 import '../presentation/agent_widgets.dart';
 
 import '../agent_domain.dart';
@@ -162,18 +163,20 @@ class AgentAutopilotSettingsScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(20),
                 children: [
-                  AgentHero(
-                    eyebrow: 'AGENT AUTOPILOT',
-                    title: 'Your agent. Your rules.',
-                    subtitle: 'Choose what SaveTrack can complete for you, with clear permissions and limits.',
-                    footer: Text(
-                      auto.mode.label,
-                      style: const TextStyle(
-                        color: Color(0xFFABF2D7),
-                        fontWeight: FontWeight.w700,
+                  AuroraGroupedSection(
+                    title: 'Current execution mode',
+                    footer: 'Financial transactions and destructive changes still require confirmation.',
+                    children: [
+                      ListTile(
+                        leading: const MintIcon(Icons.shield_outlined),
+                        title: Text(auto.mode.label),
+                        subtitle: const Text(
+                          'Choose permissions and limits for this device.',
+                        ),
                       ),
-                    ),
+                    ],
                   ),
+                  const SizedBox(height: 24),
                   const AgentSectionHeader(
                     title: 'Execution mode',
                     subtitle: 'Start with review. Automate at your own pace.',

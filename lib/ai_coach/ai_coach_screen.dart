@@ -540,7 +540,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                               ),
                               if (!compact)
                                 Text(
-                                  'A little space to think',
+                                  'Your personal AI companion',
                                   style: TextStyle(
                                     color: context.atelierMuted,
                                     fontSize: 11,

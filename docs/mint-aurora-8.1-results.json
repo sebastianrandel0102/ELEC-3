@@ -1,0 +1,266 @@
+{
+  "method": "Nonblank, non-comment lines with whitespace normalized. Additions and removals counted separately. Excludes generated output, images, documentation, and the preserved local test.",
+  "totals": {
+    "production_dart": {
+      "added": 1343,
+      "removed": 614
+    },
+    "native": {
+      "added": 5,
+      "removed": 5
+    },
+    "tests": {
+      "added": 470,
+      "removed": 14
+    }
+  },
+  "files": [
+    {
+      "file": "android/app/src/main/res/drawable/st_widget_emerald.xml",
+      "group": "native",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "file": "android/app/src/main/res/values/widget_atelier.xml",
+      "group": "native",
+      "added": 4,
+      "removed": 4
+    },
+    {
+      "file": "android/app/src/test/kotlin/com/example/myproject/widgets/WidgetLifecycleTest.kt",
+      "group": "tests",
+      "added": 1,
+      "removed": 2
+    },
+    {
+      "file": "lib/agent_studio/agent_language_settings.dart",
+      "group": "production_dart",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "file": "lib/agent_studio/agent_screen.dart",
+      "group": "production_dart",
+      "added": 4,
+      "removed": 4
+    },
+    {
+      "file": "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+      "group": "production_dart",
+      "added": 12,
+      "removed": 9
+    },
+    {
+      "file": "lib/agent_studio/presentation/agent_theme.dart",
+      "group": "production_dart",
+      "added": 5,
+      "removed": 125
+    },
+    {
+      "file": "lib/ai_coach/ai_coach_screen.dart",
+      "group": "production_dart",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "file": "lib/ai_coach/ai_theme.dart",
+      "group": "production_dart",
+      "added": 2,
+      "removed": 2
+    },
+    {
+      "file": "lib/currency_savings_dialog.dart",
+      "group": "production_dart",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "file": "lib/currency_widgets.dart",
+      "group": "production_dart",
+      "added": 1,
+      "removed": 3
+    },
+    {
+      "file": "lib/design_system.dart",
+      "group": "production_dart",
+      "added": 54,
+      "removed": 77
+    },
+    {
+      "file": "lib/home_atelier.dart",
+      "group": "production_dart",
+      "added": 42,
+      "removed": 39
+    },
+    {
+      "file": "lib/home_widgets/widget_visuals.dart",
+      "group": "production_dart",
+      "added": 5,
+      "removed": 9
+    },
+    {
+      "file": "lib/main.dart",
+      "group": "production_dart",
+      "added": 183,
+      "removed": 283
+    },
+    {
+      "file": "lib/precision_components.dart",
+      "group": "production_dart",
+      "added": 454,
+      "removed": 0
+    },
+    {
+      "file": "lib/precision_flows.dart",
+      "group": "production_dart",
+      "added": 394,
+      "removed": 0
+    },
+    {
+      "file": "lib/reminder_agenda.dart",
+      "group": "production_dart",
+      "added": 151,
+      "removed": 0
+    },
+    {
+      "file": "lib/reminder_widgets.dart",
+      "group": "production_dart",
+      "added": 32,
+      "removed": 59
+    },
+    {
+      "file": "lib/shared_savings_screens.dart",
+      "group": "production_dart",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "file": "test/agent_progress_navigation_test.dart",
+      "group": "tests",
+      "added": 5,
+      "removed": 2
+    },
+    {
+      "file": "test/agent_studio_widgets_test.dart",
+      "group": "tests",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "file": "test/currency_widgets_test.dart",
+      "group": "tests",
+      "added": 7,
+      "removed": 2
+    },
+    {
+      "file": "test/precision_edition_test.dart",
+      "group": "tests",
+      "added": 449,
+      "removed": 0
+    },
+    {
+      "file": "test/redesign_test.dart",
+      "group": "tests",
+      "added": 1,
+      "removed": 1
+    },
+    {
+      "file": "test/savings_decrease_test.dart",
+      "group": "tests",
+      "added": 6,
+      "removed": 6
+    }
+  ],
+  "verification": {
+    "baseline_flutter_tests": 934,
+    "flutter_tests": 963,
+    "golden_verification": 22,
+    "visual_capture_tests": 11,
+    "spark_rules_tests": 54,
+    "autopilot_rules_tests": 7,
+    "native_initial": {
+      "tests": 76,
+      "passed": 73,
+      "failed": 3
+    },
+    "native_corrected_rerun": {
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "result": "passed"
+    },
+    "static_analysis": "No issues found",
+    "dependencies_changed": false,
+    "device_connected": false,
+    "critical_methods_unchanged": 37,
+    "format_dart_files": 23,
+    "normalized_changed_lines": 2451,
+    "native_note": "73 of 76 passed in the broad run. Three old literal-color assertions were corrected to semantic resource expectations, then all three cases passed in a focused rerun. Other native cases were not repeated.",
+    "apk": {
+      "result": "passed",
+      "command": "flutter build apk --debug --no-pub",
+      "gradle_seconds": 85.2,
+      "file": "build/app/outputs/flutter-apk/app-debug.apk",
+      "bytes": 191089270,
+      "sha256": "7360ab33308e082010a3d23a080859fefe52d3c359ba099700324afa1f57469a"
+    },
+    "user_test_preserved_byte_for_byte": true
+  },
+  "files_modified": [
+    "android/app/src/main/res/drawable/st_widget_emerald.xml",
+    "android/app/src/main/res/drawable/st_widget_preview_goal.png",
+    "android/app/src/main/res/drawable/st_widget_preview_planner.png",
+    "android/app/src/main/res/drawable/st_widget_preview_quick_save.png",
+    "android/app/src/main/res/drawable/st_widget_preview_today.png",
+    "android/app/src/main/res/values/widget_atelier.xml",
+    "android/app/src/test/kotlin/com/example/myproject/widgets/WidgetLifecycleTest.kt",
+    "lib/agent_studio/agent_language_settings.dart",
+    "lib/agent_studio/agent_screen.dart",
+    "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+    "lib/agent_studio/presentation/agent_theme.dart",
+    "lib/ai_coach/ai_coach_screen.dart",
+    "lib/ai_coach/ai_theme.dart",
+    "lib/currency_savings_dialog.dart",
+    "lib/currency_widgets.dart",
+    "lib/design_system.dart",
+    "lib/home_atelier.dart",
+    "lib/home_widgets/widget_visuals.dart",
+    "lib/main.dart",
+    "lib/reminder_widgets.dart",
+    "lib/shared_savings_screens.dart",
+    "test/agent_progress_navigation_test.dart",
+    "test/agent_studio_widgets_test.dart",
+    "test/currency_widgets_test.dart",
+    "test/goldens/agent_atelier_home_dark.png",
+    "test/goldens/agent_atelier_home_light.png",
+    "test/goldens/agent_atelier_mission.png",
+    "test/goldens/agent_atelier_voice.png",
+    "test/goldens/ai-atelier-conversation-dark.png",
+    "test/goldens/ai-atelier-conversation-light.png",
+    "test/goldens/ai-atelier-welcome-dark.png",
+    "test/goldens/ai-atelier-welcome-light.png",
+    "test/goldens/atelier71-home-dark.png",
+    "test/goldens/atelier71-home-light.png",
+    "test/redesign_test.dart",
+    "test/savings_decrease_test.dart"
+  ],
+  "files_created": [
+    "docs/mint-aurora-8.1-results.json",
+    "docs/mint-aurora-8.1.md",
+    "lib/precision_components.dart",
+    "lib/precision_flows.dart",
+    "lib/reminder_agenda.dart",
+    "test/goldens/precision81-assist-dark.png",
+    "test/goldens/precision81-assist-light.png",
+    "test/goldens/precision81-details-dark.png",
+    "test/goldens/precision81-details-light.png",
+    "test/goldens/precision81-goals-dark.png",
+    "test/goldens/precision81-goals-light.png",
+    "test/goldens/precision81-home-dark.png",
+    "test/goldens/precision81-home-light.png",
+    "test/goldens/precision81-profile-dark.png",
+    "test/goldens/precision81-profile-light.png",
+    "test/precision_edition_test.dart"
+  ]
+}

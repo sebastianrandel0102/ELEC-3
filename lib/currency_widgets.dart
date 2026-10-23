@@ -369,9 +369,7 @@ class _CurrencyPickerState extends State<CurrencyPicker> {
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
                         )
-                      : SaveTrackDesign.heading.copyWith(
-                          color: context.atelierInk,
-                        ),
+                      : Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               Padding(

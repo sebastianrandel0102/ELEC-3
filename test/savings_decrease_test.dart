@@ -557,12 +557,12 @@ void main() {
       );
       await tester.tap(find.text('History'));
       await tester.pumpAndSettle();
-      expect(find.text('-PHP ₱500.00'), findsOneWidget);
-      expect(find.text('Savings Decreased'), findsOneWidget);
-      expect(find.text('Reason: Emergency'), findsOneWidget);
+      expect(find.text('−PHP ₱500.00'), findsOneWidget);
+      expect(find.text('Savings decreased'), findsOneWidget);
+      expect(find.text('Emergency'), findsOneWidget);
       expect(find.text('+PHP ₱1,000.00'), findsOneWidget);
-      expect(find.byIcon(Icons.south_east), findsOneWidget);
-      expect(find.byIcon(Icons.south_west), findsWidgets);
+      expect(find.byIcon(Icons.remove_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.add_rounded), findsWidgets);
       // Date headings and filter controls put later entries below the fold.
       await tester.scrollUntilVisible(
         find.text('+PHP ₱2,000.00'),
@@ -576,7 +576,7 @@ void main() {
             .first,
       );
       expect(find.text('+PHP ₱2,000.00'), findsOneWidget);
-      expect(find.byIcon(Icons.south_west), findsWidgets);
+      expect(find.byIcon(Icons.add_rounded), findsWidgets);
       expect(tester.takeException(), isNull);
     },
   );

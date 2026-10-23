@@ -79,7 +79,7 @@ class AgentLanguageSettingsScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(24),
                 children: [
                   Text(
-                    'Mint Aurora 6.1',
+                    'Language & voice',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                       color: Theme.of(context).colorScheme.primary,
                     ),
