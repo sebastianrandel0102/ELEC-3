@@ -159,7 +159,7 @@ class MemberAvatar extends StatelessWidget {
       label: name,
       child: CircleAvatar(
         backgroundColor: mint,
-        foregroundColor: context.atelierAccent,
+        foregroundColor: SaveTrackDesign.midnight,
         child: Text(
           words.isEmpty
               ? '?'
@@ -512,7 +512,7 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
   }
 
   Future<void> pick(bool isStart) async {
-    final d = await showDatePicker(
+    final d = await showSaveTrackDatePicker(
       context: context,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100, 12, 31),
@@ -1384,7 +1384,7 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
                             );
                             return;
                           }
-                          final d = await showDatePicker(
+                          final d = await showSaveTrackDatePicker(
                             context: context,
                             firstDate: DateTime(
                               widget.goal.startDate.year,

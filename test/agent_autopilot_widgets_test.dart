@@ -96,8 +96,7 @@ void main() {
         find.byKey(const Key('autopilot-reset')),
         500,
       );
-      await tester.tap(find.byKey(const Key('autopilot-reset')));
-      await tester.pumpAndSettle();
+      await tapVisible(tester, find.byKey(const Key('autopilot-reset')));
       expect(
         engine.settings.autopilot.mode,
         AgentExecutionMode.askBeforeEveryAction,

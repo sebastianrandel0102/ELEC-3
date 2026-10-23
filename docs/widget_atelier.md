@@ -1,5 +1,7 @@
 # Mint Aurora 6.0 — Widget Atelier
 
+> Current palette and export workflow: [Mint Atelier implementation and verification](mint-atelier-iphone.md). The exporter now uses visually reviewed native 300×220 matrix frames; the earlier xhdpi capture description below records the original implementation.
+
 ## Presentation audit
 
 The existing implementation uses Kotlin RemoteViews, XML resources and a Flutter configuration screen. Per-instance configuration, authenticated navigation, local snapshots and confirmation-based savings flows remain the integration contract.

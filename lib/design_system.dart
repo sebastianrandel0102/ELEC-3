@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart'
+    show
+        CupertinoDatePicker,
+        CupertinoDatePickerMode,
+        CupertinoTheme,
+        CupertinoThemeData;
 
 import 'dart:math' as math;
 
 import 'branding/savetrack_logo.dart';
 
 part 'precision_components.dart';
+part 'platform_pickers.dart';
 
 const mint = Color(0xFFABF2D7);
 const teal = Color(0xFF0B5B4B);
@@ -24,6 +31,9 @@ extension AtelierColors on BuildContext {
   Color get atelierBorder => Theme.of(this).colorScheme.outlineVariant;
   Color get atelierTonal => Theme.of(this).colorScheme.surfaceContainer;
   Color get atelierSelected => Theme.of(this).colorScheme.secondaryContainer;
+  Color get atelierInput => Theme.of(this).inputDecorationTheme.fillColor!;
+  Color get atelierTrack =>
+      isDark ? const Color(0xFF315D50) : const Color(0xFFD8E8E0);
   Color get atelierError => Theme.of(this).colorScheme.error;
   Color get atelierWarning =>
       isDark ? const Color(0xFFFFD38A) : SaveTrackDesign.warning;
@@ -87,6 +97,9 @@ abstract final class SaveTrackDesign {
   static const radiusSmall = 12.0;
   static const radiusMedium = 16.0;
   static const radiusHero = 26.0;
+  static const radiusSheet = 28.0;
+  static const touchMin = 48.0;
+  static const buttonHeight = 52.0;
   static const maxWidth = 1080.0;
   static const pressMotion = Duration(milliseconds: 120);
   static const selectionMotion = Duration(milliseconds: 190);
@@ -124,9 +137,8 @@ abstract final class SaveTrackDesign {
     end: Alignment.bottomRight,
     colors: [Colors.white, cloud, mist],
   );
-  static const progressOnDark = LinearGradient(
-    colors: [mint, fresh, premiumMint],
-  );
+  static const progressOnDark = LinearGradient(colors: [mint, luminous]);
+  static const progressOnLight = LinearGradient(colors: [teal, heroEnd]);
   static const amount = TextStyle(
     fontFamily: 'Manrope',
     fontSize: 38,
@@ -164,7 +176,7 @@ abstract final class SaveTrackDesign {
     );
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: border),
+      borderSide: const BorderSide(color: Color(0xFF718B7D)),
     );
     return base.copyWith(
       scaffoldBackgroundColor: canvas,
@@ -177,7 +189,10 @@ abstract final class SaveTrackDesign {
         onSurface: ink,
         onSurfaceVariant: muted,
         surfaceContainer: mist,
+        surfaceContainerLow: Colors.white,
         error: error,
+        errorContainer: errorSurface,
+        onErrorContainer: error,
         outline: muted,
         outlineVariant: border,
         surfaceContainerHighest: lightMint,
@@ -190,18 +205,18 @@ abstract final class SaveTrackDesign {
             headlineMedium: heading,
             headlineLarge: amount.copyWith(color: ink, fontSize: 44),
             titleLarge: const TextStyle(
-              fontSize: 21,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               letterSpacing: -.4,
               color: ink,
             ),
             titleMedium: const TextStyle(
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: FontWeight.w600,
               color: ink,
             ),
-            bodyLarge: const TextStyle(fontSize: 16, height: 1.5, color: ink),
-            bodyMedium: const TextStyle(fontSize: 14, height: 1.5, color: ink),
+            bodyLarge: const TextStyle(fontSize: 17, height: 1.5, color: ink),
+            bodyMedium: const TextStyle(fontSize: 15, height: 1.5, color: ink),
             bodySmall: const TextStyle(
               fontSize: 13,
               height: 1.45,
@@ -285,6 +300,7 @@ abstract final class SaveTrackDesign {
           borderSide: const BorderSide(color: error, width: 2),
         ),
         labelStyle: const TextStyle(color: muted),
+        hintStyle: const TextStyle(color: muted),
         floatingLabelStyle: const TextStyle(
           color: teal,
           fontWeight: FontWeight.w600,
@@ -304,7 +320,7 @@ abstract final class SaveTrackDesign {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(48, 52),
           shape: shape,
-          side: const BorderSide(color: border),
+          side: const BorderSide(color: muted),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         ),
       ),
@@ -449,17 +465,20 @@ abstract final class SaveTrackDesign {
       onPrimary: obsidian,
       secondary: fresh,
       onSecondary: obsidian,
-      surface: const Color(0xFF103D33),
-      onSurface: const Color(0xFFF2FAF5),
-      onSurfaceVariant: const Color(0xFFB8CEC2),
-      surfaceContainer: const Color(0xFF16483B),
-      surfaceContainerHighest: const Color(0xFF205745),
-      secondaryContainer: const Color(0xFF225B47),
+      surface: const Color(0xFF0C3B32),
+      onSurface: const Color(0xFFEFFAF5),
+      onSurfaceVariant: const Color(0xFFB7D4C7),
+      surfaceContainerLow: const Color(0xFF0C3B32),
+      surfaceContainer: const Color(0xFF124B3E),
+      surfaceContainerHighest: const Color(0xFF1A5D4C),
+      secondaryContainer: const Color(0xFF1A5D4C),
       onSecondaryContainer: mint,
-      outlineVariant: const Color(0xFF346052),
+      outlineVariant: const Color(0xFF315D50),
       outline: const Color(0xFF9BB9AA),
-      error: const Color(0xFFFFB4BA),
+      error: const Color(0xFFFFADB4),
       onError: const Color(0xFF650D20),
+      errorContainer: const Color(0xFF4A252B),
+      onErrorContainer: const Color(0xFFFFADB4),
     );
     final base = ThemeData(
       useMaterial3: true,
@@ -489,7 +508,7 @@ abstract final class SaveTrackDesign {
         ),
       ),
       inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-        fillColor: scheme.surfaceContainer,
+        fillColor: const Color(0xFF103E35),
         labelStyle: TextStyle(color: scheme.onSurfaceVariant),
         hintStyle: TextStyle(color: scheme.onSurfaceVariant),
         floatingLabelStyle: TextStyle(
@@ -500,7 +519,7 @@ abstract final class SaveTrackDesign {
         suffixIconColor: scheme.onSurfaceVariant,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: scheme.outlineVariant),
+          borderSide: const BorderSide(color: Color(0xFF6E9F89)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -595,11 +614,29 @@ abstract final class SaveTrackDesign {
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
+        dragHandleColor: scheme.onSurfaceVariant,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
       popupMenuTheme: PopupMenuThemeData(color: scheme.surface),
+      textButtonTheme: theme.textButtonTheme,
+      floatingActionButtonTheme: theme.floatingActionButtonTheme.copyWith(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+      ),
+      datePickerTheme: theme.datePickerTheme.copyWith(
+        backgroundColor: scheme.surface,
+        headerBackgroundColor: scheme.surfaceContainer,
+        headerForegroundColor: scheme.onSurface,
+      ),
+      timePickerTheme: theme.timePickerTheme.copyWith(
+        backgroundColor: scheme.surface,
+        hourMinuteColor: scheme.secondaryContainer,
+        hourMinuteTextColor: scheme.onSurface,
+        dialBackgroundColor: obsidian,
+        dialHandColor: scheme.primary,
+      ),
       dividerTheme: DividerThemeData(
         color: scheme.outlineVariant,
         thickness: 1,
@@ -941,6 +978,32 @@ class AmountText extends StatelessWidget {
           ? Text.rich(span, softWrap: softWrap)
           : Text(text, style: style, softWrap: softWrap);
       if (!overflow) return figure();
+      // Let the currency move onto its own line before requiring horizontal
+      // scrolling. The exact formatted value remains one accessibility value.
+      if (compactCurrency && prefix != null && prefix.length < text.length) {
+        final digits = text.substring(prefix.length);
+        final digitsMeasure = TextPainter(
+          text: TextSpan(text: digits, style: resolved),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final fits = digitsMeasure.width <= constraints.maxWidth;
+        digitsMeasure.dispose();
+        if (fits) {
+          return Semantics(
+            label: text,
+            excludeSemantics: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(prefix.trim(), style: resolved.copyWith(fontSize: 15)),
+                const SizedBox(height: 4),
+                Text(digits, style: resolved),
+              ],
+            ),
+          );
+        }
+      }
       final hintColor = onDark
           ? SaveTrackDesign.onHeroMuted
           : context.atelierMuted;
@@ -1071,6 +1134,22 @@ class MintHero extends StatelessWidget {
     ),
     child: Stack(
       children: [
+        Positioned(
+          top: -80,
+          right: -70,
+          child: ExcludeSemantics(
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [SaveTrackDesign.heroHighlight, Colors.transparent],
+                ),
+              ),
+            ),
+          ),
+        ),
         Padding(
           padding: padding,
           child: DefaultTextStyle.merge(
@@ -1149,9 +1228,7 @@ class MintProgress extends StatelessWidget {
           children: [
             Container(
               height: 8,
-              color: onDark
-                  ? SaveTrackDesign.heroTrack
-                  : context.atelierSelected,
+              color: onDark ? SaveTrackDesign.heroTrack : context.atelierTrack,
             ),
             FractionallySizedBox(
               widthFactor: progress.clamp(0, 1),
@@ -1160,7 +1237,9 @@ class MintProgress extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: onDark
                       ? SaveTrackDesign.progressOnDark
-                      : SaveTrackDesign.spectrum,
+                      : context.isDark
+                      ? SaveTrackDesign.progressOnDark
+                      : SaveTrackDesign.progressOnLight,
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
@@ -1292,9 +1371,14 @@ class EnterOnce extends StatelessWidget {
 }
 
 class SaveActionLabel extends StatelessWidget {
-  const SaveActionLabel({super.key, required this.busy, required this.label});
+  const SaveActionLabel({
+    super.key,
+    required this.busy,
+    required this.label,
+    this.busyLabel = 'Saving',
+  });
   final bool busy;
-  final String label;
+  final String label, busyLabel;
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -1302,11 +1386,14 @@ class SaveActionLabel extends StatelessWidget {
       if (busy) ...[
         SizedBox.square(
           dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: context.atelierAccent,
+          ),
         ),
         const SizedBox(width: 8),
       ],
-      Flexible(child: Text(busy ? 'Saving' : label)),
+      Flexible(child: Text(busy ? busyLabel : label)),
     ],
   );
 }
@@ -1631,7 +1718,13 @@ class ProgressRing extends StatelessWidget {
             size *
             (MediaQuery.textScalerOf(context).scale(16) / 16).clamp(1, 1.7),
         child: CustomPaint(
-          painter: _RingPainter(progress, onDark: onDark),
+          painter: _RingPainter(
+            progress,
+            track: onDark ? SaveTrackDesign.heroTrack : context.atelierTrack,
+            gradient: onDark || context.isDark
+                ? SaveTrackDesign.progressOnDark
+                : SaveTrackDesign.progressOnLight,
+          ),
           child: Center(
             child: ExcludeSemantics(
               child: Text(
@@ -1652,9 +1745,10 @@ class ProgressRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  const _RingPainter(this.value, {this.onDark = false});
+  const _RingPainter(this.value, {required this.track, required this.gradient});
   final double value;
-  final bool onDark;
+  final Color track;
+  final LinearGradient gradient;
   @override
   void paint(Canvas canvas, Size size) {
     final bounds = (Offset.zero & size).deflate(6);
@@ -1662,29 +1756,23 @@ class _RingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 7
       ..strokeCap = StrokeCap.round;
-    canvas.drawOval(
-      bounds,
-      stroke
-        ..color = onDark
-            ? SaveTrackDesign.heroTrack
-            : SaveTrackDesign.lightMint,
-    );
+    canvas.drawOval(bounds, stroke..color = track);
     if (value > 0) {
       canvas.drawArc(
         bounds,
         -math.pi / 2,
         math.pi * 2 * value.clamp(0, 1),
         false,
-        stroke
-          ..shader = (onDark ? SaveTrackDesign.glow : SaveTrackDesign.spectrum)
-              .createShader(bounds),
+        stroke..shader = gradient.createShader(bounds),
       );
     }
   }
 
   @override
   bool shouldRepaint(_RingPainter oldDelegate) =>
-      oldDelegate.value != value || oldDelegate.onDark != onDark;
+      oldDelegate.value != value ||
+      oldDelegate.track != track ||
+      oldDelegate.gradient != gradient;
 }
 
 class AuthComposition extends StatelessWidget {
@@ -1763,7 +1851,7 @@ class AuthComposition extends StatelessWidget {
     builder: (context, constraints) {
       final wide = constraints.maxWidth >= 760;
       final form = Padding(
-        padding: EdgeInsets.all(wide ? 32 : 4),
+        padding: EdgeInsets.all(wide ? 32 : 0),
         child: child,
       );
       return Column(

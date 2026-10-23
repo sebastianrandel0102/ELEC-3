@@ -29,31 +29,9 @@ class AiEmblem extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: context.atelierAccent.withValues(alpha: .16)),
       ),
-      child: CustomPaint(painter: _AiSparklePainter(context.atelierAccent)),
+      child: Center(child: AuroraEmblem(size: size * .72)),
     ),
   );
-}
-
-class _AiSparklePainter extends CustomPainter {
-  const _AiSparklePainter(this.color);
-  final Color color;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(size.width / 2, size.height / 2);
-    final r = size.width * .27;
-    final path = Path()
-      ..moveTo(c.dx, c.dy - r)
-      ..quadraticBezierTo(c.dx + r * .2, c.dy - r * .2, c.dx + r, c.dy)
-      ..quadraticBezierTo(c.dx + r * .2, c.dy + r * .2, c.dx, c.dy + r)
-      ..quadraticBezierTo(c.dx - r * .2, c.dy + r * .2, c.dx - r, c.dy)
-      ..quadraticBezierTo(c.dx - r * .2, c.dy - r * .2, c.dx, c.dy - r)
-      ..close();
-    canvas.drawPath(path, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(_AiSparklePainter oldDelegate) =>
-      oldDelegate.color != color;
 }
 
 class AiDashboardCard extends StatelessWidget {
@@ -198,7 +176,7 @@ class AiWelcomeHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) => Padding(
-      padding: const EdgeInsets.fromLTRB(12, 20, 12, 24),
+      padding: const EdgeInsets.fromLTRB(4, 16, 4, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -215,13 +193,12 @@ class AiWelcomeHero extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             mode == AiMode.askAnything
-                ? 'A SPACE FOR YOUR CURIOSITY'
-                : 'AI COACH LITE · READ ONLY',
+                ? 'A space for your curiosity'
+                : 'AI Coach Lite · Read only',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: context.atelierAccent,
-              fontSize: 10,
-              letterSpacing: 1.6,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -253,7 +230,7 @@ class AiWelcomeHero extends StatelessWidget {
               style: TextStyle(
                 color: context.atelierMuted,
                 height: 1.7,
-                fontSize: 13,
+                fontSize: 15,
               ),
             ),
           ),

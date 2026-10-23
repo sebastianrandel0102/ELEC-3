@@ -67,9 +67,41 @@ Future<void> main() async {
   runApp(SaveTrackApp(startupError: startupError));
 }
 
-class SaveTrackApp extends StatelessWidget {
+class SaveTrackApp extends StatefulWidget {
   const SaveTrackApp({super.key, this.startupError});
   final Object? startupError;
+
+  @override
+  State<SaveTrackApp> createState() => _SaveTrackAppState();
+}
+
+class _SaveTrackAppState extends State<SaveTrackApp> {
+  late Object? _startupError = widget.startupError;
+  bool _retrying = false;
+
+  Future<void> _retry() async {
+    if (_retrying) {
+      return;
+    }
+    setState(() => _retrying = true);
+    Object? failure;
+    try {
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
+      await AiAppCheck.initialize();
+    } catch (error) {
+      failure = error;
+    }
+    if (mounted) {
+      setState(() {
+        _startupError = failure;
+        _retrying = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) => AtelierHost(
@@ -82,7 +114,7 @@ class SaveTrackApp extends StatelessWidget {
         theme: SaveTrackDesign.theme,
         darkTheme: SaveTrackDesign.darkTheme,
         themeMode: mode,
-        builder: startupError == null
+        builder: _startupError == null
             ? (context, child) => HomeWidgetHost(
                 openTarget: _openHomeWidgetTarget,
                 child: ReminderHost(
@@ -91,8 +123,12 @@ class SaveTrackApp extends StatelessWidget {
                 ),
               )
             : null,
-        home: startupError != null
-            ? SetupScreen(error: startupError!)
+        home: _startupError != null
+            ? SetupScreen(
+                error: _startupError!,
+                onRetry: _retry,
+                busy: _retrying,
+              )
             : const AuthGate(),
       ),
     ),
@@ -100,8 +136,15 @@ class SaveTrackApp extends StatelessWidget {
 }
 
 class SetupScreen extends StatelessWidget {
-  const SetupScreen({super.key, required this.error});
+  const SetupScreen({
+    super.key,
+    required this.error,
+    this.onRetry,
+    this.busy = false,
+  });
   final Object error;
+  final VoidCallback? onRetry;
+  final bool busy;
   @override
   Widget build(BuildContext context) => Scaffold(
     body: PageSurface(
@@ -117,7 +160,7 @@ class SetupScreen extends StatelessWidget {
                 const BrandMark(),
                 const SizedBox(height: 28),
                 Text(
-                  'Connect your Firebase project',
+                  'We could not connect to SaveTrack.',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
@@ -126,18 +169,23 @@ class SetupScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'SaveTrack needs Firebase Authentication and Cloud Firestore to keep your data private and in sync.',
+                  'Your space is not available yet. Check your connection and try again.',
                   style: TextStyle(color: context.atelierMuted, height: 1.5),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Run `flutterfire configure`, then install the generated Android configuration and enable Email/Password sign-in and Cloud Firestore.',
-                  style: TextStyle(height: 1.5),
-                ),
-                const SizedBox(height: 20),
+                if (onRetry != null)
+                  GradientButton(
+                    onPressed: busy ? null : onRetry,
+                    child: SaveActionLabel(
+                      busy: busy,
+                      label: 'Try again',
+                      busyLabel: 'Connecting',
+                    ),
+                  ),
+                const SizedBox(height: 16),
                 Text(
-                  'Startup detail: $error',
-                  style: TextStyle(color: context.atelierMuted, fontSize: 12),
+                  'If this continues, the app connection may need to be configured. Reopen SaveTrack after setup is complete.',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),
@@ -356,7 +404,12 @@ class _AuthScreenState extends State<AuthScreen> {
       child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.symmetric(
+              horizontal: SaveTrackDesign.pageInset(
+                MediaQuery.sizeOf(context).width,
+              ),
+              vertical: 24,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1040),
               child: AuthComposition(
@@ -370,7 +423,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       Text(
                         _register ? 'Create your account' : 'Welcome back',
                         style: TextStyle(
-                          fontSize: 26,
+                          fontSize: 34,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -.6,
                           color: context.atelierInk,
@@ -387,6 +440,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       if (_register) ...[
                         TextFormField(
                           controller: _name,
+                          autofillHints: const [AutofillHints.name],
+                          textInputAction: TextInputAction.next,
                           textCapitalization: TextCapitalization.words,
                           decoration: const InputDecoration(
                             labelText: 'Your name',
@@ -400,6 +455,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
                       TextFormField(
                         controller: _email,
+                        autofillHints: const [AutofillHints.email],
+                        textInputAction: TextInputAction.next,
                         keyboardType: TextInputType.emailAddress,
                         autocorrect: false,
                         decoration: const InputDecoration(
@@ -416,6 +473,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _password,
+                        autofillHints: _register
+                            ? const [AutofillHints.newPassword]
+                            : const [AutofillHints.password],
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -460,7 +520,10 @@ class _AuthScreenState extends State<AuthScreen> {
                                 dimension: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: context.atelierAccent,
+                                  semanticsLabel: _register
+                                      ? 'Creating account'
+                                      : 'Signing in',
                                 ),
                               )
                             : Text(_register ? 'Create account' : 'Sign in'),
@@ -512,6 +575,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   dimension: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
+                                    color: teal,
                                     semanticsLabel: 'Signing in with Google',
                                   ),
                                 )
@@ -655,7 +719,7 @@ class _HomeShellState extends State<HomeShell> {
       floatingActionButton: _index == 1 || _index == 2
           ? FloatingActionButton.extended(
               backgroundColor: context.atelierAccent,
-              foregroundColor: context.atelierSurface,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
               onPressed: () => _index == 1
                   ? showGoalTypeChoice(context)
                   : showTaskForm(context),
@@ -959,43 +1023,32 @@ class SavingsOverview extends StatelessWidget {
               Icon(Icons.account_balance_wallet_outlined, size: 24),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 12),
           AmountText(
             totalLabel ?? _money(total),
             onDark: true,
             compactCurrency: true,
             style: SaveTrackDesign.amount.copyWith(
               color: Colors.white,
-              fontSize: constraints.maxWidth < 340 ? 36 : 42,
+              fontSize: 38,
             ),
           ),
-          const SizedBox(height: 6),
-          const Text(
-            'Total saved toward your goals',
-            style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           if (showProgress)
             MintProgress(
               value: target == 0 ? 0 : (total / target).clamp(0, 1),
               onDark: true,
             ),
-          const SizedBox(height: 16),
-          Container(
+          const SizedBox(height: 12),
+          SizedBox(
             width: double.infinity,
-            padding: const EdgeInsets.only(top: 16),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: mint.withValues(alpha: .2)),
-              ),
-            ),
             child: Wrap(
               spacing: 16,
               runSpacing: 8,
               children: [
                 DetailLine(
                   icon: Icons.flag_outlined,
-                  label: '$count active ${count == 1 ? 'goal' : 'goals'}',
+                  label: '$count personal ${count == 1 ? 'goal' : 'goals'}',
                   color: SaveTrackDesign.onHeroMuted,
                 ),
                 Text(
@@ -1697,6 +1750,15 @@ class _PlannerScreenState extends State<PlannerScreen>
             onNext: () =>
                 _selectDay(DateTime(_day.year, _day.month, _day.day + 1)),
             onToday: () => _selectDay(DateTime.now()),
+            onPick: () async {
+              final selected = await showSaveTrackDatePicker(
+                context: context,
+                initialDate: _day,
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2100),
+              );
+              if (selected != null && mounted) _selectDay(selected);
+            },
           ),
         ],
       ),
@@ -1711,18 +1773,15 @@ class PlannerDateHeader extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onToday,
+    this.onPick,
   });
   final String title;
   final VoidCallback onPrevious, onNext, onToday;
+  final VoidCallback? onPick;
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
-      const ScreenIntro(
-        eyebrow: 'Daily planner',
-        title: 'Make today count.',
-        detail: 'A clear plan. A little more focus.',
-      ),
       Row(
         children: [
           Expanded(
@@ -1758,30 +1817,45 @@ class PlannerDateHeader extends StatelessWidget {
               onPressed: onNext,
               icon: const Icon(Icons.chevron_right),
             );
-            final date = AnimatedContainer(
-              duration: SaveTrackDesign.duration(
-                context,
-                SaveTrackDesign.selectionMotion,
-              ),
-              curve: SaveTrackDesign.motionCurve,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              decoration: BoxDecoration(
-                color: context.atelierSelected,
+            final date = Material(
+              color: context.atelierSelected,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                onTap: onPick,
                 borderRadius: BorderRadius.circular(14),
-              ),
-              child: AnimatedSwitcher(
-                duration: SaveTrackDesign.duration(
-                  context,
-                  SaveTrackDesign.selectionMotion,
-                ),
-                child: Text(
-                  title,
-                  key: ValueKey(title),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: context.atelierAccent,
+                child: Semantics(
+                  button: onPick != null,
+                  label: onPick != null ? 'Choose planner date' : null,
+                  child: AnimatedContainer(
+                    duration: SaveTrackDesign.duration(
+                      context,
+                      SaveTrackDesign.selectionMotion,
+                    ),
+                    curve: SaveTrackDesign.motionCurve,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: context.atelierSelected,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: SaveTrackDesign.duration(
+                        context,
+                        SaveTrackDesign.selectionMotion,
+                      ),
+                      child: Text(
+                        title,
+                        key: ValueKey(title),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: context.atelierAccent,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -1824,7 +1898,7 @@ class DailyCompletion extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final ring = ProgressRing(
@@ -1936,7 +2010,10 @@ class _TasksListState extends State<TasksList> {
           : widget.compact
           ? child
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              padding: SaveTrackDesign.pagePadding(
+                MediaQuery.sizeOf(context).width,
+                bottom: 100,
+              ).copyWith(top: 8),
               children: [?widget.header, child],
             );
       if (s.hasError) {
@@ -2030,7 +2107,10 @@ class _TasksListState extends State<TasksList> {
         ],
       );
       return ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+        padding: SaveTrackDesign.pagePadding(
+          MediaQuery.sizeOf(context).width,
+          bottom: 100,
+        ).copyWith(top: 8),
         itemCount: docs.length + 1,
         itemBuilder: (context, index) => index == 0
             ? overview
@@ -2378,39 +2458,41 @@ class ReportTaskMetric extends StatelessWidget {
   final String uid, dateKey, title;
   final bool week;
   @override
-  Widget build(BuildContext context) =>
-      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: week
-            ? _tasks(uid)
-                  .where('dateKey', isGreaterThanOrEqualTo: dateKey)
-                  .where(
-                    'dateKey',
-                    isLessThanOrEqualTo: _dateKey(
-                      DateTime.parse(dateKey).add(const Duration(days: 6)),
-                    ),
-                  )
-                  .snapshots()
-            : _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
-        builder: (context, s) {
-          if (s.hasError) {
-            return ErrorPanel(
-              message: 'Could not load task report. Check your connection and try again.',
-            );
-          }
-          if (!s.hasData) return const LoadingPanel(minHeight: 236);
-          final all = s.data!.docs;
-          final done = all.where((d) => d.data()['completed'] == true).length;
-          return ReportMetric(
-            title: title,
-            value: '$done / ${all.length} completed',
-            progress: all.isEmpty ? 0 : done / all.length,
-            caption: all.isEmpty
-                ? 'No tasks scheduled'
-                : '${all.length - done} remaining',
-            icon: Icons.check_circle_outline,
-          );
-        },
+  Widget build(
+    BuildContext context,
+  ) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: week
+        ? _tasks(uid)
+              .where('dateKey', isGreaterThanOrEqualTo: dateKey)
+              .where(
+                'dateKey',
+                isLessThanOrEqualTo: _dateKey(
+                  DateTime.parse(dateKey).add(const Duration(days: 6)),
+                ),
+              )
+              .snapshots()
+        : _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
+    builder: (context, s) {
+      if (s.hasError) {
+        return ErrorPanel(
+          message: 'Could not load task report. Check your connection and try again.',
+        );
+      }
+      if (!s.hasData) return const LoadingPanel(minHeight: 236);
+      final all = s.data!.docs;
+      final done = all.where((d) => d.data()['completed'] == true).length;
+      return ReportMetric(
+        title: title,
+        value: '$done / ${all.length} completed',
+        progress: all.isEmpty ? 0 : done / all.length,
+        caption:
+            '${_shortDate(DateTime.parse(dateKey))}'
+            '${week ? ' – ${_shortDate(DateTime.parse(dateKey).add(const Duration(days: 6)))}' : ''}'
+            ' · ${all.isEmpty ? 'No tasks scheduled' : '${all.length - done} remaining'}',
+        icon: Icons.check_circle_outline,
       );
+    },
+  );
 }
 
 class ProfileScreen extends StatefulWidget {
@@ -2485,7 +2567,10 @@ class ProfileContent extends StatelessWidget {
     final preferences = AtelierScope.maybeOf(context);
     return ListView(
       key: const PageStorageKey('profile-scroll'),
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      padding: SaveTrackDesign.pagePadding(
+        MediaQuery.sizeOf(context).width,
+        bottom: 32,
+      ),
       children: [
         AuroraIdentity(
           name: name,
@@ -2755,8 +2840,7 @@ class ReportMetric extends StatelessWidget {
         ),
       );
     }
-    return MintHero(
-      deep: true,
+    return TonalPanel(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2766,55 +2850,46 @@ class ReportMetric extends StatelessWidget {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: SaveTrackDesign.onHeroMuted,
+                    color: context.atelierMuted,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(icon, size: 24),
+              Icon(icon, size: 24, color: context.atelierAccent),
             ],
           ),
           const SizedBox(height: 16),
           AmountText(
             value,
-            onDark: true,
             compactCurrency: true,
             style: SaveTrackDesign.amount.copyWith(
-              fontSize: 40,
-              color: Colors.white,
+              fontSize: 38,
+              color: context.atelierInk,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             caption,
-            style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
+            style: TextStyle(color: context.atelierMuted, fontSize: 13),
           ),
           if (progress != null) ...[
             const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: SaveTrackDesign.heroSurface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: mint.withValues(alpha: .16)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${(progress! * 100).round()}% of total target',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${(progress! * 100).round()}% of total target',
+                  style: TextStyle(
+                    color: context.atelierInk,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 12),
-                  MintProgress(value: progress!, onDark: true),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+                MintProgress(value: progress!),
+              ],
             ),
           ],
         ],
@@ -3483,7 +3558,7 @@ Future<void> showGoalForm(
                               const SizedBox(height: 8),
                               OutlinedButton.icon(
                                 onPressed: () async {
-                                  final d = await showDatePicker(
+                                  final d = await showSaveTrackDatePicker(
                                     context: ctx,
                                     firstDate: DateTime.now().subtract(
                                       const Duration(days: 1),
@@ -3806,7 +3881,7 @@ Future<void> showTaskForm(
                     OutlinedButton.icon(
                       onPressed: () async {
                         final d = DateTime.tryParse(day) ?? DateTime.now();
-                        final chosen = await showDatePicker(
+                        final chosen = await showSaveTrackDatePicker(
                           context: ctx,
                           firstDate: DateTime(2020),
                           lastDate: DateTime(2100),

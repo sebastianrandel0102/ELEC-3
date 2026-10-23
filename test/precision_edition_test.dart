@@ -35,11 +35,12 @@ Future<void> mount(
   Widget body, {
   bool dark = false,
   double width = 390,
+  double height = 844,
   double scale = 1,
 }) async {
   await tester.pumpWidget(const SizedBox.shrink());
   tester.view.devicePixelRatio = 1;
-  tester.view.physicalSize = Size(width, 844);
+  tester.view.physicalSize = Size(width, height);
   addTearDown(tester.view.reset);
   await tester.pumpWidget(
     MaterialApp(
@@ -423,7 +424,12 @@ void main() {
       'goal details and Profile retain values at $width with large text',
       (tester) async {
         await mount(tester, details(), width: width, scale: 2);
-        expect(find.text('PHP ₱12,500.00'), findsOneWidget);
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is AmountText && widget.text == 'PHP ₱12,500.00',
+          ),
+          findsOneWidget,
+        );
         await tester.drag(
           find.byType(SingleChildScrollView).first,
           const Offset(0, -900),

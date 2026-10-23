@@ -263,7 +263,14 @@ void main() {
             scale: 2,
           );
           expect(find.text('A home for our next chapter'), findsOneWidget);
-          expect(find.text('PHP ₱42,000.00'), findsOneWidget);
+          // Currency may reflow onto its own line at large text sizes.
+          expect(
+            find.byWidgetPredicate(
+              (widget) =>
+                  widget is AmountText && widget.text == 'PHP ₱42,000.00',
+            ),
+            findsOneWidget,
+          );
           expect(tester.takeException(), isNull);
           await mount(
             tester,

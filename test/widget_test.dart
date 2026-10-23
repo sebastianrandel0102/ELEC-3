@@ -9,7 +9,8 @@ void main() {
       const SaveTrackApp(startupError: 'configuration missing'),
     );
 
-    expect(find.text('Connect your Firebase project'), findsOneWidget);
-    expect(find.textContaining('configuration missing'), findsOneWidget);
+    expect(find.text('We could not connect to SaveTrack.'), findsOneWidget);
+    expect(find.text('Try again'), findsOneWidget);
+    expect(find.textContaining('configuration missing'), findsNothing);
   });
 }

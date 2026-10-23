@@ -49,6 +49,7 @@ class _HomeAtelierState extends State<HomeAtelier> {
   @override
   Widget build(BuildContext context) {
     final preferences = AtelierScope.maybeOf(context);
+    final inset = SaveTrackDesign.pageInset(MediaQuery.sizeOf(context).width);
     final now = DateTime.now();
     final greeting = now.hour < 12
         ? 'Good morning.'
@@ -206,7 +207,7 @@ class _HomeAtelierState extends State<HomeAtelier> {
           key: const PageStorageKey('home-atelier'),
           slivers: [
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+              padding: EdgeInsets.fromLTRB(inset, 12, inset, 0),
               sliver: SliverList.list(
                 children: [
                   Row(
@@ -257,17 +258,20 @@ class _HomeAtelierState extends State<HomeAtelier> {
                       cached: snapshot.data!.metadata.isFromCache,
                       pending: snapshot.data!.metadata.hasPendingWrites,
                     ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 20),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final columns =
-                          MediaQuery.textScalerOf(context).scale(12) > 20
+                          constraints.maxWidth < 300 ||
+                              MediaQuery.textScalerOf(context).scale(13) > 18
                           ? 2
                           : 4;
                       final actions = [
                         AuroraQuickAction(
                           icon: Icons.add_rounded,
                           label: 'Add savings',
+                          disabledReason:
+                              'Create a goal before adding savings.',
                           onTap: records.isEmpty
                               ? null
                               : () => _chooseSavingsGoal(
@@ -313,7 +317,7 @@ class _HomeAtelierState extends State<HomeAtelier> {
               ),
             ),
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: inset),
               sliver: SliverList.builder(
                 itemCount: (preferences?.order ?? HomeSection.values)
                     .where(
@@ -340,6 +344,7 @@ class _HomeAtelierState extends State<HomeAtelier> {
                 },
               ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         );
       },
@@ -687,12 +692,11 @@ class AtelierGoalTile extends StatelessWidget {
                             vertical: 7,
                           ),
                           child: Text(
-                            'IN FOCUS',
+                            'Featured',
                             style: TextStyle(
                               color: mint,
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w700,
-                              letterSpacing: 1.2,
                             ),
                           ),
                         ),
@@ -701,7 +705,7 @@ class AtelierGoalTile extends StatelessWidget {
                 ],
               ),
             Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -741,6 +745,7 @@ class AtelierGoalTile extends StatelessWidget {
                   const SizedBox(height: 12),
                   AmountText(
                     displayMoney(context, saved, code),
+                    compactCurrency: true,
                     style: SaveTrackDesign.amount.copyWith(
                       fontSize: featured ? 32 : 24,
                       color: context.atelierInk,
@@ -765,7 +770,7 @@ class AtelierGoalTile extends StatelessWidget {
                         style: TextStyle(
                           color: context.atelierAccent,
                           fontWeight: FontWeight.w700,
-                          fontSize: 12,
+                          fontSize: 13,
                         ),
                       ),
                       if (date != null)
@@ -804,9 +809,30 @@ class GoalBrowser extends StatefulWidget {
 }
 
 class _GoalBrowserState extends State<GoalBrowser> {
+  final _search = TextEditingController();
   String search = '';
   GoalFilter filter = GoalFilter.all;
   GoalSort sort = GoalSort.newest;
+  String sortLabel(GoalSort value) => switch (value) {
+    GoalSort.newest => 'Newest first',
+    GoalSort.deadline => 'Nearest deadline',
+    GoalSort.highestProgress => 'Highest progress',
+    GoalSort.lowestProgress => 'Lowest progress',
+    GoalSort.alphabetical => 'Alphabetical',
+  };
+
+  void reset() => setState(() {
+    _search.clear();
+    search = '';
+    filter = GoalFilter.all;
+  });
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
   double progress(QueryDocumentSnapshot<Map<String, dynamic>> d) {
     final target = _number(d.data()['targetAmount']);
     return target <= 0 ? 0 : _number(d.data()['savedAmount']) / target;
@@ -819,6 +845,7 @@ class _GoalBrowserState extends State<GoalBrowser> {
   @override
   Widget build(BuildContext context) {
     final preferences = AtelierScope.maybeOf(context);
+    final inset = SaveTrackDesign.pageInset(MediaQuery.sizeOf(context).width);
     final mode = preferences?.goals ?? GoalPresentation.gallery;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -862,57 +889,109 @@ class _GoalBrowserState extends State<GoalBrowser> {
     return CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          padding: EdgeInsets.fromLTRB(inset, 8, inset, 0),
           sliver: SliverList.list(
             children: [
               TextField(
-                decoration: const InputDecoration(
+                controller: _search,
+                decoration: InputDecoration(
                   labelText: 'Search goals',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  suffixIcon: search.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear search',
+                          onPressed: () => setState(() {
+                            _search.clear();
+                            search = '';
+                          }),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
                 ),
                 onChanged: (v) => setState(() => search = v),
               ),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: GoalFilter.values
-                    .map(
-                      (f) => ChoiceChip(
-                        label: Text(switch (f) {
-                          GoalFilter.all => 'All',
-                          GoalFilter.active => 'Active',
-                          GoalFilter.completed => 'Completed',
-                          GoalFilter.overdue => 'Overdue',
-                        }),
-                        selected: f == filter,
-                        onSelected: (_) => setState(() => filter = f),
-                      ),
-                    )
-                    .toList(),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 8,
+                  children: GoalFilter.values
+                      .map(
+                        (f) => ChoiceChip(
+                          label: Text(switch (f) {
+                            GoalFilter.all => 'All',
+                            GoalFilter.active => 'Active',
+                            GoalFilter.completed => 'Completed',
+                            GoalFilter.overdue => 'Overdue',
+                          }),
+                          selected: f == filter,
+                          showCheckmark: false,
+                          materialTapTargetSize: MaterialTapTargetSize.padded,
+                          onSelected: (_) => setState(() => filter = f),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<GoalSort>(
-                initialValue: sort,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Sort goals'),
-                items: GoalSort.values
-                    .map(
-                      (s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(switch (s) {
-                          GoalSort.newest => 'Newest first',
-                          GoalSort.deadline => 'Nearest deadline',
-                          GoalSort.highestProgress => 'Highest progress',
-                          GoalSort.lowestProgress => 'Lowest progress',
-                          GoalSort.alphabetical => 'Alphabetical',
-                        }),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      '${docs.length} ${docs.length == 1 ? 'goal' : 'goals'}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                  Flexible(
+                    flex: 3,
+                    child: PopupMenuButton<GoalSort>(
+                      tooltip: 'Sort goals',
+                      initialValue: sort,
+                      onSelected: (value) => setState(() => sort = value),
+                      itemBuilder: (_) => [
+                        for (final value in GoalSort.values)
+                          CheckedPopupMenuItem(
+                            value: value,
+                            checked: sort == value,
+                            child: Text(sortLabel(value)),
+                          ),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.sort_rounded,
+                              size: 18,
+                              color: context.atelierAccent,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                sortLabel(sort),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.atelierAccent,
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.expand_more_rounded, size: 18),
+                          ],
+                        ),
                       ),
-                    )
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) setState(() => sort = v);
-                },
+                    ),
+                  ),
+                ],
               ),
               if (preferences != null)
                 Padding(
@@ -934,20 +1013,45 @@ class _GoalBrowserState extends State<GoalBrowser> {
                   ),
                 ),
               if (docs.isEmpty)
-                const TonalPanel(
-                  child: Text('No goals match your search and filters.'),
+                TonalPanel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.records.isEmpty
+                            ? 'Make room for your first goal.'
+                            : 'No goals match your search and filters.',
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: widget.records.isEmpty
+                            ? () => showGoalTypeChoice(context)
+                            : reset,
+                        icon: Icon(
+                          widget.records.isEmpty
+                              ? Icons.add_rounded
+                              : Icons.restart_alt_rounded,
+                        ),
+                        label: Text(
+                          widget.records.isEmpty
+                              ? 'New goal'
+                              : 'Reset search and filters',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+          padding: EdgeInsets.fromLTRB(inset, 12, inset, 100),
           sliver: SliverLayoutBuilder(
             builder: (context, constraints) {
               final columns =
                   mode == GoalPresentation.grid &&
-                      constraints.crossAxisExtent >= 600 &&
-                      MediaQuery.textScalerOf(context).scale(14) < 22
+                      constraints.crossAxisExtent >= 350 &&
+                      MediaQuery.textScalerOf(context).scale(14) <= 16
                   ? 2
                   : 1;
               return SliverList.builder(
@@ -956,7 +1060,7 @@ class _GoalBrowserState extends State<GoalBrowser> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (var column = 0; column < columns; column++) ...[
-                      if (column > 0) const SizedBox(width: 16),
+                      if (column > 0) const SizedBox(width: 12),
                       Expanded(
                         child: row * columns + column < docs.length
                             ? AtelierGoalTile(
@@ -1058,11 +1162,6 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
             sliver: SliverList.list(
               children: [
                 widget.header,
-                const ScreenIntro(
-                  eyebrow: 'Weekly planner',
-                  title: 'Find your rhythm.',
-                  detail: 'A little perspective for the days ahead.',
-                ),
                 Wrap(
                   alignment: WrapAlignment.spaceBetween,
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -1670,7 +1769,7 @@ class PulseContent extends StatelessWidget {
             )
           else
             SizedBox(
-              height: 110,
+              height: 160,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: points.map((point) {
@@ -1687,7 +1786,7 @@ class PulseContent extends StatelessWidget {
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Container(
-                              height: (point.$2 / maximum * 100).clamp(2, 100),
+                              height: (point.$2 / maximum * 150).clamp(2, 150),
                               decoration: BoxDecoration(
                                 color: point.$2 > 0
                                     ? context.atelierAccent
@@ -1714,6 +1813,22 @@ class PulseContent extends StatelessWidget {
                 DateFormat.MMMd().format(points.last.$1),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            title: const Text('Daily contribution details'),
+            subtitle: Text('${totals.currency} · Recorded activity'),
+            children: [
+              for (final point in points)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(DateFormat.yMMMd().format(point.$1)),
+                  subtitle: Text(
+                    money(totals.days[_dateKey(point.$1)] ?? ExactDecimal.zero),
+                  ),
+                ),
             ],
           ),
         ],

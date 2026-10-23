@@ -203,7 +203,12 @@ void main() {
           find.text('Your savings and planning, at a glance.'),
           findsOneWidget,
         );
-        expect(find.text('PHP ₱1,000.00'), findsWidgets);
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is AmountText && widget.text == 'PHP ₱1,000.00',
+          ),
+          findsWidgets,
+        );
         expect(tester.takeException(), isNull);
         await tester.scrollUntilVisible(
           find.text('Shared savings'),
@@ -258,7 +263,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('Your access may have changed'), findsOneWidget);
-    expect(find.text('PHP ₱1,000.00'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is AmountText && widget.text == 'PHP ₱1,000.00',
+      ),
+      findsOneWidget,
+    );
     await tester.scrollUntilVisible(
       find.text('Planning rhythm'),
       150,
@@ -275,7 +285,12 @@ void main() {
   ) async {
     await mount(tester, progressReport());
     expect(find.byType(AuroraLoadingSurface), findsOneWidget);
-    expect(find.text('PHP ₱1,000.00'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is AmountText && widget.text == 'PHP ₱1,000.00',
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(ErrorWidget), findsNothing);
     expect(tester.takeException(), isNull);
     repositories['owner']!.events.add([]);

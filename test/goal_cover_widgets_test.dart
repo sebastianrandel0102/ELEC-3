@@ -145,7 +145,7 @@ void main() {
         findsOneWidget,
       );
       expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
-      expect(find.text('A little closer, every day.'), findsOneWidget);
+      expect(find.byIcon(Icons.flag_outlined), findsOneWidget);
       expect(find.text('Remove Photo'), findsNothing);
     },
   );
@@ -213,7 +213,7 @@ void main() {
       gate.complete(null);
       await tester.pumpAndSettle();
       expect(find.byType(CircularProgressIndicator), findsNothing);
-      expect(find.text('A little closer, every day.'), findsOneWidget);
+      expect(find.byIcon(Icons.flag_outlined), findsOneWidget);
     },
   );
   testWidgets(

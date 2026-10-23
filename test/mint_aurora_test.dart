@@ -92,7 +92,12 @@ void main() {
         size: sample.$1,
         scale: sample.$2,
       );
-      expect(find.text('PHP ₱42,000.00'), findsNWidgets(2));
+      expect(
+        find.byWidgetPredicate(
+          (widget) => widget is AmountText && widget.text == 'PHP ₱42,000.00',
+        ),
+        findsNWidgets(2),
+      );
       for (final progress in tester.widgetList<MintProgress>(
         find.byType(MintProgress),
       )) {

@@ -6,13 +6,13 @@ class AuroraGreeting extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 20),
+    padding: const EdgeInsets.only(bottom: 16),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(date, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: 6),
-        Text(greeting, style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 4),
+        Text(greeting, style: Theme.of(context).textTheme.titleMedium),
       ],
     ),
   );
@@ -75,7 +75,7 @@ class AuroraLargeTitle extends StatelessWidget {
       leading: leading,
       actions: actions,
       toolbarHeight: largeText ? 72 : 56,
-      expandedHeight: largeText ? 156 : 124,
+      expandedHeight: largeText ? 144 : 104,
       backgroundColor: context.atelierCanvas,
       surfaceTintColor: Colors.transparent,
       forceElevated: scrolled,
@@ -86,22 +86,25 @@ class AuroraLargeTitle extends StatelessWidget {
           final settings = context
               .dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
           final range =
-              (settings?.maxExtent ?? 124) - (settings?.minExtent ?? 56);
+              (settings?.maxExtent ?? 104) - (settings?.minExtent ?? 56);
           final expanded = range <= 0
               ? 0.0
               : (((settings?.currentExtent ?? constraints.maxHeight) -
                             (settings?.minExtent ?? 56)) /
                         range)
                     .clamp(0.0, 1.0);
-          final leadingSpace = leading == null ? 20.0 : 64.0;
+          final inset = SaveTrackDesign.pageInset(
+            MediaQuery.sizeOf(context).width,
+          );
+          final leadingSpace = leading == null ? inset : 64.0;
           final trailingSpace = actions.length * 48.0 + 12;
           return Stack(
             fit: StackFit.expand,
             children: [
               Positioned(
-                left: 20 + (leadingSpace - 20) * (1 - expanded),
-                right: expanded > .5 ? 20 : trailingSpace,
-                bottom: 14,
+                left: inset + (leadingSpace - inset) * (1 - expanded),
+                right: expanded > .5 ? inset : trailingSpace,
+                bottom: 12,
                 child: Semantics(
                   header: true,
                   child: Text(
@@ -228,22 +231,25 @@ class AuroraQuickAction extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onTap,
+    this.disabledReason,
   });
   final IconData icon;
   final String label;
   final VoidCallback? onTap;
+  final String? disabledReason;
 
   @override
   Widget build(BuildContext context) => Semantics(
     button: true,
     enabled: onTap != null,
+    hint: onTap == null ? disabledReason : null,
     child: Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 10),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -269,7 +275,7 @@ class AuroraQuickAction extends StatelessWidget {
                 label,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: onTap == null
                       ? context.atelierMuted

@@ -29,6 +29,13 @@ Future<void> loadManropeForPreviews({bool force = false}) async {
           .then((bytes) => ByteData.sublistView(bytes)),
     );
   await loader.load();
+  final google = FontLoader('GoogleSans')
+    ..addFont(
+      File('assets/branding/GoogleSans.ttf')
+          .readAsBytes()
+          .then((bytes) => ByteData.sublistView(bytes)),
+    );
+  await google.load();
   final config = jsonDecode(
     await File('.dart_tool/package_config.json').readAsString(),
   ) as Map<String, dynamic>;

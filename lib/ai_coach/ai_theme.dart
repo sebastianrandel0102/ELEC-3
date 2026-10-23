@@ -20,5 +20,5 @@ abstract final class AiLayout {
   static const conversationWidth = 760.0;
   static const composerRadius = 24.0;
   static const bubbleRadius = SaveTrackDesign.radius;
-  static const readingStyle = TextStyle(fontSize: 15, height: 1.75);
+  static const readingStyle = TextStyle(fontSize: 17, height: 1.65);
 }

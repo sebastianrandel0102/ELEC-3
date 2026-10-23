@@ -156,7 +156,7 @@ String reminderSummary(BuildContext context, ReminderConfiguration config) {
 Future<TimeOfDay?> showReminderTimePicker(
   BuildContext context,
   TimeOfDay time,
-) => showTimePicker(
+) => showSaveTrackTimePicker(
   context: context,
   initialTime: time,
   initialEntryMode: TimePickerEntryMode.dial,
@@ -167,7 +167,7 @@ Future<TimeOfDay?> showReminderTimePicker(
       timePickerTheme: TimePickerThemeData(
         backgroundColor: context.atelierSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        dialHandColor: SaveTrackDesign.emerald,
+        dialHandColor: context.atelierAccent,
         dialBackgroundColor: context.atelierSelected,
         hourMinuteColor: WidgetStateColor.resolveWith(
           (states) => states.contains(WidgetState.selected)
@@ -604,12 +604,13 @@ class _ReminderEditorState extends State<ReminderEditor> {
                           onPressed: busy
                               ? null
                               : () async {
-                                  final selected = await showDatePicker(
-                                    context: context,
-                                    initialDate: date,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2100),
-                                  );
+                                  final selected =
+                                      await showSaveTrackDatePicker(
+                                        context: context,
+                                        initialDate: date,
+                                        firstDate: DateTime(2020),
+                                        lastDate: DateTime(2100),
+                                      );
                                   if (selected != null && mounted) {
                                     setState(() => date = selected);
                                   }

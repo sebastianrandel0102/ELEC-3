@@ -218,7 +218,14 @@ void main() {
           expect(tester.takeException(), isNull, reason: names[i]);
           await preview.capture(tester, 'aurora4-${names[i]}-${width.toInt()}');
           if (i == 0 || i == 3) {
-            expect(find.text('PHP \u20b136,500.00'), findsOneWidget);
+            expect(
+              find.byWidgetPredicate(
+                (widget) =>
+                    widget is AmountText &&
+                    widget.text == 'PHP \u20b136,500.00',
+              ),
+              findsOneWidget,
+            );
           }
           // Inspect more than the first viewport, including task states/actions.
           await tester.drag(

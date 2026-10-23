@@ -17,10 +17,8 @@ class AgentEmblem extends StatelessWidget {
             : Theme.of(context).colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(size * .32),
       ),
-      child: Icon(
-        Icons.auto_awesome_rounded,
-        size: size * .53,
-        color: onDark ? mint : Theme.of(context).colorScheme.primary,
+      child: Center(
+        child: AuroraEmblem(size: size * .72, onDark: onDark),
       ),
     ),
   );
@@ -63,7 +61,7 @@ class AgentHero extends StatelessWidget {
   final Widget? footer;
   @override
   Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(28),
+    borderRadius: BorderRadius.circular(SaveTrackDesign.radiusHero),
     child: DecoratedBox(
       decoration: const BoxDecoration(gradient: SaveTrackDesign.premium),
       child: Stack(
@@ -98,21 +96,20 @@ class AgentHero extends StatelessWidget {
                         eyebrow,
                         style: const TextStyle(
                           color: mint,
-                          fontSize: 11,
+                          fontSize: 13,
                           height: 1.5,
-                          letterSpacing: 1.6,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 16),
                 Text(
                   title,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 30,
+                    fontSize: 28,
                     height: 1.18,
                     letterSpacing: -.9,
                     fontWeight: FontWeight.w700,
@@ -124,7 +121,7 @@ class AgentHero extends StatelessWidget {
                   style: const TextStyle(
                     color: SaveTrackDesign.onHeroMuted,
                     height: 1.6,
-                    fontSize: 14,
+                    fontSize: 15,
                   ),
                 ),
                 if (footer != null) ...[const SizedBox(height: 20), footer!],
