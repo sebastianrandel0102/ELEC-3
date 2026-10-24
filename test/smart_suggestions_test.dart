@@ -255,7 +255,13 @@ void main() {
         300,
       );
       await tester.pumpAndSettle();
-      expect(find.byType(TaskTile), findsNWidgets(3));
+      await tester.drag(find.byType(ListView), const Offset(0, 2000));
+      await tester.pumpAndSettle();
+      for (final id in ['soon', 'later', 'flexible']) {
+        final row = find.byKey(ValueKey('planner-task-$id'));
+        await tester.scrollUntilVisible(row, 300);
+        expect(tester.widget<FlowTaskGroupEntry>(row).doc.id, id);
+      }
       expect(store.docs.length, 3);
       expect(store.docs.every((doc) => doc.reference.updates.isEmpty), isTrue);
       expect(tester.takeException(), isNull);
@@ -280,10 +286,15 @@ void main() {
       expect(find.byKey(const ValueKey('smart-primary-low')), findsOneWidget);
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('planner-task-low')),
-        300,
+        -300,
       );
       await tester.pumpAndSettle();
-      expect(find.byType(TaskTile), findsNWidgets(2));
+      final completedRow = find.byKey(const ValueKey('planner-task-high'));
+      await tester.scrollUntilVisible(completedRow, -300);
+      expect(
+        tester.widget<FlowTaskGroupEntry>(completedRow).doc.data()['completed'],
+        isTrue,
+      );
       expect(store.docs.length, 2);
       expect(first.values['priority'], 'High');
       expect(first.values['time'], '');

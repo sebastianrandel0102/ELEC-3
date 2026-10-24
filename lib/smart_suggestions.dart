@@ -310,6 +310,7 @@ class SmartSuggestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MintHero(
+    soft: true,
     key: ValueKey('smart-primary-${recommendation.taskId}'),
     padding: const EdgeInsets.all(20),
     child: Column(
@@ -321,23 +322,23 @@ class SmartSuggestionCard extends StatelessWidget {
             RecommendationDay.future => 'Recommended Order',
             RecommendationDay.past => 'Review Unfinished Tasks',
           },
-          style: const TextStyle(
-            color: SaveTrackDesign.onHeroMuted,
+          style: TextStyle(
+            color: context.atelierInk,
             fontSize: 13,
             fontWeight: FontWeight.w700,
             letterSpacing: .4,
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
+        Text(
           'Based on your priorities and schedule.',
-          style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 12),
+          style: TextStyle(color: context.atelierInk, fontSize: 12),
         ),
         const SizedBox(height: 16),
         Text(
           recommendation.task.title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.atelierInk,
             fontSize: 21,
             fontWeight: FontWeight.w700,
             height: 1.2,
@@ -357,32 +358,26 @@ class SmartSuggestionCard extends StatelessWidget {
         DetailLine(
           icon: Icons.schedule_outlined,
           label: recommendation.timeLabel,
-          color: Colors.white,
+          color: context.atelierInk,
         ),
         if (recommendation.task.time.trim().isNotEmpty) ...[
           const SizedBox(height: 6),
           Text(
             'Scheduled: ${recommendation.task.time}',
-            style: const TextStyle(
-              color: SaveTrackDesign.onHeroMuted,
-              fontSize: 13,
-            ),
+            style: TextStyle(color: context.atelierInk, fontSize: 13),
           ),
         ],
         const SizedBox(height: 14),
         Text(
           recommendation.explanation,
-          style: const TextStyle(
-            color: SaveTrackDesign.onHeroMuted,
-            height: 1.5,
-          ),
+          style: TextStyle(color: context.atelierInk, height: 1.5),
         ),
         if (recommendation.hasScheduleConflict) ...[
           const SizedBox(height: 12),
-          const DetailLine(
+          DetailLine(
             icon: Icons.warning_amber_rounded,
             label: 'Overlapping schedules · review before starting',
-            color: mint,
+            color: context.atelierInk,
           ),
         ],
         const SizedBox(height: 16),
@@ -397,12 +392,12 @@ class SmartSuggestionCard extends StatelessWidget {
               ),
               onPressed: onOpen,
               icon: const Icon(Icons.open_in_new, size: 17),
-              label: const Text('Edit Task'),
+              label: Text('Edit Task'),
             ),
             OutlinedButton.icon(
               style: OutlinedButton.styleFrom(
-                foregroundColor: Colors.white,
-                side: const BorderSide(color: mint),
+                foregroundColor: context.atelierInk,
+                side: BorderSide(color: context.atelierInk),
               ),
               onPressed: busy ? null : onComplete,
               icon: const Icon(Icons.check, size: 18),
@@ -412,10 +407,10 @@ class SmartSuggestionCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextButton.icon(
-          style: TextButton.styleFrom(foregroundColor: mint),
+          style: TextButton.styleFrom(foregroundColor: context.atelierInk),
           onPressed: onWhy,
           icon: const Icon(Icons.info_outline, size: 16),
-          label: const Text('Why this task?'),
+          label: Text('Why this task?'),
         ),
       ],
     ),
@@ -428,14 +423,14 @@ class _HeroChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      color: SaveTrackDesign.heroSurface,
+      color: context.atelierSurface,
       borderRadius: BorderRadius.circular(10),
     ),
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     child: Text(
       label,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: context.atelierInk,
         fontSize: 12,
         fontWeight: FontWeight.w600,
       ),

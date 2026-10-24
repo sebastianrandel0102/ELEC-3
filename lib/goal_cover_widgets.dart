@@ -120,7 +120,7 @@ class _GoalCoverImageState extends State<GoalCoverImage> {
   }
 
   Widget _fallback() => DecoratedBox(
-    decoration: const BoxDecoration(gradient: SaveTrackDesign.premium),
+    decoration: BoxDecoration(color: context.flowCategory(FlowAccent.mint)),
     child: Stack(
       fit: StackFit.expand,
       children: [
@@ -164,7 +164,7 @@ class _GoalCoverImageState extends State<GoalCoverImage> {
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: mint.withValues(alpha: .2)),
             ),
-            child: Icon(widget.icon, color: mint, size: 32),
+            child: Icon(widget.icon, color: context.atelierAccent, size: 32),
           ),
         ),
       ],

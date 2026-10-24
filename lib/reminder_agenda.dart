@@ -83,76 +83,76 @@ class ReminderAgendaCard extends StatelessWidget {
     final time = next == null
         ? null
         : TimeOfDay.fromDateTime(next).format(context);
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const MintIcon(Icons.notifications_outlined, size: 40),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        entry.target?.title ?? 'Unavailable item',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+    final card = Card(
+      color: entry.section == 'Today'
+          ? context.flowCategory(FlowAccent.mint)
+          : context.atelierSurface,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const MintIcon(Icons.notifications_outlined, size: 40),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      entry.target?.title ?? 'Unavailable item',
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  Semantics(
-                    label:
-                        'Enable reminder for ${entry.target?.title ?? 'unavailable item'}',
-                    child: Switch.adaptive(
-                      value: entry.configuration.enabled,
-                      onChanged: onToggle,
-                    ),
-                  ),
-                ],
-              ),
-              if (next != null) ...[
-                const SizedBox(height: 10),
-                Text(
-                  '$time · ${MaterialLocalizations.of(context).formatMediumDate(next)}',
-                  style: TextStyle(
-                    color: context.atelierAccent,
-                    fontWeight: FontWeight.w700,
+                ),
+                Semantics(
+                  label:
+                      'Enable reminder for ${entry.target?.title ?? 'unavailable item'}',
+                  child: Switch.adaptive(
+                    value: entry.configuration.enabled,
+                    onChanged: onToggle,
                   ),
                 ),
               ],
-              const SizedBox(height: 8),
-              Text(reminderSummary(context, entry.configuration)),
-              const SizedBox(height: 6),
+            ),
+            if (next != null) ...[
+              const SizedBox(height: 10),
               Text(
-                status.message,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  TextButton(
-                    onPressed: onManage,
-                    child: const Text('Manage Reminder'),
-                  ),
-                  TextButton(
-                    onPressed: onRemove,
-                    style: TextButton.styleFrom(
-                      foregroundColor: context.atelierError,
-                    ),
-                    child: const Text('Remove'),
-                  ),
-                ],
+                '$time · ${MaterialLocalizations.of(context).formatMediumDate(next)}',
+                style: TextStyle(
+                  color: context.atelierAccent,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
-          ),
+            const SizedBox(height: 8),
+            Text(reminderSummary(context, entry.configuration)),
+            const SizedBox(height: 6),
+            Text(status.message, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 8,
+              children: [
+                TextButton(
+                  onPressed: onManage,
+                  child: const Text('Manage Reminder'),
+                ),
+                TextButton(
+                  onPressed: onRemove,
+                  style: TextButton.styleFrom(
+                    foregroundColor: context.atelierError,
+                  ),
+                  child: const Text('Remove'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
+    return next == null
+        ? Padding(padding: const EdgeInsets.only(bottom: 12), child: card)
+        : FlowTimelineEntry(time: time!, child: card);
   }
 }

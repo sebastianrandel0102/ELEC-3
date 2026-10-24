@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart'
     show
         CupertinoDatePicker,
@@ -11,21 +12,22 @@ import 'dart:math' as math;
 import 'branding/savetrack_logo.dart';
 
 part 'precision_components.dart';
+part 'figma_flow_components.dart';
 part 'platform_pickers.dart';
 
-const mint = Color(0xFFABF2D7);
-const teal = Color(0xFF0B5B4B);
-const canvas = Color(0xFFF6FBF8);
-const ink = Color(0xFF14362B);
+const mint = Color(0xFFB7F0D3);
+const teal = Color(0xFF236C57);
+const canvas = Color(0xFFF6FAF8);
+const ink = Color(0xFF202C29);
 // A darker supporting tone than the decorative muted mint, for readable text.
-const muted = Color(0xFF526E61);
+const muted = Color(0xFF626F69);
 
 /// Semantic surface and text roles used by every application feature.
 extension AtelierColors on BuildContext {
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
   Color get atelierInk => Theme.of(this).colorScheme.onSurface;
   Color get atelierMuted => Theme.of(this).colorScheme.onSurfaceVariant;
-  Color get atelierAccent => Theme.of(this).colorScheme.primary;
+  Color get atelierAccent => isDark ? Theme.of(this).colorScheme.primary : teal;
   Color get atelierSurface => Theme.of(this).colorScheme.surface;
   Color get atelierCanvas => Theme.of(this).scaffoldBackgroundColor;
   Color get atelierBorder => Theme.of(this).colorScheme.outlineVariant;
@@ -63,26 +65,26 @@ abstract final class SaveTrackDesign {
   static const emerald = Color(0xFF13876D);
   // The text-bearing stop is deeper than the accent emerald to meet AA.
   static const heroEnd = Color(0xFF106550);
-  static const fresh = Color(0xFF4BD4A8);
+  static const fresh = Color(0xFF65D5A9);
   static const luminous = Color(0xFF75E7BF);
   static const premiumMint = Color(0xFF26B58E);
-  static const lightMint = Color(0xFFDCF8EB);
-  static const mist = Color(0xFFEDFAF3);
+  static const lightMint = Color(0xFFDDF5E9);
+  static const mist = Color(0xFFF0FAF5);
   static const cloud = Color(0xFFF4FCF8);
   static const textMuted = Color(0xFF91A59A);
-  static const divider = Color(0xFFEBF3EE);
+  static const divider = Color(0xFFEDF1EF);
   static const info = Color(0xFF326C94);
-  static const input = Color(0xFFF8FCFA);
+  static const input = Color(0xFFF4F6F5);
   static const completed = Color(0xFFEDF7F1);
   static const errorSurface = Color(0xFFFFF3F3);
   static const warningSurface = Color(0xFFFFF6E5);
-  static const border = Color(0xFFE1EEE7);
+  static const border = Color(0xFFE6EDE9);
   static const elevatedBorder = Color(0xFFD7EAE0);
   static const heroTrack = Color(0x33FFFFFF);
   static const heroSurface = Color(0x14FFFFFF);
   static const heroHighlight = Color(0x2475E7BF);
   static const error = Color(0xFFB83E48);
-  static const warning = Color(0xFF926014);
+  static const warning = Color(0xFF80520E);
   static const success = Color(0xFF187F5B);
   static const spaceXs = 4.0;
   static const spaceSm = 8.0;
@@ -96,7 +98,7 @@ abstract final class SaveTrackDesign {
   static const radius = 20.0;
   static const radiusSmall = 12.0;
   static const radiusMedium = 16.0;
-  static const radiusHero = 26.0;
+  static const radiusHero = 28.0;
   static const radiusSheet = 28.0;
   static const touchMin = 48.0;
   static const buttonHeight = 52.0;
@@ -138,7 +140,9 @@ abstract final class SaveTrackDesign {
     colors: [Colors.white, cloud, mist],
   );
   static const progressOnDark = LinearGradient(colors: [mint, luminous]);
-  static const progressOnLight = LinearGradient(colors: [teal, heroEnd]);
+  static const progressOnLight = LinearGradient(
+    colors: [Color(0xFF197C68), Color(0xFF268B67)],
+  );
   static const amount = TextStyle(
     fontFamily: 'Manrope',
     fontSize: 38,
@@ -149,7 +153,7 @@ abstract final class SaveTrackDesign {
   );
   static const heading = TextStyle(
     fontFamily: 'Manrope',
-    fontSize: 34,
+    fontSize: 30,
     fontWeight: FontWeight.w700,
     letterSpacing: -.7,
     color: ink,
@@ -176,7 +180,7 @@ abstract final class SaveTrackDesign {
     );
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: Color(0xFF718B7D)),
+      borderSide: const BorderSide(color: Color(0xFF7A8D83)),
     );
     return base.copyWith(
       scaffoldBackgroundColor: canvas,
@@ -188,7 +192,7 @@ abstract final class SaveTrackDesign {
         surface: Colors.white,
         onSurface: ink,
         onSurfaceVariant: muted,
-        surfaceContainer: mist,
+        surfaceContainer: FigmaFlowPalette.neutral,
         surfaceContainerLow: Colors.white,
         error: error,
         errorContainer: errorSurface,
@@ -244,7 +248,7 @@ abstract final class SaveTrackDesign {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius),
-          side: const BorderSide(color: border),
+          side: BorderSide.none,
         ),
       ),
       tabBarTheme: TabBarThemeData(
@@ -312,6 +316,8 @@ abstract final class SaveTrackDesign {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 52),
+          backgroundColor: FigmaFlowPalette.mint,
+          foregroundColor: ink,
           shape: shape,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
@@ -320,13 +326,15 @@ abstract final class SaveTrackDesign {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(48, 52),
           shape: shape,
-          side: const BorderSide(color: muted),
+          foregroundColor: teal,
+          side: const BorderSide(color: border),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(48, 48),
+          foregroundColor: teal,
           shape: shape,
         ),
       ),
@@ -337,9 +345,9 @@ abstract final class SaveTrackDesign {
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: teal,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        backgroundColor: FigmaFlowPalette.mint,
+        foregroundColor: ink,
+        elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         extendedTextStyle: const TextStyle(
           fontWeight: FontWeight.w600,
@@ -465,13 +473,13 @@ abstract final class SaveTrackDesign {
       onPrimary: obsidian,
       secondary: fresh,
       onSecondary: obsidian,
-      surface: const Color(0xFF0C3B32),
+      surface: FigmaFlowPalette.darkSurface,
       onSurface: const Color(0xFFEFFAF5),
       onSurfaceVariant: const Color(0xFFB7D4C7),
-      surfaceContainerLow: const Color(0xFF0C3B32),
-      surfaceContainer: const Color(0xFF124B3E),
-      surfaceContainerHighest: const Color(0xFF1A5D4C),
-      secondaryContainer: const Color(0xFF1A5D4C),
+      surfaceContainerLow: FigmaFlowPalette.darkSurface,
+      surfaceContainer: FigmaFlowPalette.darkElevated,
+      surfaceContainerHighest: const Color(0xFF355247),
+      secondaryContainer: FigmaFlowPalette.darkElevated,
       onSecondaryContainer: mint,
       outlineVariant: const Color(0xFF315D50),
       outline: const Color(0xFF9BB9AA),
@@ -487,13 +495,13 @@ abstract final class SaveTrackDesign {
       colorScheme: scheme,
     );
     return base.copyWith(
-      scaffoldBackgroundColor: obsidian,
+      scaffoldBackgroundColor: FigmaFlowPalette.darkCanvas,
       textTheme: theme.textTheme.apply(
         bodyColor: scheme.onSurface,
         displayColor: scheme.onSurface,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: obsidian,
+        backgroundColor: FigmaFlowPalette.darkCanvas,
         foregroundColor: scheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -508,7 +516,7 @@ abstract final class SaveTrackDesign {
         ),
       ),
       inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-        fillColor: const Color(0xFF103E35),
+        fillColor: FigmaFlowPalette.darkCanvas,
         labelStyle: TextStyle(color: scheme.onSurfaceVariant),
         hintStyle: TextStyle(color: scheme.onSurfaceVariant),
         floatingLabelStyle: TextStyle(
@@ -575,15 +583,26 @@ abstract final class SaveTrackDesign {
         backgroundColor: scheme.surface,
         indicatorColor: scheme.secondaryContainer,
         elevation: 0,
-        labelTextStyle: WidgetStatePropertyAll(
-          TextStyle(
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
             fontFamily: 'Manrope',
             fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: scheme.onSurface,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w700
+                : FontWeight.w500,
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : scheme.onSurfaceVariant,
           ),
         ),
-        iconTheme: WidgetStatePropertyAll(IconThemeData(color: scheme.primary)),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            size: 23,
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : scheme.onSurfaceVariant,
+          ),
+        ),
       ),
       tabBarTheme: theme.tabBarTheme.copyWith(
         labelColor: scheme.primary,
@@ -620,7 +639,15 @@ abstract final class SaveTrackDesign {
         ),
       ),
       popupMenuTheme: PopupMenuThemeData(color: scheme.surface),
-      textButtonTheme: theme.textButtonTheme,
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          foregroundColor: scheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
       floatingActionButtonTheme: theme.floatingActionButtonTheme.copyWith(
         backgroundColor: scheme.primary,
         foregroundColor: scheme.onPrimary,
@@ -791,6 +818,7 @@ class AuroraLoadingSurface extends StatelessWidget {
         liveRegion: true,
         child: ExcludeSemantics(
           child: MintHero(
+            soft: true,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 220),
               child: Column(
@@ -803,7 +831,7 @@ class AuroraLoadingSurface extends StatelessWidget {
                     child: Container(
                       height: 36,
                       decoration: BoxDecoration(
-                        color: SaveTrackDesign.heroSurface,
+                        color: context.atelierInk.withValues(alpha: .08),
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -814,7 +842,7 @@ class AuroraLoadingSurface extends StatelessWidget {
                     child: Container(
                       height: 12,
                       decoration: BoxDecoration(
-                        color: SaveTrackDesign.heroSurface,
+                        color: context.atelierInk.withValues(alpha: .08),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -1114,11 +1142,12 @@ class MintHero extends StatelessWidget {
     super.key,
     required this.child,
     this.deep = false,
+    this.soft = false,
     this.edgeToEdge = false,
     this.padding = const EdgeInsets.all(24),
   });
   final Widget child;
-  final bool deep;
+  final bool deep, soft;
   final bool edgeToEdge;
   final EdgeInsets padding;
   @override
@@ -1126,7 +1155,12 @@ class MintHero extends StatelessWidget {
     width: double.infinity,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
-      gradient: deep ? SaveTrackDesign.premium : SaveTrackDesign.signature,
+      color: soft ? context.flowHero : null,
+      gradient: soft
+          ? null
+          : deep
+          ? SaveTrackDesign.premium
+          : SaveTrackDesign.signature,
       borderRadius: edgeToEdge
           ? BorderRadius.zero
           : BorderRadius.circular(SaveTrackDesign.radiusHero),
@@ -1153,9 +1187,9 @@ class MintHero extends StatelessWidget {
         Padding(
           padding: padding,
           child: DefaultTextStyle.merge(
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: soft ? context.atelierInk : Colors.white),
             child: IconTheme(
-              data: const IconThemeData(color: mint),
+              data: IconThemeData(color: soft ? context.atelierInk : mint),
               child: child,
             ),
           ),
@@ -1282,14 +1316,14 @@ class _GradientButtonState extends State<GradientButton> {
         decoration: BoxDecoration(
           color: widget.onPressed == null
               ? context.atelierTonal
-              : context.atelierAccent,
+              : context.flowAction,
           borderRadius: BorderRadius.circular(16),
         ),
         child: FilledButton(
           onPressed: widget.onPressed,
           style: FilledButton.styleFrom(
             backgroundColor: Colors.transparent,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            foregroundColor: context.flowOnAction,
             disabledBackgroundColor: Colors.transparent,
             disabledForegroundColor: context.atelierMuted,
             minimumSize: widget.expand
@@ -1784,23 +1818,20 @@ class AuthComposition extends StatelessWidget {
   });
   final Widget brand, child;
   final bool register;
-  Widget _showcase({required bool compact}) => MintHero(
-    deep: true,
+  Widget _showcase(BuildContext context, {required bool compact}) => MintHero(
+    soft: true,
     padding: EdgeInsets.all(compact ? 24 : 36),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const AuroraEmblem(size: 40, onDark: true),
+            const AuroraEmblem(size: 40),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
                 'A little closer, every day.',
-                style: TextStyle(
-                  color: SaveTrackDesign.onHeroMuted,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: context.atelierInk, fontSize: 12),
               ),
             ),
           ],
@@ -1819,10 +1850,10 @@ class AuthComposition extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           'Your financial goals and daily plans, beautifully organized.',
           style: TextStyle(
-            color: SaveTrackDesign.onHeroMuted,
+            color: context.atelierInk,
             fontSize: 13,
             height: 1.6,
           ),
@@ -1831,16 +1862,16 @@ class AuthComposition extends StatelessWidget {
           const SizedBox(height: 48),
           const Divider(color: SaveTrackDesign.heroTrack),
           const SizedBox(height: 20),
-          const DetailLine(
+          DetailLine(
             icon: Icons.flag_outlined,
             label: 'Save for what matters to you.',
-            color: SaveTrackDesign.onHeroMuted,
+            color: context.atelierInk,
           ),
           const SizedBox(height: 16),
-          const DetailLine(
+          DetailLine(
             icon: Icons.event_available_outlined,
             label: 'Make room for a more focused day.',
-            color: SaveTrackDesign.onHeroMuted,
+            color: context.atelierInk,
           ),
         ],
       ],
@@ -1863,12 +1894,31 @@ class AuthComposition extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _showcase(compact: false)),
+                Expanded(child: _showcase(context, compact: false)),
                 const SizedBox(width: 32),
                 Expanded(child: Card(child: form)),
               ],
             )
           else ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: context.flowCategory(FlowAccent.mint),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Your progress, beautifully in flow.',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  const FlowSavingsArt(size: 84),
+                ],
+              ),
+            ),
             form,
           ],
         ],

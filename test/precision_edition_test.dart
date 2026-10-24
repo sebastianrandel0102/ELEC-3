@@ -212,13 +212,13 @@ void main() {
     );
     double titleSize() =>
         tester.widget<Text>(find.text('Goals')).style!.fontSize!;
-    expect(titleSize(), 34);
+    expect(titleSize(), 30);
     await tester.drag(find.byType(ListView), const Offset(0, -350));
     await tester.pumpAndSettle();
     expect(titleSize(), 20);
     await tester.drag(find.byType(ListView), const Offset(0, 1000));
     await tester.pumpAndSettle();
-    expect(titleSize(), 34);
+    expect(titleSize(), 30);
     expect(tester.takeException(), isNull);
   });
 

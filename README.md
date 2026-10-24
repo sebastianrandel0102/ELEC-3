@@ -1,5 +1,7 @@
 # SaveTrack
 
+The **Mint Aurora 8.2 — Figma Flow** redesign adapts the supplied visual reference across the existing Flutter app: a mint savings hero and rounded white Home sheet, compact goal carousel, calendar/time-rail Planner, and coordinated forms, reminders, AI, Agent and native widget surfaces. See the [implementation and verification report](docs/figma-flow-8.2.md).
+
 SaveTrack is a Flutter savings goals and daily planner app. It uses Firebase Authentication and Cloud Firestore for sign-in and cloud persistence.
 
 The **Mint Atelier iPhone-inspired UI** refines the existing app's Light/Dark foundations, compact savings overview, goal controls, planning, grouped preferences, AI/Agent surfaces and native Android widget palette. See the [implementation and verification report](docs/mint-atelier-iphone.md) and [complete surface/component coverage](docs/mint-atelier-coverage.md).

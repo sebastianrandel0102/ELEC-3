@@ -718,8 +718,8 @@ class _HomeShellState extends State<HomeShell> {
       ),
       floatingActionButton: _index == 1 || _index == 2
           ? FloatingActionButton.extended(
-              backgroundColor: context.atelierAccent,
-              foregroundColor: Theme.of(context).colorScheme.onPrimary,
+              backgroundColor: context.flowAction,
+              foregroundColor: context.flowOnAction,
               onPressed: () => _index == 1
                   ? showGoalTypeChoice(context)
                   : showTaskForm(context),
@@ -751,13 +751,12 @@ class SaveTrackNavigation extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.only(top: 4),
           child: Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: context.atelierSurface,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: context.atelierBorder),
+              border: Border(top: BorderSide(color: context.atelierBorder)),
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -786,6 +785,7 @@ class SaveTrackNavigation extends StatelessWidget {
                 }
                 final needed = (widestLabel + 4) * 5;
                 final navigation = NavigationBar(
+                  indicatorColor: context.atelierSelected,
                   height: MediaQuery.textScalerOf(context).scale(12) > 18
                       ? 60 + MediaQuery.textScalerOf(context).scale(12)
                       : 72,
@@ -995,50 +995,60 @@ class SavingsOverview extends StatelessWidget {
     this.totalLabel,
     this.targetLabel,
     this.showProgress = true,
+    this.embedded = false,
   });
   final String? totalLabel, targetLabel;
   final bool showProgress;
+  final bool embedded;
   final double total, target;
   final int count;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) => MintHero(
-      padding: EdgeInsets.all(constraints.maxWidth < 330 ? 20 : 24),
-      child: Column(
+    builder: (context, constraints) {
+      final content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Expanded(
-                child: Text(
-                  'Your savings',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: SaveTrackDesign.onHeroMuted,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your savings',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.atelierInk,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    AmountText(
+                      totalLabel ?? _money(total),
+                      compactCurrency: true,
+                      style: SaveTrackDesign.amount.copyWith(
+                        color: context.atelierInk,
+                        fontSize: constraints.maxWidth < 330 ? 32 : 38,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$count personal ${count == 1 ? 'goal' : 'goals'}',
+                      style: TextStyle(fontSize: 13, color: context.atelierInk),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(width: 12),
-              Icon(Icons.account_balance_wallet_outlined, size: 24),
+              if (constraints.maxWidth >= 300 &&
+                  MediaQuery.textScalerOf(context).scale(14) <= 21) ...[
+                const SizedBox(width: 8),
+                FlowSavingsArt(size: constraints.maxWidth < 380 ? 100 : 128),
+              ],
             ],
           ),
-          const SizedBox(height: 12),
-          AmountText(
-            totalLabel ?? _money(total),
-            onDark: true,
-            compactCurrency: true,
-            style: SaveTrackDesign.amount.copyWith(
-              color: Colors.white,
-              fontSize: 38,
-            ),
-          ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           if (showProgress)
-            MintProgress(
-              value: target == 0 ? 0 : (total / target).clamp(0, 1),
-              onDark: true,
-            ),
+            MintProgress(value: target == 0 ? 0 : (total / target).clamp(0, 1)),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
@@ -1046,24 +1056,23 @@ class SavingsOverview extends StatelessWidget {
               spacing: 16,
               runSpacing: 8,
               children: [
-                DetailLine(
-                  icon: Icons.flag_outlined,
-                  label: '$count personal ${count == 1 ? 'goal' : 'goals'}',
-                  color: SaveTrackDesign.onHeroMuted,
-                ),
                 Text(
                   '${targetLabel ?? _money(target)} target',
-                  style: const TextStyle(
-                    color: SaveTrackDesign.onHeroMuted,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: context.atelierInk, fontSize: 13),
                 ),
               ],
             ),
           ),
         ],
-      ),
-    ),
+      );
+      return embedded
+          ? content
+          : MintHero(
+              soft: true,
+              padding: const EdgeInsets.all(24),
+              child: content,
+            );
+    },
   );
 }
 
@@ -1744,6 +1753,8 @@ class _PlannerScreenState extends State<PlannerScreen>
         children: [
           modeSwitch,
           PlannerDateHeader(
+            date: _day,
+            onSelect: _selectDay,
             title: _dateTitle(_day),
             onPrevious: () =>
                 _selectDay(DateTime(_day.year, _day.month, _day.day - 1)),
@@ -1774,120 +1785,76 @@ class PlannerDateHeader extends StatelessWidget {
     required this.onNext,
     required this.onToday,
     this.onPick,
+    this.date,
+    this.onSelect,
   });
   final String title;
   final VoidCallback onPrevious, onNext, onToday;
   final VoidCallback? onPick;
+  final DateTime? date;
+  final ValueChanged<DateTime>? onSelect;
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Your schedule',
-              style: TextStyle(color: context.atelierMuted, fontSize: 13),
-            ),
-          ),
-          TextButton.icon(
-            onPressed: onToday,
-            icon: const Icon(Icons.today_outlined, size: 18),
-            label: const Text('Today'),
-          ),
-        ],
-      ),
-      const SizedBox(height: 8),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        decoration: BoxDecoration(
-          color: context.atelierSurface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: context.atelierBorder),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final previous = IconButton(
-              tooltip: 'Previous day',
-              onPressed: onPrevious,
-              icon: const Icon(Icons.chevron_left),
-            );
-            final next = IconButton(
-              tooltip: 'Next day',
-              onPressed: onNext,
-              icon: const Icon(Icons.chevron_right),
-            );
-            final date = Material(
-              color: context.atelierSelected,
-              borderRadius: BorderRadius.circular(14),
-              child: InkWell(
-                onTap: onPick,
-                borderRadius: BorderRadius.circular(14),
-                child: Semantics(
-                  button: onPick != null,
-                  label: onPick != null ? 'Choose planner date' : null,
-                  child: AnimatedContainer(
-                    duration: SaveTrackDesign.duration(
-                      context,
-                      SaveTrackDesign.selectionMotion,
-                    ),
-                    curve: SaveTrackDesign.motionCurve,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: context.atelierSelected,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: AnimatedSwitcher(
-                      duration: SaveTrackDesign.duration(
-                        context,
-                        SaveTrackDesign.selectionMotion,
-                      ),
-                      child: Text(
-                        title,
-                        key: ValueKey(title),
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: context.atelierAccent,
-                        ),
-                      ),
-                    ),
-                  ),
+      if (date != null)
+        FlowDateHeading(date: date!, onToday: onToday, onPick: onPick)
+      else
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: onPick,
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-            );
-            if (constraints.maxWidth < 380 &&
-                MediaQuery.textScalerOf(context).scale(16) > 24) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: date,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [previous, next],
-                  ),
-                ],
-              );
-            }
-            return Row(
-              children: [
-                previous,
-                Expanded(child: date),
-                next,
-              ],
-            );
-          },
+            ),
+            TextButton(onPressed: onToday, child: const Text('Today')),
+          ],
         ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          if (date != null && onSelect != null)
+            IconButton(
+              tooltip: 'Previous week',
+              onPressed: () =>
+                  onSelect!(DateTime(date!.year, date!.month, date!.day - 7)),
+              icon: const Icon(Icons.keyboard_double_arrow_left_rounded),
+            ),
+          IconButton(
+            tooltip: 'Previous day',
+            onPressed: onPrevious,
+            icon: const Icon(Icons.chevron_left_rounded),
+          ),
+          Expanded(
+            child: Text(
+              date == null ? title : DateFormat('MMM yyyy').format(date!),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          IconButton(
+            tooltip: 'Next day',
+            onPressed: onNext,
+            icon: const Icon(Icons.chevron_right_rounded),
+          ),
+          if (date != null && onSelect != null)
+            IconButton(
+              tooltip: 'Next week',
+              onPressed: () =>
+                  onSelect!(DateTime(date!.year, date!.month, date!.day + 7)),
+              icon: const Icon(Icons.keyboard_double_arrow_right_rounded),
+            ),
+        ],
       ),
-      const SizedBox(height: 20),
+      if (date != null && onSelect != null) ...[
+        const SizedBox(height: 8),
+        FlowWeekSelector(selected: date!, onSelected: onSelect!),
+      ],
+      const SizedBox(height: 16),
     ],
   );
 }
@@ -2025,7 +1992,7 @@ class _TasksListState extends State<TasksList> {
         );
       }
       if (!s.hasData) return state(const LoadingPanel());
-      final docs = s.data!.docs;
+      final docs = flowOrderedTasks(s.data!.docs, widget.dateKey);
       if (widget.compact && docs.isEmpty) {
         return state(
           EmptyPanel(
@@ -2066,10 +2033,9 @@ class _TasksListState extends State<TasksList> {
         widget.dateKey,
       );
       final byId = {for (final doc in docs) doc.id: doc};
-      final overview = Column(
+      final insights = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ?widget.header,
           if (docs.isNotEmpty) ...[
             DailyCompletion(done: done, total: docs.length),
             const SizedBox(height: 24),
@@ -2100,21 +2066,53 @@ class _TasksListState extends State<TasksList> {
               },
             ),
           const SizedBox(height: 24),
+        ],
+      );
+      final overview = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ?widget.header,
           if (docs.isNotEmpty) ...[
-            Text('Your Tasks', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
+            Row(
+              children: [
+                const SizedBox(width: 4),
+                SizedBox(
+                  width: 76,
+                  child: Text(
+                    'Time',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ),
+                Expanded(
+                  child: Text(
+                    'Your Tasks',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
           ],
         ],
+      );
+      final featuredId = flowFeaturedTask(docs, widget.dateKey);
+      final firstFlexible = docs.indexWhere(
+        (d) => !flowHasSchedule(d, widget.dateKey),
       );
       return ListView.builder(
         padding: SaveTrackDesign.pagePadding(
           MediaQuery.sizeOf(context).width,
           bottom: 100,
         ).copyWith(top: 8),
-        itemCount: docs.length + 1,
+        itemCount: docs.length + 2,
         itemBuilder: (context, index) => index == 0
             ? overview
-            : TaskTile(
+            : index == docs.length + 1
+            ? insights
+            : FlowTaskGroupEntry(
+                dateKey: widget.dateKey,
+                groupHeading: index - 1 == firstFlexible,
+                featured: docs[index - 1].id == featuredId,
                 key: ValueKey('planner-task-${docs[index - 1].id}'),
                 uid: widget.uid,
                 doc: docs[index - 1],
@@ -2134,7 +2132,14 @@ Future<void> setPlannerTaskCompleted(
 });
 
 class TaskTile extends StatelessWidget {
-  const TaskTile({super.key, required this.uid, required this.doc});
+  const TaskTile({
+    super.key,
+    required this.uid,
+    required this.doc,
+    this.timeline = false,
+    this.featured = false,
+  });
+  final bool timeline, featured;
   final String uid;
   final QueryDocumentSnapshot<Map<String, dynamic>> doc;
   @override
@@ -2142,28 +2147,43 @@ class TaskTile extends StatelessWidget {
     final d = doc.data();
     final done = d['completed'] == true;
     final time = d['time']?.toString() ?? '';
+    final day = SmartTaskRecommendationService.parseDateKey(
+      d['dateKey']?.toString() ?? '',
+    );
+    final schedule = day == null
+        ? const TaskSchedule()
+        : SmartTaskRecommendationService.parseSchedule(time, day);
+    final railTime = schedule.start == null
+        ? (time.isEmpty ? 'Anytime' : 'Flexible')
+        : DateFormat('HH:mm').format(schedule.start!);
+    final endTime = schedule.end == null
+        ? null
+        : DateFormat('HH:mm').format(schedule.end!);
     final reminderTarget = ReminderTarget.fromData(
       ReminderTargetType.task,
       doc.id,
       d,
     );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: AnimatedContainer(
-        duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
-        curve: SaveTrackDesign.motionCurve,
-        decoration: BoxDecoration(
-          color: done ? context.atelierTonal : context.atelierSurface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: done ? context.atelierBorder : context.atelierBorder,
-          ),
+    final card = AnimatedContainer(
+      duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
+      curve: SaveTrackDesign.motionCurve,
+      decoration: BoxDecoration(
+        color: done
+            ? context.atelierTonal
+            : featured
+            ? context.flowCategory(FlowAccent.mint)
+            : context.atelierTonal,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: done ? context.atelierBorder : context.atelierBorder,
         ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (!timeline)
               Checkbox(
                 semanticLabel: 'Complete ${d['title']}',
                 value: done,
@@ -2184,105 +2204,131 @@ class TaskTile extends StatelessWidget {
                   }
                 },
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AnimatedDefaultTextStyle(
-                        duration: SaveTrackDesign.duration(
-                          context,
-                          SaveTrackDesign.motion,
-                        ),
-                        curve: SaveTrackDesign.motionCurve,
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          decoration: done ? TextDecoration.lineThrough : null,
-                          color: done
-                              ? context.atelierMuted
-                              : context.atelierInk,
-                        ),
-                        child: Text('${d['title']}'),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    AnimatedDefaultTextStyle(
+                      duration: SaveTrackDesign.duration(
+                        context,
+                        SaveTrackDesign.motion,
                       ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            if (time.isNotEmpty)
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.schedule_outlined,
-                                    size: 14,
-                                    color: context.atelierMuted,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      time,
-                                      style: TextStyle(
-                                        color: context.atelierMuted,
-                                        fontSize: 13,
-                                      ),
+                      curve: SaveTrackDesign.motionCurve,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        decoration: done ? TextDecoration.lineThrough : null,
+                        color: done ? context.atelierMuted : context.atelierInk,
+                      ),
+                      child: Text('${d['title']}'),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children: [
+                          if (time.isNotEmpty && !timeline)
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.schedule_outlined,
+                                  size: 14,
+                                  color: context.atelierMuted,
+                                ),
+                                const SizedBox(width: 4),
+                                Flexible(
+                                  child: Text(
+                                    time,
+                                    style: TextStyle(
+                                      color: context.atelierMuted,
+                                      fontSize: 13,
                                     ),
                                   ),
-                                ],
-                              ),
-                            StatusPill(
-                              '${d['priority'] ?? 'Normal'} priority',
-                              color: d['priority'] == 'High'
-                                  ? context.atelierWarning
-                                  : context.atelierAccent,
+                                ),
+                              ],
                             ),
-                            if (done) const StatusPill('Completed'),
-                          ],
-                        ),
+                          StatusPill(
+                            '${d['priority'] ?? 'Normal'} priority',
+                            color: d['priority'] == 'High'
+                                ? context.atelierWarning
+                                : context.atelierAccent,
+                          ),
+                          if (done) const StatusPill('Completed'),
+                          if (timeline)
+                            Checkbox(
+                              semanticLabel: 'Complete ${d['title']}',
+                              value: done,
+                              activeColor: context.atelierAccent,
+                              onChanged: (v) async {
+                                try {
+                                  await setPlannerTaskCompleted(doc, v == true);
+                                } catch (_) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Could not update this task. Please try again.',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                        ],
                       ),
-                      ReminderButton(target: reminderTarget),
-                    ],
-                  ),
+                    ),
+                    if (!timeline) ReminderButton(target: reminderTarget),
+                  ],
                 ),
               ),
-              PopupMenuButton<String>(
-                tooltip: 'Task actions',
-                onSelected: (v) {
-                  if (v == 'edit') showTaskForm(context, doc: doc);
-                  if (v == 'reminder') {
-                    showReminderEditor(context, reminderTarget);
-                  }
-                  if (v == 'delete') {
-                    confirmDelete(
-                      context,
-                      'Delete this task?',
-                      () => doc.reference.delete(),
-                    );
-                  }
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  PopupMenuItem(
-                    value: 'reminder',
-                    child: Text(
-                      ReminderScope.maybeOf(context)?.configurations
-                                  .containsKey(reminderTarget.key) ==
-                              true
-                          ? 'Manage Reminder'
-                          : 'Set Reminder',
-                    ),
+            ),
+            PopupMenuButton<String>(
+              tooltip: 'Task actions',
+              onSelected: (v) {
+                if (v == 'edit') showTaskForm(context, doc: doc);
+                if (v == 'reminder') {
+                  showReminderEditor(context, reminderTarget);
+                }
+                if (v == 'delete') {
+                  confirmDelete(
+                    context,
+                    'Delete this task?',
+                    () => doc.reference.delete(),
+                  );
+                }
+              },
+              itemBuilder: (_) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                PopupMenuItem(
+                  value: 'reminder',
+                  child: Text(
+                    ReminderScope.maybeOf(context)?.configurations
+                                .containsKey(reminderTarget.key) ==
+                            true
+                        ? 'Manage Reminder'
+                        : 'Set Reminder',
                   ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
+    return timeline
+        ? FlowTimelineEntry(
+            time: railTime,
+            caption: endTime,
+            featured: featured,
+            child: card,
+          )
+        : Padding(padding: const EdgeInsets.only(bottom: 12), child: card);
   }
 }
 

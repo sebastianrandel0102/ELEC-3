@@ -885,7 +885,20 @@ void additionalTests() {
       );
       expect(find.text('Sunday review'), findsOneWidget);
       expect(find.text('Monday planning'), findsNothing);
-      await tester.tap(find.widgetWithText(ChoiceChip, 'Mon 12\n1 task'));
+      expect(
+        tester
+            .widget<FlowWeekSelector>(find.byType(FlowWeekSelector))
+            .counts[DateTime.monday],
+        1,
+      );
+      await tester.tap(
+        find
+            .descendant(
+              of: find.byType(FlowWeekSelector),
+              matching: find.byType(InkWell),
+            )
+            .first,
+      );
       await tester.pumpAndSettle();
       expect(find.text('Monday planning'), findsOneWidget);
       expect(find.text('Sunday review'), findsNothing);

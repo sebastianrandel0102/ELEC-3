@@ -5,9 +5,8 @@ import '../design_system.dart';
 /// Conversation Atelier roles extend the app's existing Mint Aurora palette.
 /// Appearance always comes from SaveTrack's global theme.
 extension AiConversationTheme on BuildContext {
-  Color get aiUserSurface =>
-      isDark ? atelierSelected : SaveTrackDesign.midnight;
-  Color get aiOnUser => isDark ? atelierInk : Colors.white;
+  Color get aiUserSurface => isDark ? atelierSelected : FigmaFlowPalette.soft;
+  Color get aiOnUser => atelierInk;
   Color get aiInputSurface => atelierSurface;
   Color get aiAssistantSurface => atelierSurface;
   Color get aiAction => atelierAccent;

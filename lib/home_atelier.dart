@@ -1,5 +1,190 @@
 part of 'main.dart';
 
+/// Presentation ordering reuses the existing strict time parser. Free-text
+/// schedules stay visible after timed entries; no missing time is invented.
+List<QueryDocumentSnapshot<Map<String, dynamic>>> flowOrderedTasks(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> records,
+  String dateKey,
+) {
+  final day = SmartTaskRecommendationService.parseDateKey(dateKey);
+  if (day == null) return records;
+  DateTime? start(QueryDocumentSnapshot<Map<String, dynamic>> d) =>
+      SmartTaskRecommendationService.parseSchedule(
+        d.data()['time']?.toString() ?? '',
+        day,
+      ).start;
+  return records.toList()..sort((a, b) {
+    final x = start(a), y = start(b);
+    if (x == null && y != null) return 1;
+    if (x != null && y == null) return -1;
+    final order = x == null ? 0 : x.compareTo(y!);
+    return order == 0 ? a.id.compareTo(b.id) : order;
+  });
+}
+
+bool flowHasSchedule(
+  QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  String dateKey,
+) {
+  final day = SmartTaskRecommendationService.parseDateKey(dateKey);
+  return day != null &&
+      SmartTaskRecommendationService.parseSchedule(
+            doc.data()['time']?.toString() ?? '',
+            day,
+          ).start !=
+          null;
+}
+
+class FlowTaskGroupEntry extends StatelessWidget {
+  const FlowTaskGroupEntry({
+    super.key,
+    required this.uid,
+    required this.doc,
+    required this.dateKey,
+    this.groupHeading = false,
+    this.featured = false,
+  });
+  final String uid, dateKey;
+  final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  final bool groupHeading, featured;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (groupHeading)
+        Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 16),
+          child: Text(
+            'Flexible & unscheduled',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+      TaskTile(
+        uid: uid,
+        doc: doc,
+        timeline: flowHasSchedule(doc, dateKey),
+        featured: featured,
+      ),
+    ],
+  );
+}
+
+String? flowFeaturedTask(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> records,
+  String dateKey, {
+  DateTime? now,
+}) {
+  final day = SmartTaskRecommendationService.parseDateKey(dateKey);
+  if (day == null) return null;
+  final clock = now ?? DateTime.now();
+  for (final doc in records) {
+    if (doc.data()['completed'] == true) continue;
+    final schedule = SmartTaskRecommendationService.parseSchedule(
+      doc.data()['time']?.toString() ?? '',
+      day,
+    );
+    if (schedule.start != null &&
+        (schedule.end ?? schedule.start!).isAfter(clock)) {
+      return doc.id;
+    }
+  }
+  return null;
+}
+
+/// One scrolling canvas: the mint header meets a rounded white sheet. Sections
+/// stay lazy and retain the user's existing order and visibility preferences.
+class FlowHomeLayout extends StatefulWidget {
+  const FlowHomeLayout({
+    super.key,
+    required this.header,
+    required this.quickActions,
+    required this.sectionCount,
+    required this.sectionBuilder,
+  });
+  final Widget header, quickActions;
+  final int sectionCount;
+  final IndexedWidgetBuilder sectionBuilder;
+
+  @override
+  State<FlowHomeLayout> createState() => _FlowHomeLayoutState();
+}
+
+class _FlowHomeLayoutState extends State<FlowHomeLayout> {
+  final _heroKey = GlobalKey();
+  bool _surfaceCheckScheduled = false;
+
+  void _scheduleSurfaceCheck() {
+    if (_surfaceCheckScheduled) return;
+    _surfaceCheckScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _surfaceCheckScheduled = false;
+      if (!mounted) return;
+      final heroContext = _heroKey.currentContext;
+      final hero = heroContext?.findRenderObject();
+      if (heroContext == null || hero is! RenderBox || !hero.hasSize) return;
+      // Report the actual sheet boundary, including nested-scroll overlap and
+      // changes to the hero's height from text size, data, or screen width.
+      final contentTop = hero.localToGlobal(Offset(0, hero.size.height)).dy;
+      AuroraHeaderSurfaceNotification(contentTop: contentTop).dispatch(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _scheduleSurfaceCheck();
+    final inset = SaveTrackDesign.pageInset(MediaQuery.sizeOf(context).width);
+    return NotificationListener<Notification>(
+      onNotification: (notification) {
+        if ((notification is ScrollNotification && notification.depth == 0) ||
+            (notification is ScrollMetricsNotification &&
+                notification.depth == 0) ||
+            notification is SizeChangedLayoutNotification) {
+          _scheduleSurfaceCheck();
+        }
+        return false;
+      },
+      child: CustomScrollView(
+        key: const PageStorageKey('home-atelier'),
+        slivers: [
+          SliverToBoxAdapter(
+            child: ColoredBox(
+              color: context.flowHero,
+              child: Column(
+                children: [
+                  SizeChangedLayoutNotifier(
+                    child: Padding(
+                      key: _heroKey,
+                      padding: EdgeInsets.fromLTRB(inset, 8, inset, 28),
+                      child: widget.header,
+                    ),
+                  ),
+                  FlowContentSheet(
+                    padding: EdgeInsets.fromLTRB(inset, 12, inset, 24),
+                    child: widget.quickActions,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          DecoratedSliver(
+            decoration: BoxDecoration(color: context.atelierSurface),
+            sliver: SliverPadding(
+              padding: EdgeInsets.fromLTRB(inset, 0, inset, 32),
+              sliver: SliverList.builder(
+                itemCount: widget.sectionCount,
+                itemBuilder: (context, i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 28),
+                  child: widget.sectionBuilder(context, i),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class AtelierSectionHeader extends StatelessWidget {
   const AtelierSectionHeader({
     super.key,
@@ -49,7 +234,6 @@ class _HomeAtelierState extends State<HomeAtelier> {
   @override
   Widget build(BuildContext context) {
     final preferences = AtelierScope.maybeOf(context);
-    final inset = SaveTrackDesign.pageInset(MediaQuery.sizeOf(context).width);
     final now = DateTime.now();
     final greeting = now.hour < 12
         ? 'Good morning.'
@@ -203,149 +387,121 @@ class _HomeAtelierState extends State<HomeAtelier> {
             ),
           ),
         };
-        return CustomScrollView(
-          key: const PageStorageKey('home-atelier'),
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(inset, 12, inset, 0),
-              sliver: SliverList.list(
+        final visible = (preferences?.order ?? HomeSection.values)
+            .where(
+              (s) =>
+                  !(preferences?.hidden.contains(s) ??
+                      (s == HomeSection.agent)),
+            )
+            .toList();
+        return FlowHomeLayout(
+          header: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: AuroraGreeting(
-                          date: DateFormat('EEEE, MMMM d').format(now),
-                          greeting: greeting,
+                  Expanded(
+                    child: AuroraGreeting(
+                      date: DateFormat('EEEE, MMMM d').format(now),
+                      greeting: greeting,
+                    ),
+                  ),
+                  if (preferences != null)
+                    IconButton(
+                      tooltip: 'Customize Home',
+                      icon: const Icon(Icons.tune_rounded),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              CustomizeHomeScreen(preferences: preferences),
                         ),
                       ),
-                      if (preferences != null)
-                        IconButton(
-                          tooltip: 'Customize Home',
-                          icon: const Icon(Icons.tune_rounded),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  CustomizeHomeScreen(preferences: preferences),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  if (snapshot.hasError)
-                    const AuroraNotice(
-                      'Your savings are unavailable. Reopen Home after reconnecting.',
-                      error: true,
-                    )
-                  else if (!snapshot.hasData)
-                    const LoadingPanel(featured: true)
-                  else
-                    SavingsOverview(
-                      total: summary.$1,
-                      target: summary.$2,
-                      count: records.length,
-                      totalLabel:
-                          currency?.totalDisplay(balances) ??
-                          (summary.$3 ? null : 'Conversion unavailable'),
-                      targetLabel:
-                          currency?.totalDisplay(targets) ??
-                          (summary.$3 ? null : 'See individual goals'),
-                      showProgress: summary.$3,
                     ),
-                  if (snapshot.hasData)
-                    AuroraSyncStatus(
-                      cached: snapshot.data!.metadata.isFromCache,
-                      pending: snapshot.data!.metadata.hasPendingWrites,
-                    ),
-                  const SizedBox(height: 20),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final columns =
-                          constraints.maxWidth < 300 ||
-                              MediaQuery.textScalerOf(context).scale(13) > 18
-                          ? 2
-                          : 4;
-                      final actions = [
-                        AuroraQuickAction(
-                          icon: Icons.add_rounded,
-                          label: 'Add savings',
-                          disabledReason:
-                              'Create a goal before adding savings.',
-                          onTap: records.isEmpty
-                              ? null
-                              : () => _chooseSavingsGoal(
-                                  context,
-                                  widget.uid,
-                                  records,
-                                ),
-                        ),
-                        AuroraQuickAction(
-                          icon: Icons.flag_outlined,
-                          label: 'New goal',
-                          onTap: () => showGoalTypeChoice(context),
-                        ),
-                        AuroraQuickAction(
-                          icon: Icons.checklist_rounded,
-                          label: 'Add task',
-                          onTap: () => showTaskForm(context),
-                        ),
-                        AuroraQuickAction(
-                          icon: Icons.notifications_outlined,
-                          label: 'Reminders',
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) => const SmartRemindersScreen(),
-                            ),
-                          ),
-                        ),
-                      ];
-                      return Wrap(
-                        children: [
-                          for (final action in actions)
-                            SizedBox(
-                              width: constraints.maxWidth / columns,
-                              child: action,
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 28),
                 ],
               ),
-            ),
-            SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: inset),
-              sliver: SliverList.builder(
-                itemCount: (preferences?.order ?? HomeSection.values)
-                    .where(
-                      (s) =>
-                          !(preferences?.hidden.contains(s) ??
-                              (s == HomeSection.agent)),
-                    )
-                    .length,
-                itemBuilder: (context, index) {
-                  final visible = (preferences?.order ?? HomeSection.values)
-                      .where(
-                        (s) =>
-                            !(preferences?.hidden.contains(s) ??
-                                (s == HomeSection.agent)),
-                      )
-                      .toList();
-                  return _KeepHomeSection(
-                    child: Padding(
-                      key: ValueKey(visible[index]),
-                      padding: const EdgeInsets.only(bottom: 28),
-                      child: sections[visible[index]]!(),
+              if (snapshot.hasError)
+                const AuroraNotice(
+                  'Your savings are unavailable. Reopen Home after reconnecting.',
+                  error: true,
+                )
+              else if (!snapshot.hasData)
+                const LoadingPanel(featured: true)
+              else
+                SavingsOverview(
+                  embedded: true,
+                  total: summary.$1,
+                  target: summary.$2,
+                  count: records.length,
+                  totalLabel:
+                      currency?.totalDisplay(balances) ??
+                      (summary.$3 ? null : 'Conversion unavailable'),
+                  targetLabel:
+                      currency?.totalDisplay(targets) ??
+                      (summary.$3 ? null : 'See individual goals'),
+                  showProgress: summary.$3,
+                ),
+              if (snapshot.hasData)
+                AuroraSyncStatus(
+                  cached: snapshot.data!.metadata.isFromCache,
+                  pending: snapshot.data!.metadata.hasPendingWrites,
+                ),
+            ],
+          ),
+          quickActions: LayoutBuilder(
+            builder: (context, constraints) {
+              final columns =
+                  constraints.maxWidth < 300 ||
+                      MediaQuery.textScalerOf(context).scale(13) > 18
+                  ? 2
+                  : 4;
+              final actions = [
+                AuroraQuickAction(
+                  icon: Icons.add_rounded,
+                  label: 'Add savings',
+                  disabledReason: 'Create a goal before adding savings.',
+                  onTap: records.isEmpty
+                      ? null
+                      : () => _chooseSavingsGoal(context, widget.uid, records),
+                ),
+                AuroraQuickAction(
+                  icon: Icons.flag_outlined,
+                  label: 'New goal',
+                  onTap: () => showGoalTypeChoice(context),
+                ),
+                AuroraQuickAction(
+                  icon: Icons.checklist_rounded,
+                  label: 'Add task',
+                  onTap: () => showTaskForm(context),
+                ),
+                AuroraQuickAction(
+                  icon: Icons.notifications_outlined,
+                  label: 'Reminders',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SmartRemindersScreen(),
                     ),
-                  );
-                },
-              ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 32)),
-          ],
+                  ),
+                ),
+              ];
+              return Wrap(
+                children: [
+                  for (final action in actions)
+                    SizedBox(
+                      width: constraints.maxWidth / columns,
+                      child: action,
+                    ),
+                ],
+              );
+            },
+          ),
+          sectionCount: visible.length,
+          sectionBuilder: (context, index) => _KeepHomeSection(
+            key: ValueKey(visible[index]),
+            child: sections[visible[index]]!(),
+          ),
         );
       },
     );
@@ -398,7 +554,7 @@ Future<void> _chooseSavingsGoal(
 }
 
 class _KeepHomeSection extends StatefulWidget {
-  const _KeepHomeSection({required this.child});
+  const _KeepHomeSection({super.key, required this.child});
   final Widget child;
   @override
   State<_KeepHomeSection> createState() => _KeepHomeSectionState();
@@ -558,54 +714,31 @@ class GoalGallery extends StatelessWidget {
             .toList(),
       );
     }
-    // A wrapping gallery respects text scaling without fixed carousel heights.
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= 840 &&
-            visible.length > 1 &&
-            MediaQuery.textScalerOf(context).scale(14) <= 21) {
-          return Row(
+        final wideText = MediaQuery.textScalerOf(context).scale(14) > 21;
+        final cardWidth = wideText
+            ? constraints.maxWidth
+            : (constraints.maxWidth * .62).clamp(200.0, 224.0).toDouble();
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 3,
-                child: AtelierGoalTile(
-                  uid: uid,
-                  doc: visible.first,
-                  featured: true,
+              for (var i = 0; i < visible.length; i++) ...[
+                if (i > 0) const SizedBox(width: 14),
+                SizedBox(
+                  width: cardWidth,
+                  child: AtelierGoalTile(
+                    uid: uid,
+                    doc: visible[i],
+                    featured: visible[i].id == featuredId,
+                    preview: true,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                flex: 2,
-                child: Column(
-                  children: visible
-                      .skip(1)
-                      .map(
-                        (d) => AtelierGoalTile(uid: uid, doc: d, compact: true),
-                      )
-                      .toList(),
-                ),
-              ),
+              ],
             ],
-          );
-        }
-        return Column(
-          children: [
-            AtelierGoalTile(uid: uid, doc: visible.first, featured: true),
-            if (visible.length > 1) ...[
-              const SizedBox(height: 12),
-              AdaptiveCards(
-                breakpoint: 600,
-                children: visible
-                    .skip(1)
-                    .map(
-                      (d) => AtelierGoalTile(uid: uid, doc: d, compact: true),
-                    )
-                    .toList(),
-              ),
-            ],
-          ],
+          ),
         );
       },
     );
@@ -619,11 +752,12 @@ class AtelierGoalTile extends StatelessWidget {
     required this.doc,
     this.compact = false,
     this.featured = false,
+    this.preview = false,
     this.onOpen,
   });
   final String uid;
   final QueryDocumentSnapshot<Map<String, dynamic>> doc;
-  final bool compact, featured;
+  final bool compact, featured, preview;
   final VoidCallback? onOpen;
   @override
   Widget build(BuildContext context) {
@@ -651,7 +785,17 @@ class AtelierGoalTile extends StatelessWidget {
     final coverTarget = GoalCoverTarget.personal(uid, doc.id);
     final cover = GoalCoverRecord.fromMap(data, coverTarget);
     final preferences = AtelierScope.maybeOf(context);
+    final tone = saved >= target && target > 0
+        ? FlowAccent.mint
+        : date != null && date.isBefore(today)
+        ? FlowAccent.coral
+        : featured
+        ? FlowAccent.lavender
+        : date != null && date.difference(today).inDays <= 14
+        ? FlowAccent.peach
+        : FlowAccent.mint;
     return Card(
+      color: context.flowCategory(tone),
       margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -664,126 +808,138 @@ class AtelierGoalTile extends StatelessWidget {
                     PersonalGoalDetailsScreen(uid: uid, goalId: doc.id),
               ),
             ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (!compact)
-              Stack(
-                children: [
-                  GoalCoverImage(
-                    target: coverTarget,
-                    name: title,
-                    path: cover.path,
-                    radius: 0,
-                    decodeWidth: featured ? 960 : 640,
-                  ),
-                  if (featured)
-                    const Positioned(
-                      left: 16,
-                      top: 16,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: SaveTrackDesign.obsidian,
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 7,
+        child: FlowCategoryDecoration(
+          accent: tone,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!compact && cover.path != null)
+                Stack(
+                  children: [
+                    GoalCoverImage(
+                      target: coverTarget,
+                      name: title,
+                      path: cover.path,
+                      radius: 0,
+                      decodeWidth: featured ? 960 : 640,
+                    ),
+                    if (featured)
+                      const Positioned(
+                        left: 16,
+                        top: 16,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: SaveTrackDesign.obsidian,
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
                           ),
-                          child: Text(
-                            'Featured',
-                            style: TextStyle(
-                              color: mint,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            child: Text(
+                              'Featured',
+                              style: TextStyle(
+                                color: mint,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (compact) ...[
-                        const MintIcon(Icons.flag_outlined, size: 40),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                      if (preferences != null)
-                        IconButton(
-                          tooltip: preferences.featuredGoal == doc.id
-                              ? 'Unpin featured goal'
-                              : 'Feature this goal',
-                          onPressed: () {
-                            preferences.featuredGoal =
-                                preferences.featuredGoal == doc.id
-                                ? null
-                                : doc.id;
-                            unawaited(preferences.save());
-                          },
-                          icon: Icon(
-                            preferences.featuredGoal == doc.id
-                                ? Icons.push_pin
-                                : Icons.push_pin_outlined,
+                  ],
+                ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (compact || cover.path == null) ...[
+                          MintIcon(
+                            saved >= target && target > 0
+                                ? Icons.check_rounded
+                                : Icons.flag_outlined,
+                            size: 36,
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  AmountText(
-                    displayMoney(context, saved, code),
-                    compactCurrency: true,
-                    style: SaveTrackDesign.amount.copyWith(
-                      fontSize: featured ? 32 : 24,
-                      color: context.atelierInk,
+                        if (preferences != null)
+                          IconButton(
+                            tooltip: preferences.featuredGoal == doc.id
+                                ? 'Unpin featured goal'
+                                : 'Feature this goal',
+                            onPressed: () {
+                              preferences.featuredGoal =
+                                  preferences.featuredGoal == doc.id
+                                  ? null
+                                  : doc.id;
+                              unawaited(preferences.save());
+                            },
+                            icon: Icon(
+                              preferences.featuredGoal == doc.id
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'of ${displayMoney(context, target, code)}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 14),
-                  MintProgress(value: progress),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 6,
-                    children: [
-                      Text(
-                        target > 0 && saved >= target
-                            ? 'Target reached'
-                            : '${(progress * 100).round()}% saved',
-                        style: TextStyle(
-                          color: context.atelierAccent,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
+                    const SizedBox(height: 12),
+                    AmountText(
+                      displayMoney(context, saved, code),
+                      compactCurrency: true,
+                      style: SaveTrackDesign.amount.copyWith(
+                        fontSize: preview
+                            ? 25
+                            : featured
+                            ? 32
+                            : 24,
+                        color: context.atelierInk,
                       ),
-                      if (date != null)
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'of ${displayMoney(context, target, code)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 14),
+                    MintProgress(value: progress),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 6,
+                      children: [
                         Text(
-                          '${date.isBefore(today) && saved < target ? 'Past deadline · ' : 'Due '}${DateFormat.yMMMd().format(date)}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          target > 0 && saved >= target
+                              ? 'Target reached'
+                              : '${(progress * 100).round()}% saved',
+                          style: TextStyle(
+                            color: context.isDark ? context.atelierInk : teal,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
                         ),
-                    ],
-                  ),
-                ],
+                        if (date != null)
+                          Text(
+                            '${date.isBefore(today) && saved < target ? 'Past deadline · ' : 'Due '}${DateFormat.yMMMd().format(date)}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1152,9 +1308,16 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
       final records =
           snapshot.data?.docs ??
           <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-      final selected = records
-          .where((d) => d.data()['dateKey'] == _dateKey(widget.selected))
-          .toList();
+      final selected = flowOrderedTasks(
+        records
+            .where((d) => d.data()['dateKey'] == _dateKey(widget.selected))
+            .toList(),
+        _dateKey(widget.selected),
+      );
+      final featuredId = flowFeaturedTask(selected, _dateKey(widget.selected));
+      final firstFlexible = selected.indexWhere(
+        (d) => !flowHasSchedule(d, _dateKey(widget.selected)),
+      );
       return CustomScrollView(
         slivers: [
           SliverPadding(
@@ -1162,6 +1325,10 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
             sliver: SliverList.list(
               children: [
                 widget.header,
+                FlowDateHeading(
+                  date: widget.selected,
+                  onToday: () => widget.onSelect(DateTime.now()),
+                ),
                 Wrap(
                   alignment: WrapAlignment.spaceBetween,
                   crossAxisAlignment: WrapCrossAlignment.center,
@@ -1194,38 +1361,25 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 8,
-                  children: [
+                FlowWeekSelector(
+                  selected: widget.selected,
+                  onSelected: widget.onSelect,
+                  counts: {
                     for (var i = 0; i < 7; i++)
-                      Builder(
-                        builder: (context) {
-                          final day = DateTime(
-                                start.year,
-                                start.month,
-                                start.day + i,
-                              ),
-                              key = _dateKey(
-                                DateTime(
-                                  start.year,
-                                  start.month,
-                                  start.day + i,
+                      i + 1: records
+                          .where(
+                            (d) =>
+                                d.data()['dateKey'] ==
+                                _dateKey(
+                                  DateTime(
+                                    start.year,
+                                    start.month,
+                                    start.day + i,
+                                  ),
                                 ),
-                              );
-                          final count = records
-                              .where((d) => d.data()['dateKey'] == key)
-                              .length;
-                          return ChoiceChip(
-                            label: Text(
-                              '${DateFormat('EEE d').format(day)}\n$count ${count == 1 ? 'task' : 'tasks'}',
-                            ),
-                            selected: key == _dateKey(widget.selected),
-                            onSelected: (_) => widget.onSelect(day),
-                          );
-                        },
-                      ),
-                  ],
+                          )
+                          .length,
+                  },
                 ),
                 const SizedBox(height: 20),
                 if (snapshot.hasData)
@@ -1265,8 +1419,13 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
             sliver: SliverList.builder(
               itemCount: selected.length,
-              itemBuilder: (context, i) =>
-                  TaskTile(uid: widget.uid, doc: selected[i]),
+              itemBuilder: (context, i) => FlowTaskGroupEntry(
+                uid: widget.uid,
+                doc: selected[i],
+                dateKey: _dateKey(widget.selected),
+                groupHeading: i == firstFlexible,
+                featured: selected[i].id == featuredId,
+              ),
             ),
           ),
         ],
@@ -1378,60 +1537,58 @@ class ReminderTimeline extends StatelessWidget {
       );
     }
     return Column(
-      children: items.map((item) {
+      children: items.indexed.map((entry) {
+        final item = entry.$2;
         final time = TimeOfDay.fromDateTime(item.at).format(context);
         final task = item.target.type == ReminderTargetType.task;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (presentation == ReminderPresentation.timeline &&
-                  MediaQuery.textScalerOf(context).scale(14) <= 21) ...[
-                SizedBox(
-                  width: 76,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 18),
-                    child: Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: context.atelierAccent,
-                      ),
-                    ),
+        final card = Card(
+          color: entry.$1 == 0
+              ? context.flowCategory(FlowAccent.mint)
+              : context.atelierTonal,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            title: Text(
+              item.target.title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${DateFormat.yMMMd().format(item.at)} · $time',
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                ),
-                Container(
-                  width: 2,
-                  height: 90,
-                  margin: const EdgeInsets.only(right: 14),
-                  color: context.atelierBorder,
-                ),
-              ],
-              Expanded(
-                child: Card(
-                  child: ListTile(
-                    leading: MintIcon(
-                      task
-                          ? Icons.check_circle_outline
-                          : Icons.savings_outlined,
-                      size: 36,
-                    ),
-                    title: Text(
-                      item.target.title,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    subtitle: Text(
-                      '${DateFormat.yMMMd().format(item.at)} · $time\n${reminderSummary(context, item.configuration)}',
-                    ),
-                    onTap: () => onOpen(item),
+                  const SizedBox(height: 6),
+                  Text(
+                    reminderSummary(context, item.configuration),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                ),
+                  const SizedBox(height: 8),
+                  Icon(
+                    task ? Icons.check_circle_outline : Icons.savings_outlined,
+                    size: 18,
+                    color: context.atelierAccent,
+                  ),
+                ],
               ),
-            ],
+            ),
+            trailing: const Icon(Icons.chevron_right_rounded, size: 18),
+            onTap: () => onOpen(item),
           ),
         );
+        return presentation == ReminderPresentation.timeline
+            ? FlowTimelineEntry(
+                time: time,
+                caption: DateFormat.MMMd().format(item.at),
+                featured: entry.$1 == 0,
+                child: card,
+              )
+            : Padding(padding: const EdgeInsets.only(bottom: 12), child: card);
       }).toList(),
     );
   }
@@ -1817,6 +1974,11 @@ class PulseContent extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ExpansionTile(
+            // Keep disclosure state separate from the ancestor scroll offset.
+            key: PageStorageKey(
+              'pulse-details-${totals.currency}-'
+              '${_dateKey(totals.start)}-${_dateKey(totals.end)}',
+            ),
             tilePadding: EdgeInsets.zero,
             title: const Text('Daily contribution details'),
             subtitle: Text('${totals.currency} · Recorded activity'),

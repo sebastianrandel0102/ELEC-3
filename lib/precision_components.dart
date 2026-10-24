@@ -10,17 +10,24 @@ class AuroraGreeting extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(date, style: Theme.of(context).textTheme.bodySmall),
+        Text(date, style: TextStyle(fontSize: 12, color: context.atelierInk)),
         const SizedBox(height: 4),
-        Text(greeting, style: Theme.of(context).textTheme.titleMedium),
+        Text(greeting, style: Theme.of(context).textTheme.titleLarge),
       ],
     ),
   );
 }
 
+/// Reports the white Home sheet's position to its pinned toolbar.
+class AuroraHeaderSurfaceNotification extends Notification {
+  const AuroraHeaderSurfaceNotification({required this.contentTop});
+
+  final double contentTop;
+}
+
 /// A separate coordinator per tab keeps its header and content scroll state.
 /// Existing lists inherit the inner controller; no second data layer is added.
-class AuroraPage extends StatelessWidget {
+class AuroraPage extends StatefulWidget {
   const AuroraPage({
     super.key,
     required this.title,
@@ -36,17 +43,41 @@ class AuroraPage extends StatelessWidget {
   final String? storageKey;
 
   @override
+  State<AuroraPage> createState() => _AuroraPageState();
+}
+
+class _AuroraPageState extends State<AuroraPage> {
+  final _headerSurfaceKey = GlobalKey();
+  bool _homeContentUnderHeader = false;
+
+  @override
   Widget build(BuildContext context) => NestedScrollView(
-    key: PageStorageKey(storageKey ?? 'aurora-page-$title'),
+    key: PageStorageKey(widget.storageKey ?? 'aurora-page-${widget.title}'),
     headerSliverBuilder: (context, innerBoxIsScrolled) => [
       AuroraLargeTitle(
-        title: title,
-        actions: actions,
-        leading: leading,
+        title: widget.title,
+        actions: widget.actions,
+        leading: widget.leading,
         scrolled: innerBoxIsScrolled,
+        homeContentUnderHeader: _homeContentUnderHeader,
+        surfaceKey: _headerSurfaceKey,
       ),
     ],
-    body: child,
+    body: NotificationListener<AuroraHeaderSurfaceNotification>(
+      onNotification: (notification) {
+        final header = _headerSurfaceKey.currentContext?.findRenderObject();
+        if (header is! RenderBox || !header.hasSize) return false;
+        final headerBottom = header
+            .localToGlobal(Offset(0, header.size.height))
+            .dy;
+        final onContent = notification.contentTop <= headerBottom;
+        if (_homeContentUnderHeader != onContent) {
+          setState(() => _homeContentUnderHeader = onContent);
+        }
+        return true;
+      },
+      child: widget.child,
+    ),
   );
 }
 
@@ -59,29 +90,42 @@ class AuroraLargeTitle extends StatelessWidget {
     this.actions = const [],
     this.leading,
     this.scrolled = false,
+    this.homeContentUnderHeader = false,
+    this.surfaceKey,
   });
   final String title;
   final List<Widget> actions;
   final Widget? leading;
   final bool scrolled;
+  final bool homeContentUnderHeader;
+  final Key? surfaceKey;
 
   @override
   Widget build(BuildContext context) {
     final scale = MediaQuery.textScalerOf(context);
     final largeText = scale.scale(20) > 28;
+    final home = title == 'Today';
+    final compact = home || title == 'Planner';
     return SliverAppBar(
       pinned: true,
       automaticallyImplyLeading: false,
       leading: leading,
       actions: actions,
       toolbarHeight: largeText ? 72 : 56,
-      expandedHeight: largeText ? 144 : 104,
-      backgroundColor: context.atelierCanvas,
+      expandedHeight: compact
+          ? (largeText ? 88 : 64)
+          : largeText
+          ? 136
+          : 100,
+      backgroundColor: home
+          ? (homeContentUnderHeader ? context.atelierSurface : context.flowHero)
+          : context.atelierCanvas,
       surfaceTintColor: Colors.transparent,
       forceElevated: scrolled,
       elevation: 0,
       scrolledUnderElevation: 0,
       flexibleSpace: LayoutBuilder(
+        key: surfaceKey,
         builder: (context, constraints) {
           final settings = context
               .dependOnInheritedWidgetOfExactType<FlexibleSpaceBarSettings>();
@@ -98,7 +142,7 @@ class AuroraLargeTitle extends StatelessWidget {
           );
           final leadingSpace = leading == null ? inset : 64.0;
           final trailingSpace = actions.length * 48.0 + 12;
-          return Stack(
+          final content = Stack(
             fit: StackFit.expand,
             children: [
               Positioned(
@@ -112,7 +156,7 @@ class AuroraLargeTitle extends StatelessWidget {
                     maxLines: largeText && expanded > .5 ? 2 : 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontSize: 20 + 14 * expanded,
+                      fontSize: compact ? 20 : 20 + 10 * expanded,
                       height: 1.15,
                       fontWeight: FontWeight.w700,
                       letterSpacing: -.6 * expanded,
@@ -126,9 +170,29 @@ class AuroraLargeTitle extends StatelessWidget {
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  child: Divider(height: 1, color: context.atelierBorder),
+                  child: AnimatedOpacity(
+                    opacity: !home || homeContentUnderHeader ? 1 : 0,
+                    duration: home
+                        ? SaveTrackDesign.duration(
+                            context,
+                            SaveTrackDesign.motion,
+                          )
+                        : Duration.zero,
+                    curve: SaveTrackDesign.motionCurve,
+                    child: Divider(height: 1, color: context.atelierBorder),
+                  ),
                 ),
             ],
+          );
+          if (!home) return content;
+          return AnimatedContainer(
+            key: const ValueKey('home-header-background'),
+            duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
+            curve: SaveTrackDesign.motionCurve,
+            color: homeContentUnderHeader
+                ? context.atelierSurface
+                : context.flowHero,
+            child: content,
           );
         },
       ),

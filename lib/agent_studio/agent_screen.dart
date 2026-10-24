@@ -1182,7 +1182,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         ),
         footer: Row(
           children: [
-            const Icon(Icons.shield_outlined, size: 15, color: mint),
+            Icon(Icons.shield_outlined, size: 15, color: context.atelierAccent),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -1190,7 +1190,11 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                   'Intelligence, beautifully in motion.',
                   'Matalinong kasama sa bawat hakbang.',
                 ),
-                style: const TextStyle(fontSize: 12, color: mint, height: 1.5),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.atelierMuted,
+                  height: 1.5,
+                ),
               ),
             ),
           ],

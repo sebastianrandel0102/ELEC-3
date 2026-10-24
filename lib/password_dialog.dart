@@ -160,7 +160,7 @@ class _PasswordDialogState extends State<PasswordDialog> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 MintHero(
-                  deep: true,
+                  soft: true,
                   edgeToEdge: true,
                   padding: const EdgeInsets.all(24),
                   child: Column(
@@ -170,20 +170,20 @@ class _PasswordDialogState extends State<PasswordDialog> {
                         _success
                             ? Icons.check_circle_outline
                             : Icons.shield_outlined,
-                        color: mint,
+                        color: context.atelierInk,
                         size: 32,
                       ),
                       const SizedBox(height: 12),
                       Text(
                         title,
                         style: Theme.of(context).textTheme.titleLarge
-                            ?.copyWith(color: Colors.white),
+                            ?.copyWith(color: context.atelierInk),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         subtitle,
-                        style: const TextStyle(
-                          color: SaveTrackDesign.onHeroMuted,
+                        style: TextStyle(
+                          color: context.atelierInk,
                           height: 1.5,
                         ),
                       ),

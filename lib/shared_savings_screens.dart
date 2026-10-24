@@ -1046,7 +1046,7 @@ class SharedGoalHero extends StatelessWidget {
   final SharedSavingsGoal goal;
   @override
   Widget build(BuildContext context) => MintHero(
-    deep: true,
+    soft: true,
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1054,61 +1054,61 @@ class SharedGoalHero extends StatelessWidget {
           spacing: 10,
           runSpacing: 8,
           children: [
-            Icon(sharedIcons[goal.iconKey], color: mint),
-            const Text('Shared goal', style: TextStyle(color: mint)),
+            Icon(sharedIcons[goal.iconKey], color: context.atelierInk),
+            Text('Shared goal', style: TextStyle(color: context.atelierInk)),
             Text(
               goal.statusAt(DateTime.now()),
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: context.atelierInk),
             ),
           ],
         ),
         const SizedBox(height: 16),
         Text(
           goal.name,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: context.atelierInk,
           ),
         ),
         const SizedBox(height: 16),
         AmountText(
           sharedDisplayMoney(context, goal.balance),
-          onDark: true,
+          onDark: false,
           compactCurrency: true,
           style: SaveTrackDesign.amount.copyWith(
-            color: Colors.white,
+            color: context.atelierInk,
             fontSize: 42,
           ),
         ),
-        const Text(
+        Text(
           'Combined recorded savings',
-          style: TextStyle(color: SaveTrackDesign.onHeroMuted),
+          style: TextStyle(color: context.atelierInk),
         ),
         const SizedBox(height: 20),
-        MintProgress(value: goal.progress, onDark: true),
+        MintProgress(value: goal.progress, onDark: false),
         const SizedBox(height: 16),
         Text(
           '${(goal.progress * 100).round()}% · ${sharedDisplayMoney(context, goal.target)} target',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.atelierInk,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 20),
-        Divider(color: mint.withValues(alpha: .2), height: 1),
+        Divider(color: context.atelierInk.withValues(alpha: .2), height: 1),
         const SizedBox(height: 16),
         DetailLine(
           icon: Icons.account_balance_wallet_outlined,
           label: '${sharedDisplayMoney(context, goal.remaining)} remaining',
-          color: SaveTrackDesign.onHeroMuted,
+          color: context.atelierInk,
         ),
         const SizedBox(height: 8),
         DetailLine(
           icon: Icons.event_outlined,
           label: 'Due ${sharedDateText(goal.deadline)}',
-          color: SaveTrackDesign.onHeroMuted,
+          color: context.atelierInk,
         ),
       ],
     ),

@@ -55,18 +55,19 @@ class WidgetAtelierPalette {
   Color get background => white
       ? Colors.white
       : dark
-      ? const Color(0xFF052F28)
-      : const Color(0xFFF6FBF8);
-  Color get surface => dark ? const Color(0xFF0C3B32) : Colors.white;
+      ? const Color(0xFF142824)
+      : const Color(0xFFF6FAF8);
+  Color get surface => dark ? const Color(0xFF203630) : Colors.white;
   Color get secondarySurface =>
-      dark ? const Color(0xFF124B3E) : const Color(0xFFEDFAF3);
-  Color get text => dark ? Colors.white : const Color(0xFF14362B);
+      dark ? const Color(0xFF2B453C) : const Color(0xFFDDF5E9);
+  Color get text => dark ? Colors.white : const Color(0xFF202C29);
   Color get secondary =>
-      dark ? const Color(0xFFB7D4C7) : const Color(0xFF526E61);
-  Color get accent => dark ? const Color(0xFF75E7BF) : const Color(0xFF0B5B4B);
+      dark ? const Color(0xFFB7D4C7) : const Color(0xFF626F69);
+  Color get accent => dark ? const Color(0xFF75E7BF) : const Color(0xFF236C57);
   Color get track => dark ? const Color(0xFF315D50) : const Color(0xFFD8E8E0);
-  Color get action => dark ? const Color(0xFF4BD4A8) : const Color(0xFF0B5B4B);
-  Color get onAction => dark ? const Color(0xFF052F28) : Colors.white;
-  Color get border => dark ? const Color(0xFF315D50) : const Color(0xFFE1EEE7);
+  Color get action => dark ? const Color(0xFF65D5A9) : const Color(0xFF48BF91);
+  Color get onAction =>
+      dark ? const Color(0xFF142824) : const Color(0xFF202C29);
+  Color get border => dark ? const Color(0xFF315D50) : const Color(0xFFE6EDE9);
   Gradient? get gradient => null;
 }

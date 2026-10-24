@@ -126,31 +126,32 @@ class PersonalGoalOverview extends StatelessWidget {
           const SizedBox(height: 16),
         ],
         MintHero(
+          soft: true,
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'Current balance',
-                style: TextStyle(color: SaveTrackDesign.onHeroMuted),
+                style: TextStyle(color: context.atelierInk),
               ),
               const SizedBox(height: 10),
               AmountText(
                 money(saved),
-                onDark: true,
+                onDark: false,
                 compactCurrency: true,
                 style: SaveTrackDesign.amount.copyWith(
-                  color: Colors.white,
+                  color: context.atelierInk,
                   fontSize: 36,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Goal currency · $code',
-                style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
+                style: TextStyle(color: context.atelierInk),
               ),
               const SizedBox(height: 20),
-              MintProgress(value: progress, onDark: true),
+              MintProgress(value: progress, onDark: false),
               const SizedBox(height: 10),
               Text(
                 target > 0 && saved >= target
