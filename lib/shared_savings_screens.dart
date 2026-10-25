@@ -268,11 +268,13 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
             ),
           ),
         if (!widget.compact && !widget.report) ...[
-          const ScreenIntro(
+          const FlowWorkspaceIntro(
+            icon: Icons.groups_outlined,
             eyebrow: 'Save Together',
             title: 'A shared goal. Real progress.',
             detail: 'Record savings with people you trust.',
           ),
+          const SizedBox(height: 20),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -371,6 +373,8 @@ class SharedGoalCard extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 16),
     child: Card(
+      color: context.flowCategory(FlowAccent.mint),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
         onTap: () => openSharedGoal(context, goal.id),
@@ -379,15 +383,17 @@ class SharedGoalCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GoalCoverImage(
-                target: goal.coverTarget,
-                name: goal.name,
-                path: goal.cover.path,
-                icon: sharedIcons[goal.iconKey] ?? Icons.groups_outlined,
-                viewerUid: uid,
-                load: coverLoad,
-              ),
-              const SizedBox(height: 20),
+              if (goal.cover.path != null) ...[
+                GoalCoverImage(
+                  target: goal.coverTarget,
+                  name: goal.name,
+                  path: goal.cover.path,
+                  icon: sharedIcons[goal.iconKey] ?? Icons.groups_outlined,
+                  viewerUid: uid,
+                  load: coverLoad,
+                ),
+                const SizedBox(height: 20),
+              ],
               Row(
                 children: [
                   MintIcon(sharedIcons[goal.iconKey] ?? Icons.groups_outlined),
@@ -415,9 +421,7 @@ class SharedGoalCard extends StatelessWidget {
                 children: [
                   const StatusPill('Shared'),
                   StatusPill(goal.statusAt(DateTime.now())),
-                  Text(
-                    '${goal.memberCount} members · ${goal.ownerId == uid ? 'Owner' : 'Contributor'}',
-                  ),
+                  StatusPill(goal.ownerId == uid ? 'Owner' : 'Contributor'),
                 ],
               ),
               const SizedBox(height: 16),
@@ -441,27 +445,72 @@ class SharedGoalCard extends StatelessWidget {
                 '${(goal.progress * 100).round()}% · Due ${sharedDateText(goal.deadline)}',
                 style: TextStyle(color: context.atelierMuted, fontSize: 13),
               ),
-              if ((goal.data['memberNames'] as Map?)?.isNotEmpty ?? false)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      ...(goal.data['memberNames'] as Map).values
-                          .take(3)
-                          .map((n) => MemberAvatar(n as String)),
-                      if (goal.memberCount > 3)
-                        Text('+${goal.memberCount - 3}'),
-                    ],
-                  ),
-                ),
+              const SizedBox(height: 16),
+              SharedMemberSummary(goal: goal),
             ],
           ),
         ),
       ),
     ),
   );
+}
+
+/// Only names present in the authorized goal record are shown here.
+class SharedMemberSummary extends StatelessWidget {
+  const SharedMemberSummary({super.key, required this.goal});
+  final SharedSavingsGoal goal;
+  @override
+  Widget build(BuildContext context) {
+    final names =
+        (goal.data['memberNames'] as Map?)?.values
+            .whereType<String>()
+            .where((name) => name.trim().isNotEmpty)
+            .take(3)
+            .toList() ??
+        const <String>[];
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (names.isNotEmpty)
+          SizedBox(
+            width: 40 + (names.length - 1) * 28,
+            height: 40,
+            child: Stack(
+              children: [
+                for (var i = 0; i < names.length; i++)
+                  Positioned(
+                    left: i * 28,
+                    top: 0,
+                    width: 40,
+                    height: 40,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: context.atelierSurface,
+                          width: 2,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: MemberAvatar(names[i]),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          )
+        else
+          Icon(Icons.people_outline, size: 22, color: context.atelierAccent),
+        Text(
+          '${goal.memberCount} ${goal.memberCount == 1 ? 'member' : 'members'}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
 }
 
 class SharedGoalFormScreen extends StatefulWidget {
@@ -1045,8 +1094,12 @@ class SharedGoalHero extends StatelessWidget {
   const SharedGoalHero({super.key, required this.goal});
   final SharedSavingsGoal goal;
   @override
-  Widget build(BuildContext context) => MintHero(
-    soft: true,
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(SaveTrackDesign.section),
+    decoration: BoxDecoration(
+      color: context.flowCategory(FlowAccent.mint),
+      borderRadius: BorderRadius.circular(SaveTrackDesign.radiusHero),
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1078,7 +1131,7 @@ class SharedGoalHero extends StatelessWidget {
           compactCurrency: true,
           style: SaveTrackDesign.amount.copyWith(
             color: context.atelierInk,
-            fontSize: 42,
+            fontSize: 36,
           ),
         ),
         Text(
@@ -1110,6 +1163,8 @@ class SharedGoalHero extends StatelessWidget {
           label: 'Due ${sharedDateText(goal.deadline)}',
           color: context.atelierInk,
         ),
+        const SizedBox(height: 16),
+        SharedMemberSummary(goal: goal),
       ],
     ),
   );

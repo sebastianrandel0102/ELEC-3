@@ -153,6 +153,12 @@ class ReminderAgendaCard extends StatelessWidget {
     );
     return next == null
         ? Padding(padding: const EdgeInsets.only(bottom: 12), child: card)
-        : FlowTimelineEntry(time: time!, child: card);
+        : FlowTimelineEntry(
+            time: time!,
+            caption: MaterialLocalizations.of(context)
+                .formatShortMonthDay(next),
+            featured: entry.section == 'Today',
+            child: card,
+          );
   }
 }

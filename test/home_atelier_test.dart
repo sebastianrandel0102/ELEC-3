@@ -440,14 +440,18 @@ void main() {
       );
       expect(requests.single, (DateTime(2026, 10, 12), DateTime(2026, 10, 19)));
       expect(
-        find.text('Net savings change: PHP ₱100,000,000,004,200.01'),
-        findsOneWidget,
+        tester
+            .widget<AmountText>(find.byKey(const ValueKey('pulse-net-savings')))
+            .text,
+        'PHP ₱100,000,000,004,200.01',
       );
       await tester.tap(find.widgetWithText(ChoiceChip, 'USD'));
       await tester.pumpAndSettle();
       expect(
-        find.text('Net savings change: ${originalMoney(10, 'USD')}'),
-        findsOneWidget,
+        tester
+            .widget<AmountText>(find.byKey(const ValueKey('pulse-net-savings')))
+            .text,
+        originalMoney(10, 'USD'),
       );
       await tester.tap(find.widgetWithText(ChoiceChip, '30 days'));
       await tester.pumpAndSettle();
@@ -903,13 +907,16 @@ void additionalTests() {
       expect(find.text('Monday planning'), findsOneWidget);
       expect(find.text('Sunday review'), findsNothing);
       expect(
-        tester.widget<DailyCompletion>(find.byType(DailyCompletion)).done,
+        tester.widget<FlowPlannerSummary>(find.byType(FlowPlannerSummary)).done,
         1,
       );
       expect(
-        tester.widget<DailyCompletion>(find.byType(DailyCompletion)).total,
+        tester
+            .widget<FlowPlannerSummary>(find.byType(FlowPlannerSummary))
+            .total,
         2,
       );
+      expect(find.text('Weekly progress'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );

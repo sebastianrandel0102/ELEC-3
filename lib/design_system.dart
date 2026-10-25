@@ -944,12 +944,14 @@ class AmountText extends StatelessWidget {
     required this.style,
     this.onDark = false,
     this.compactCurrency = false,
+    this.stackCurrency = false,
     this.supportingSuffix,
   });
   final String text;
   final TextStyle style;
   final bool onDark;
   final bool compactCurrency;
+  final bool stackCurrency;
   final String? supportingSuffix;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -964,6 +966,27 @@ class AmountText extends StatelessWidget {
           supportingSuffix != null && text.endsWith(supportingSuffix!)
           ? supportingSuffix!
           : '';
+      if (stackCurrency && prefix != null && prefix.length < text.length) {
+        return Semantics(
+          label: text,
+          excludeSemantics: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                prefix.trim(),
+                style: resolved.copyWith(
+                  fontSize: (resolved.fontSize ?? 24) * .55,
+                  letterSpacing: 0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              AmountText(text.substring(prefix.length), style: resolved),
+            ],
+          ),
+        );
+      }
       final span = prefix == null || prefix.length == text.length
           ? TextSpan(text: text, style: resolved)
           : TextSpan(

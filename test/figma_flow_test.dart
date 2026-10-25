@@ -118,6 +118,7 @@ Widget flowPlanner() => Scaffold(
           PlannerDateHeader(
             title: 'Sat, Oct 24',
             date: flowDay,
+            today: flowDay,
             onSelect: (_) {},
             onPrevious: () {},
             onNext: () {},

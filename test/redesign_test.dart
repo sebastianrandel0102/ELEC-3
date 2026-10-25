@@ -816,7 +816,7 @@ void main() {
     await tester.tap(find.text('Today'));
     await tester.ensureVisible(find.text('3 of 4 tasks completed'));
     expect(calls, ['previous', 'next', 'today']);
-    expect(tester.widget<ProgressRing>(find.byType(ProgressRing)).value, .75);
+    expect(tester.widget<MintProgress>(find.byType(MintProgress)).value, .75);
     expect(tester.takeException(), isNull);
   });
 

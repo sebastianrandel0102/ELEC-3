@@ -60,77 +60,12 @@ class AgentHero extends StatelessWidget {
   final String eyebrow, title, subtitle;
   final Widget? footer;
   @override
-  Widget build(BuildContext context) => ClipRRect(
-    borderRadius: BorderRadius.circular(SaveTrackDesign.radiusHero),
-    child: DecoratedBox(
-      decoration: BoxDecoration(color: context.flowCategory(FlowAccent.mint)),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -55,
-            top: -90,
-            child: ExcludeSemantics(
-              child: Container(
-                width: 260,
-                height: 260,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [SaveTrackDesign.heroHighlight, Colors.transparent],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const AgentEmblem(onDark: false, size: 36),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        eyebrow,
-                        style: TextStyle(
-                          color: context.atelierInk,
-                          fontSize: 13,
-                          height: 1.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: context.atelierInk,
-                    fontSize: 26,
-                    height: 1.18,
-                    letterSpacing: -.9,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: context.atelierMuted,
-                    height: 1.6,
-                    fontSize: 15,
-                  ),
-                ),
-                if (footer != null) ...[const SizedBox(height: 20), footer!],
-              ],
-            ),
-          ),
-        ],
-      ),
-    ),
+  Widget build(BuildContext context) => FlowWorkspaceIntro(
+    icon: Icons.hub_outlined,
+    eyebrow: eyebrow,
+    title: title,
+    detail: subtitle,
+    footer: footer,
   );
 }
 
@@ -146,58 +81,12 @@ class AgentSectionHeader extends StatelessWidget {
   final Widget? action;
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 24, bottom: 14),
-    child: MediaQuery.textScalerOf(context).scale(1) > 1.4
-        ? Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium
-                    ?.copyWith(fontWeight: FontWeight.w800),
-              ),
-              if (subtitle != null) ...[
-                const SizedBox(height: 4),
-                Text(
-                  subtitle!,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-              ?action,
-            ],
-          )
-        : Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: Theme.of(context).textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    if (subtitle != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle!,
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontSize: 13,
-                          height: 1.4,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              ?action,
-            ],
-          ),
+    padding: const EdgeInsets.only(top: SaveTrackDesign.section),
+    child: FlowSectionHeader(
+      title: title,
+      subtitle: subtitle,
+      trailing: action,
+    ),
   );
 }
 
@@ -215,74 +104,19 @@ class AgentQuickActionCard extends StatelessWidget {
   final VoidCallback onTap;
   final bool featured;
   @override
-  Widget build(BuildContext context) {
-    final c = Theme.of(context).colorScheme;
-    final accent = icon == Icons.notifications_none_rounded
+  Widget build(BuildContext context) => FlowActionCard(
+    icon: icon,
+    title: title,
+    detail: description,
+    onTap: onTap,
+    accent: icon == Icons.notifications_none_rounded
         ? FlowAccent.lavender
         : icon == Icons.savings_outlined
         ? FlowAccent.peach
         : icon == Icons.insights_rounded
         ? FlowAccent.coral
-        : FlowAccent.mint;
-    return Semantics(
-      button: true,
-      child: Material(
-        animationDuration: SaveTrackDesign.duration(
-          context,
-          SaveTrackDesign.selectionMotion,
-        ),
-        color: context.flowCategory(accent),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-          side: BorderSide.none,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: FlowCategoryDecoration(
-            accent: accent,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(icon, color: context.atelierAccent, size: 23),
-                      const Spacer(),
-                      Icon(
-                        Icons.north_east_rounded,
-                        size: 16,
-                        color: c.onSurfaceVariant,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 18),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: c.onSurface,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      color: c.onSurfaceVariant,
-                      fontSize: 12,
-                      height: 1.5,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+        : FlowAccent.mint,
+  );
 }
 
 class AgentStatusChip extends StatelessWidget {

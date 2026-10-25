@@ -257,6 +257,7 @@ class AuroraIdentity extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
+    color: context.flowCategory(FlowAccent.mint),
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: LayoutBuilder(

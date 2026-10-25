@@ -637,6 +637,7 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
   final _visited = <int>{0};
   String? _account;
+  var _plannerKey = GlobalKey<_PlannerScreenState>();
   static const _titles = ['Today', 'Goals', 'Planner', 'Reports', 'Profile'];
 
   void selectTab(int index) {
@@ -648,6 +649,7 @@ class _HomeShellState extends State<HomeShell> {
     final account = FirebaseAuth.instance.currentUser!.uid;
     if (_account != account) {
       _account = account;
+      _plannerKey = GlobalKey<_PlannerScreenState>();
       _visited.clear();
       _index = 0;
     }
@@ -658,7 +660,7 @@ class _HomeShellState extends State<HomeShell> {
         uid: FirebaseAuth.instance.currentUser!.uid,
       ),
       GoalsScreen(key: ValueKey('goals-$account')),
-      PlannerScreen(key: ValueKey('planner-$account'), active: _index == 2),
+      PlannerScreen(key: _plannerKey, active: _index == 2),
       ReportsScreen(key: ValueKey('reports-$account')),
       ProfileScreen(key: ValueKey('profile-$account')),
     ];
@@ -722,7 +724,12 @@ class _HomeShellState extends State<HomeShell> {
               foregroundColor: context.flowOnAction,
               onPressed: () => _index == 1
                   ? showGoalTypeChoice(context)
-                  : showTaskForm(context),
+                  : showTaskForm(
+                      context,
+                      dateKey: _dateKey(
+                        _plannerKey.currentState?._day ?? DateTime.now(),
+                      ),
+                    ),
               icon: const Icon(Icons.add),
               label: Text(_index == 1 ? 'New goal' : 'Add task'),
             )
@@ -1787,11 +1794,13 @@ class PlannerDateHeader extends StatelessWidget {
     this.onPick,
     this.date,
     this.onSelect,
+    this.today,
   });
   final String title;
   final VoidCallback onPrevious, onNext, onToday;
   final VoidCallback? onPick;
   final DateTime? date;
+  final DateTime? today;
   final ValueChanged<DateTime>? onSelect;
   @override
   Widget build(BuildContext context) => Column(
@@ -1852,7 +1861,7 @@ class PlannerDateHeader extends StatelessWidget {
       ),
       if (date != null && onSelect != null) ...[
         const SizedBox(height: 8),
-        FlowWeekSelector(selected: date!, onSelected: onSelect!),
+        FlowWeekSelector(selected: date!, onSelected: onSelect!, today: today),
       ],
       const SizedBox(height: 16),
     ],
@@ -1863,54 +1872,8 @@ class DailyCompletion extends StatelessWidget {
   const DailyCompletion({super.key, required this.done, required this.total});
   final int done, total;
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final ring = ProgressRing(
-            value: total == 0 ? 0 : done / total,
-            size: 64,
-          );
-          final label = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Daily progress',
-                style: TextStyle(
-                  color: context.atelierInk,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '$done of $total tasks completed',
-                style: TextStyle(
-                  color: context.atelierMuted,
-                  fontSize: 14,
-                  height: 1.45,
-                ),
-              ),
-            ],
-          );
-          return constraints.maxWidth >= 240 &&
-                  MediaQuery.textScalerOf(context).scale(14) <= 21
-              ? Row(
-                  children: [
-                    ring,
-                    const SizedBox(width: 20),
-                    Expanded(child: label),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [ring, const SizedBox(height: 16), label],
-                );
-        },
-      ),
-    ),
-  );
+  Widget build(BuildContext context) =>
+      FlowPlannerSummary(done: done, total: total);
 }
 
 class TasksList extends StatefulWidget {
@@ -1988,10 +1951,15 @@ class _TasksListState extends State<TasksList> {
           ErrorPanel(
             message:
                 'Could not load tasks. Check your connection and try again.',
+            onRetry: () => setState(_setStream),
           ),
         );
       }
-      if (!s.hasData) return state(const LoadingPanel());
+      if (!s.hasData) {
+        return state(
+          widget.compact ? const LoadingPanel() : const FlowTimelineSkeleton(),
+        );
+      }
       final docs = flowOrderedTasks(s.data!.docs, widget.dateKey);
       if (widget.compact && docs.isEmpty) {
         return state(
@@ -2026,6 +1994,17 @@ class _TasksListState extends State<TasksList> {
                 ),
               )
               .toList(),
+        );
+      }
+      if (docs.isEmpty) {
+        return state(
+          EmptyPanel(
+            icon: Icons.event_available_outlined,
+            title: 'Nothing scheduled for this day.',
+            detail: 'Make space for something that matters to you.',
+            action: 'Add Task',
+            onTap: () => showTaskForm(context, dateKey: widget.dateKey),
+          ),
         );
       }
       final done = docs.where((d) => d.data()['completed'] == true).length;
@@ -2072,27 +2051,7 @@ class _TasksListState extends State<TasksList> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ?widget.header,
-          if (docs.isNotEmpty) ...[
-            Row(
-              children: [
-                const SizedBox(width: 4),
-                SizedBox(
-                  width: 76,
-                  child: Text(
-                    'Time',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    'Your Tasks',
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-          ],
+          if (docs.isNotEmpty) ...[const FlowTimelineHeader()],
         ],
       );
       final featuredId = flowFeaturedTask(docs, widget.dateKey);
@@ -2100,6 +2059,7 @@ class _TasksListState extends State<TasksList> {
         (d) => !flowHasSchedule(d, widget.dateKey),
       );
       return ListView.builder(
+        key: PageStorageKey('planner-${widget.uid}-${widget.dateKey}'),
         padding: SaveTrackDesign.pagePadding(
           MediaQuery.sizeOf(context).width,
           bottom: 100,
@@ -2138,193 +2098,94 @@ class TaskTile extends StatelessWidget {
     required this.doc,
     this.timeline = false,
     this.featured = false,
+    this.onOpen,
+    this.onComplete,
   });
   final bool timeline, featured;
   final String uid;
   final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  final VoidCallback? onOpen;
+  final Future<void> Function(bool)? onComplete;
+
   @override
   Widget build(BuildContext context) {
-    final d = doc.data();
-    final done = d['completed'] == true;
-    final time = d['time']?.toString() ?? '';
+    final data = doc.data();
+    final title = data['title']?.toString() ?? 'Untitled task';
+    final time = data['time']?.toString() ?? '';
     final day = SmartTaskRecommendationService.parseDateKey(
-      d['dateKey']?.toString() ?? '',
+      data['dateKey']?.toString() ?? '',
     );
     final schedule = day == null
         ? const TaskSchedule()
         : SmartTaskRecommendationService.parseSchedule(time, day);
-    final railTime = schedule.start == null
-        ? (time.isEmpty ? 'Anytime' : 'Flexible')
-        : DateFormat('HH:mm').format(schedule.start!);
-    final endTime = schedule.end == null
-        ? null
-        : DateFormat('HH:mm').format(schedule.end!);
-    final reminderTarget = ReminderTarget.fromData(
+    final target = ReminderTarget.fromData(
       ReminderTargetType.task,
       doc.id,
-      d,
+      data,
     );
-    final card = AnimatedContainer(
-      duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
-      curve: SaveTrackDesign.motionCurve,
-      decoration: BoxDecoration(
-        color: done
-            ? context.atelierTonal
-            : featured
-            ? context.flowCategory(FlowAccent.mint)
-            : context.atelierTonal,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: done ? context.atelierBorder : context.atelierBorder,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!timeline)
-              Checkbox(
-                semanticLabel: 'Complete ${d['title']}',
-                value: done,
-                activeColor: context.atelierAccent,
-                onChanged: (v) async {
-                  try {
-                    await setPlannerTaskCompleted(doc, v == true);
-                  } catch (_) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Could not update this task. Please try again.',
-                          ),
-                        ),
-                      );
-                    }
-                  }
-                },
+    final card = FlowTaskCard(
+      title: title,
+      priority: data['priority']?.toString() ?? 'Normal',
+      completed: data['completed'] == true,
+      featured: featured,
+      schedule: !timeline ? time : null,
+      description: data['description']?.toString() ?? data['note']?.toString(),
+      onOpen: onOpen ?? () => showTaskForm(context, doc: doc),
+      onComplete: (value) async {
+        try {
+          if (onComplete != null) {
+            await onComplete!(value);
+          } else {
+            await setPlannerTaskCompleted(doc, value);
+          }
+        } catch (_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Could not update this task. Please try again.'),
               ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AnimatedDefaultTextStyle(
-                      duration: SaveTrackDesign.duration(
-                        context,
-                        SaveTrackDesign.motion,
-                      ),
-                      curve: SaveTrackDesign.motionCurve,
-                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        decoration: done ? TextDecoration.lineThrough : null,
-                        color: done ? context.atelierMuted : context.atelierInk,
-                      ),
-                      child: Text('${d['title']}'),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: [
-                          if (time.isNotEmpty && !timeline)
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.schedule_outlined,
-                                  size: 14,
-                                  color: context.atelierMuted,
-                                ),
-                                const SizedBox(width: 4),
-                                Flexible(
-                                  child: Text(
-                                    time,
-                                    style: TextStyle(
-                                      color: context.atelierMuted,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          StatusPill(
-                            '${d['priority'] ?? 'Normal'} priority',
-                            color: d['priority'] == 'High'
-                                ? context.atelierWarning
-                                : context.atelierAccent,
-                          ),
-                          if (done) const StatusPill('Completed'),
-                          if (timeline)
-                            Checkbox(
-                              semanticLabel: 'Complete ${d['title']}',
-                              value: done,
-                              activeColor: context.atelierAccent,
-                              onChanged: (v) async {
-                                try {
-                                  await setPlannerTaskCompleted(doc, v == true);
-                                } catch (_) {
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Could not update this task. Please try again.',
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                    if (!timeline) ReminderButton(target: reminderTarget),
-                  ],
-                ),
-              ),
+            );
+          }
+        }
+      },
+      footer: timeline ? null : ReminderButton(target: target),
+      menu: PopupMenuButton<String>(
+        tooltip: 'Task actions',
+        onSelected: (value) {
+          if (value == 'edit') showTaskForm(context, doc: doc);
+          if (value == 'reminder') showReminderEditor(context, target);
+          if (value == 'delete') {
+            confirmDelete(
+              context,
+              'Delete this task?',
+              () => doc.reference.delete(),
+            );
+          }
+        },
+        itemBuilder: (_) => [
+          const PopupMenuItem(value: 'edit', child: Text('Edit')),
+          PopupMenuItem(
+            value: 'reminder',
+            child: Text(
+              ReminderScope.maybeOf(context)?.configurations
+                          .containsKey(target.key) ==
+                      true
+                  ? 'Manage Reminder'
+                  : 'Set Reminder',
             ),
-            PopupMenuButton<String>(
-              tooltip: 'Task actions',
-              onSelected: (v) {
-                if (v == 'edit') showTaskForm(context, doc: doc);
-                if (v == 'reminder') {
-                  showReminderEditor(context, reminderTarget);
-                }
-                if (v == 'delete') {
-                  confirmDelete(
-                    context,
-                    'Delete this task?',
-                    () => doc.reference.delete(),
-                  );
-                }
-              },
-              itemBuilder: (_) => [
-                const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                PopupMenuItem(
-                  value: 'reminder',
-                  child: Text(
-                    ReminderScope.maybeOf(context)?.configurations
-                                .containsKey(reminderTarget.key) ==
-                            true
-                        ? 'Manage Reminder'
-                        : 'Set Reminder',
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+          ),
+          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+        ],
       ),
     );
     return timeline
         ? FlowTimelineEntry(
-            time: railTime,
-            caption: endTime,
+            time: schedule.start == null
+                ? (time.isEmpty ? 'Anytime' : 'Flexible')
+                : DateFormat('HH:mm').format(schedule.start!),
+            caption: schedule.end == null
+                ? null
+                : DateFormat('HH:mm').format(schedule.end!),
             featured: featured,
             child: card,
           )
@@ -2462,9 +2323,9 @@ class ReportsLayout extends StatelessWidget {
         key: const PageStorageKey('reports-scroll'),
         padding: SaveTrackDesign.pagePadding(constraints.maxWidth),
         children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 20),
-            child: Text('Your savings and planning, at a glance.'),
+          const AtelierSectionHeader(
+            title: 'Overview',
+            subtitle: 'Your savings and planning, at a glance.',
           ),
           if (expanded)
             Row(
@@ -2886,7 +2747,12 @@ class ReportMetric extends StatelessWidget {
         ),
       );
     }
-    return TonalPanel(
+    return Container(
+      padding: const EdgeInsets.all(SaveTrackDesign.spaceLg),
+      decoration: BoxDecoration(
+        color: context.flowCategory(FlowAccent.mint),
+        borderRadius: BorderRadius.circular(SaveTrackDesign.radiusHero),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -3021,8 +2887,9 @@ class LoadingPanel extends StatelessWidget {
 }
 
 class ErrorPanel extends StatelessWidget {
-  const ErrorPanel({super.key, required this.message});
+  const ErrorPanel({super.key, required this.message, this.onRetry});
   final String message;
+  final VoidCallback? onRetry;
   @override
   Widget build(BuildContext context) => StateSurface(
     padding: const EdgeInsets.all(16),
@@ -3046,7 +2913,7 @@ class ErrorPanel extends StatelessWidget {
               message,
               style: TextStyle(color: context.atelierError, height: 1.5),
             );
-            return constraints.maxWidth < 220
+            final content = constraints.maxWidth < 220
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [icon, const SizedBox(height: 8), text],
@@ -3059,6 +2926,20 @@ class ErrorPanel extends StatelessWidget {
                       Expanded(child: text),
                     ],
                   );
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                content,
+                if (onRetry != null) ...[
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ],
+            );
           },
         ),
       ),

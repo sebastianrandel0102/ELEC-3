@@ -197,25 +197,12 @@ class AtelierSectionHeader extends StatelessWidget {
   final String? action;
   final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 14),
-    child: Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 12,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 3),
-            Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
-        if (onTap != null)
-          TextButton(onPressed: onTap, child: Text(action ?? 'View all')),
-      ],
-    ),
+  Widget build(BuildContext context) => FlowSectionHeader(
+    title: title,
+    subtitle: subtitle,
+    trailing: onTap == null
+        ? null
+        : TextButton(onPressed: onTap, child: Text(action ?? 'View all')),
   );
 }
 
@@ -1253,12 +1240,14 @@ class WeeklyPlanner extends StatefulWidget {
     required this.onSelect,
     required this.header,
     this.taskStream,
+    this.today,
   });
   final String uid;
   final DateTime selected;
   final ValueChanged<DateTime> onSelect;
   final Widget header;
   final Stream<QuerySnapshot<Map<String, dynamic>>>? taskStream;
+  final DateTime? today;
   @override
   State<WeeklyPlanner> createState() => _WeeklyPlannerState();
 }
@@ -1293,6 +1282,7 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
     super.didUpdateWidget(old);
     final d = widget.selected;
     if (old.uid != widget.uid ||
+        old.taskStream != widget.taskStream ||
         _dateKey(DateTime(d.year, d.month, d.day - d.weekday + 1)) !=
             _dateKey(start)) {
       _subscribe();
@@ -1303,6 +1293,7 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
   Widget build(
     BuildContext context,
   ) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    key: ValueKey('${widget.uid}/week-${_dateKey(start)}'),
     stream: stream,
     builder: (context, snapshot) {
       final records =
@@ -1314,7 +1305,11 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
             .toList(),
         _dateKey(widget.selected),
       );
-      final featuredId = flowFeaturedTask(selected, _dateKey(widget.selected));
+      final featuredId = flowFeaturedTask(
+        selected,
+        _dateKey(widget.selected),
+        now: widget.today,
+      );
       final firstFlexible = selected.indexWhere(
         (d) => !flowHasSchedule(d, _dateKey(widget.selected)),
       );
@@ -1327,7 +1322,8 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
                 widget.header,
                 FlowDateHeading(
                   date: widget.selected,
-                  onToday: () => widget.onSelect(DateTime.now()),
+                  onToday: () =>
+                      widget.onSelect(widget.today ?? DateTime.now()),
                 ),
                 Wrap(
                   alignment: WrapAlignment.spaceBetween,
@@ -1363,6 +1359,7 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
                 const SizedBox(height: 12),
                 FlowWeekSelector(
                   selected: widget.selected,
+                  today: widget.today,
                   onSelected: widget.onSelect,
                   counts: {
                     for (var i = 0; i < 7; i++)
@@ -1382,8 +1379,9 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
                   },
                 ),
                 const SizedBox(height: 20),
-                if (snapshot.hasData)
-                  DailyCompletion(
+                if (snapshot.hasData && !snapshot.hasError)
+                  FlowPlannerSummary(
+                    label: 'Weekly progress',
                     done: records
                         .where((d) => d.data()['completed'] == true)
                         .length,
@@ -1395,12 +1393,12 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (snapshot.hasError)
-                  const AuroraNotice(
-                    'This week could not be loaded. Reopen Planner after reconnecting.',
-                    error: true,
+                  ErrorPanel(
+                    message: 'This week could not be loaded. Check your connection and try again.',
+                    onRetry: () => setState(_subscribe),
                   )
                 else if (!snapshot.hasData)
-                  const LoadingPanel()
+                  const FlowTimelineSkeleton()
                 else if (selected.isEmpty)
                   EmptyPanel(
                     icon: Icons.event_available_outlined,
@@ -1418,7 +1416,7 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
             sliver: SliverList.builder(
-              itemCount: selected.length,
+              itemCount: snapshot.hasError ? 0 : selected.length,
               itemBuilder: (context, i) => FlowTaskGroupEntry(
                 uid: widget.uid,
                 doc: selected[i],
@@ -1539,53 +1537,88 @@ class ReminderTimeline extends StatelessWidget {
     return Column(
       children: items.indexed.map((entry) {
         final item = entry.$2;
+        final featured = entry.$1 == 0;
         final time = TimeOfDay.fromDateTime(item.at).format(context);
-        final task = item.target.type == ReminderTargetType.task;
-        final card = Card(
-          color: entry.$1 == 0
+        final timeline = presentation == ReminderPresentation.timeline;
+        final (icon, category) = switch (item.target.type) {
+          ReminderTargetType.task => (
+            Icons.check_circle_outline,
+            'Task reminder',
+          ),
+          ReminderTargetType.sharedGoal => (
+            Icons.groups_outlined,
+            'Shared goal reminder',
+          ),
+          ReminderTargetType.personalGoal => (
+            Icons.savings_outlined,
+            'Savings reminder',
+          ),
+        };
+        final card = Material(
+          color: featured
               ? context.flowCategory(FlowAccent.mint)
               : context.atelierTonal,
-          child: ListTile(
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 12,
-            ),
-            title: Text(
-              item.target.title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 8),
+          borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => onOpen(item),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    '${DateFormat.yMMMd().format(item.at)} · $time',
-                    style: Theme.of(context).textTheme.bodySmall,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.target.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
+                        color: context.atelierAccent,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 6),
                   Text(
                     reminderSummary(context, item.configuration),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
-                  const SizedBox(height: 8),
-                  Icon(
-                    task ? Icons.check_circle_outline : Icons.savings_outlined,
-                    size: 18,
-                    color: context.atelierAccent,
+                  if (!timeline) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      '${DateFormat.yMMMd().format(item.at)} · $time',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(icon, size: 16, color: context.atelierAccent),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          category,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            trailing: const Icon(Icons.chevron_right_rounded, size: 18),
-            onTap: () => onOpen(item),
           ),
         );
-        return presentation == ReminderPresentation.timeline
+        return timeline
             ? FlowTimelineEntry(
                 time: time,
                 caption: DateFormat.MMMd().format(item.at),
-                featured: entry.$1 == 0,
+                featured: featured,
                 child: card,
               )
             : Padding(padding: const EdgeInsets.only(bottom: 12), child: card);
@@ -1880,6 +1913,7 @@ class PulseContent extends StatelessWidget {
           ),
           AmountText(
             money(totals.net),
+            key: const ValueKey('pulse-net-savings'),
             style: SaveTrackDesign.amount.copyWith(
               fontSize: 30,
               color: context.atelierInk,
@@ -1890,25 +1924,33 @@ class PulseContent extends StatelessWidget {
           ),
         ] else ...[
           AdaptiveCards(
-            breakpoint: 540,
+            breakpoint: 300,
             children: [
-              AuroraMetricCard(
+              FlowFinancialMetric(
                 icon: Icons.south_west,
                 value: money(totals.contributions),
                 label: 'Contributions',
               ),
-              AuroraMetricCard(
+              FlowFinancialMetric(
+                accent: FlowAccent.peach,
                 icon: Icons.north_east,
                 value: money(totals.withdrawals),
                 label: 'Withdrawals',
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           Text(
-            'Net savings change: ${money(totals.net)}',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
+            'Net savings change',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 4),
+          AmountText(
+            money(totals.net),
+            key: const ValueKey('pulse-net-savings'),
+            compactCurrency: true,
+            style: SaveTrackDesign.amount.copyWith(
+              fontSize: 30,
               color: context.atelierInk,
             ),
           ),
@@ -1927,36 +1969,57 @@ class PulseContent extends StatelessWidget {
           else
             SizedBox(
               height: 160,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: points.map((point) {
-                  final label =
-                      '${DateFormat.yMMMd().format(point.$1)}: ${formatCurrency(totals.days[_dateKey(point.$1)] ?? ExactDecimal.zero, totals.currency)} contributed';
-                  return Expanded(
-                    child: Tooltip(
-                      message: label,
-                      triggerMode: TooltipTriggerMode.tap,
-                      child: Semantics(
-                        label: label,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              height: (point.$2 / maximum * 150).clamp(2, 150),
-                              decoration: BoxDecoration(
-                                color: point.$2 > 0
-                                    ? context.atelierAccent
-                                    : context.atelierBorder,
-                                borderRadius: BorderRadius.circular(4),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ExcludeSemantics(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        for (var i = 0; i < 4; i++)
+                          Divider(height: 1, color: context.atelierBorder),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: points.map((point) {
+                      final label =
+                          '${DateFormat.yMMMd().format(point.$1)}: ${formatCurrency(totals.days[_dateKey(point.$1)] ?? ExactDecimal.zero, totals.currency)} contributed';
+                      return Expanded(
+                        child: Tooltip(
+                          message: label,
+                          triggerMode: TooltipTriggerMode.tap,
+                          child: Semantics(
+                            label: label,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Container(
+                                  height: (point.$2 / maximum * 150).clamp(
+                                    2,
+                                    150,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: point.$2 > 0
+                                        ? context.atelierAccent
+                                        : context.atelierBorder,
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(6),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             ),
           Row(

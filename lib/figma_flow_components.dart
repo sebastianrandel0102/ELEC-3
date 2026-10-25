@@ -18,6 +18,13 @@ abstract final class FigmaFlowPalette {
   static const darkElevated = Color(0xFF2B453C);
 }
 
+/// Calendar navigation uses local calendar constructors, never 24-hour jumps.
+abstract final class FlowCalendar {
+  static DateTime shift(DateTime day, int days) =>
+      DateTime(day.year, day.month, day.day + days);
+  static DateTime monday(DateTime day) => shift(day, 1 - day.weekday);
+}
+
 enum FlowAccent { mint, coral, lavender, peach }
 
 class FlowCategoryDecoration extends StatelessWidget {
@@ -113,17 +120,16 @@ class FlowWeekSelector extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     this.counts = const {},
+    this.today,
   });
   final DateTime selected;
   final ValueChanged<DateTime> onSelected;
   final Map<int, int> counts;
+  final DateTime? today;
   @override
   Widget build(BuildContext context) {
-    final monday = DateTime(
-      selected.year,
-      selected.month,
-      selected.day - selected.weekday + 1,
-    );
+    final monday = FlowCalendar.monday(selected);
+    final current = today ?? DateTime.now();
     final localizations = MaterialLocalizations.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -145,13 +151,14 @@ class FlowWeekSelector extends StatelessWidget {
                           monday.day + i,
                         );
                         final active = DateUtils.isSameDay(day, selected);
+                        final isToday = DateUtils.isSameDay(day, current);
                         final count = counts[i + 1];
                         return Semantics(
                           selected: active,
                           button: true,
                           onTap: () => onSelected(day),
                           label:
-                              '${localizations.formatFullDate(day)}${count == null ? '' : ', $count tasks'}',
+                              '${localizations.formatFullDate(day)}${isToday ? ', Today' : ''}${count == null ? '' : ', $count tasks'}',
                           excludeSemantics: true,
                           child: Material(
                             color: Colors.transparent,
@@ -168,13 +175,18 @@ class FlowWeekSelector extends StatelessWidget {
                                 ),
                                 curve: SaveTrackDesign.motionCurve,
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
+                                  vertical: 10,
                                 ),
                                 decoration: BoxDecoration(
                                   color: active
                                       ? context.flowAction
                                       : Colors.transparent,
                                   borderRadius: BorderRadius.circular(15),
+                                  border: Border.all(
+                                    color: isToday && !active
+                                        ? context.atelierAccent
+                                        : Colors.transparent,
+                                  ),
                                 ),
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
@@ -184,16 +196,18 @@ class FlowWeekSelector extends StatelessWidget {
                                           7],
                                       style: TextStyle(
                                         fontSize: 12,
+                                        height: 1.2,
                                         color: active
                                             ? context.flowOnAction
                                             : context.atelierMuted,
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
+                                    const SizedBox(height: 6),
                                     Text(
                                       '${day.day}',
                                       style: TextStyle(
                                         fontSize: 16,
+                                        height: 1.2,
                                         fontWeight: FontWeight.w700,
                                         fontFeatures: const [
                                           FontFeature.tabularFigures(),
@@ -203,18 +217,47 @@ class FlowWeekSelector extends StatelessWidget {
                                             : context.atelierInk,
                                       ),
                                     ),
-                                    if (count != null) ...[
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        '$count',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: active
-                                              ? context.flowOnAction
-                                              : context.atelierMuted,
-                                        ),
-                                      ),
-                                    ],
+                                    const SizedBox(height: 4),
+                                    SizedBox(
+                                      height: count == null
+                                          ? 6
+                                          : math.max(
+                                              14,
+                                              MediaQuery.textScalerOf(context)
+                                                      .scale(11) *
+                                                  1.2,
+                                            ),
+                                      child: count != null
+                                          ? Text(
+                                              '$count',
+                                              style: TextStyle(
+                                                fontSize: 11,
+                                                height: 1.2,
+                                                fontWeight: isToday
+                                                    ? FontWeight.w700
+                                                    : FontWeight.w400,
+                                                color: active
+                                                    ? context.flowOnAction
+                                                    : context.atelierMuted,
+                                              ),
+                                            )
+                                          : Center(
+                                              child: Container(
+                                                width: 4,
+                                                height: 4,
+                                                decoration: BoxDecoration(
+                                                  shape: BoxShape.circle,
+                                                  color: isToday
+                                                      ? (active
+                                                            ? context
+                                                                  .flowOnAction
+                                                            : context
+                                                                  .atelierAccent)
+                                                      : Colors.transparent,
+                                                ),
+                                              ),
+                                            ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -352,7 +395,7 @@ class FlowTimelineEntry extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SizedBox(
-              width: 64,
+              width: 56,
               child: Padding(
                 padding: const EdgeInsets.only(top: 18, right: 8),
                 child: metadata,
@@ -363,7 +406,11 @@ class FlowTimelineEntry extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 16),
                 decoration: BoxDecoration(
                   border: Border(
-                    left: BorderSide(color: context.atelierBorder),
+                    left: BorderSide(
+                      color: featured
+                          ? context.atelierAccent.withValues(alpha: .35)
+                          : context.atelierBorder,
+                    ),
                   ),
                 ),
                 child: child,
@@ -373,6 +420,441 @@ class FlowTimelineEntry extends StatelessWidget {
         ),
       );
     },
+  );
+}
+
+/// Shared title treatment for secondary workspaces, sized for real content.
+class FlowWorkspaceIntro extends StatelessWidget {
+  const FlowWorkspaceIntro({
+    super.key,
+    required this.icon,
+    required this.eyebrow,
+    required this.title,
+    required this.detail,
+    this.footer,
+  });
+  final IconData icon;
+  final String eyebrow, title, detail;
+  final Widget? footer;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(SaveTrackDesign.spaceLg),
+    decoration: BoxDecoration(
+      color: context.flowCategory(FlowAccent.mint),
+      borderRadius: BorderRadius.circular(SaveTrackDesign.radiusHero),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 22, color: context.atelierAccent),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                eyebrow,
+                style: Theme.of(context).textTheme.labelLarge
+                    ?.copyWith(color: context.atelierAccent),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Semantics(
+          header: true,
+          child: Text(
+            title,
+            style: Theme.of(context).textTheme.headlineMedium
+                ?.copyWith(fontSize: 26, height: 1.2),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(detail, style: Theme.of(context).textTheme.bodySmall),
+        if (footer != null) ...[const SizedBox(height: 16), footer!],
+      ],
+    ),
+  );
+}
+
+class FlowSectionHeader extends StatelessWidget {
+  const FlowSectionHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+  });
+  final String title;
+  final String? subtitle;
+  final Widget? trailing;
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 14),
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        final label = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              header: true,
+              child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+            ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 3),
+              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ],
+        );
+        if (trailing == null) return label;
+        if (constraints.maxWidth < 340 ||
+            MediaQuery.textScalerOf(context).scale(14) > 21) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [label, const SizedBox(height: 4), trailing!],
+          );
+        }
+        return Row(
+          children: [
+            Expanded(child: label),
+            const SizedBox(width: 12),
+            trailing!,
+          ],
+        );
+      },
+    ),
+  );
+}
+
+/// Functional category tiles shared by AI prompts and Agent shortcuts.
+class FlowActionCard extends StatelessWidget {
+  const FlowActionCard({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.detail,
+    required this.onTap,
+    this.accent = FlowAccent.mint,
+  });
+  final IconData icon;
+  final String title, detail;
+  final VoidCallback onTap;
+  final FlowAccent accent;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    child: Material(
+      color: context.flowCategory(accent),
+      borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: FlowCategoryDecoration(
+          accent: accent,
+          child: Padding(
+            padding: const EdgeInsets.all(SaveTrackDesign.space),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: context.atelierInk, size: 24),
+                    const Spacer(),
+                    Icon(
+                      Icons.north_east_rounded,
+                      size: 16,
+                      color: context.atelierInk,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                Text(detail, style: Theme.of(context).textTheme.bodySmall),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// A task's data and mutations are supplied by its owning feature.
+class FlowTaskCard extends StatelessWidget {
+  const FlowTaskCard({
+    super.key,
+    required this.title,
+    required this.priority,
+    required this.completed,
+    required this.onComplete,
+    required this.onOpen,
+    required this.menu,
+    this.featured = false,
+    this.schedule,
+    this.description,
+    this.footer,
+  });
+  final String title, priority;
+  final bool completed, featured;
+  final String? schedule, description;
+  final ValueChanged<bool> onComplete;
+  final VoidCallback onOpen;
+  final Widget menu;
+  final Widget? footer;
+
+  @override
+  Widget build(BuildContext context) {
+    final highlighted = featured && !completed;
+    final background = highlighted
+        ? (context.isDark ? context.atelierSelected : FigmaFlowPalette.fresh)
+        : context.atelierTonal;
+    return AnimatedContainer(
+      duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
+      curve: SaveTrackDesign.motionCurve,
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onOpen,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(
+                                fontSize: 16,
+                                height: 1.4,
+                                color: completed
+                                    ? context.atelierMuted
+                                    : context.atelierInk,
+                                decoration: completed
+                                    ? TextDecoration.lineThrough
+                                    : null,
+                              ),
+                        ),
+                      ),
+                    ),
+                    menu,
+                  ],
+                ),
+                if (description?.trim().isNotEmpty ?? false)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4, right: 8),
+                    child: Text(
+                      description!,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: highlighted
+                            ? context.atelierInk
+                            : context.atelierMuted,
+                      ),
+                    ),
+                  ),
+                if (schedule?.isNotEmpty ?? false)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Text(
+                      schedule!,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        children: [
+                          StatusPill(
+                            '$priority priority',
+                            color: highlighted
+                                ? context.atelierInk
+                                : priority == 'High'
+                                ? context.atelierWarning
+                                : context.atelierAccent,
+                          ),
+                          if (completed) const StatusPill('Completed'),
+                          if (highlighted)
+                            Text(
+                              'Up next',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(color: context.atelierInk),
+                            ),
+                        ],
+                      ),
+                    ),
+                    Checkbox(
+                      semanticLabel: completed
+                          ? 'Mark $title incomplete'
+                          : 'Complete $title',
+                      value: completed,
+                      onChanged: (value) => onComplete(value == true),
+                    ),
+                  ],
+                ),
+                ?footer,
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class FlowTimelineHeader extends StatelessWidget {
+  const FlowTimelineHeader({super.key, this.title = 'Your tasks'});
+  final String title;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) => Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          if (constraints.maxWidth >= 300 &&
+              MediaQuery.textScalerOf(context).scale(14) <= 21)
+            SizedBox(
+              width: 73,
+              child: Text('Time', style: Theme.of(context).textTheme.bodySmall),
+            ),
+          Expanded(
+            child: Text(title, style: Theme.of(context).textTheme.bodySmall),
+          ),
+          Icon(Icons.sort_rounded, size: 18, color: context.atelierMuted),
+        ],
+      ),
+    ),
+  );
+}
+
+class FlowPlannerSummary extends StatelessWidget {
+  const FlowPlannerSummary({
+    super.key,
+    required this.done,
+    required this.total,
+    this.label = 'Daily progress',
+  });
+  final int done, total;
+  final String label;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: context.flowCategory(FlowAccent.mint),
+      borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          runSpacing: 4,
+          children: [
+            Text(label, style: Theme.of(context).textTheme.titleSmall),
+            Text(
+              '$done of $total tasks completed',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        MintProgress(value: total == 0 ? 0 : done / total),
+      ],
+    ),
+  );
+}
+
+/// Receives a formatted amount; currency arithmetic stays in the report model.
+class FlowFinancialMetric extends StatelessWidget {
+  const FlowFinancialMetric({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.accent = FlowAccent.mint,
+  });
+  final String label, value;
+  final IconData icon;
+  final FlowAccent accent;
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: context.flowCategory(accent),
+      borderRadius: BorderRadius.circular(SaveTrackDesign.radiusMedium),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Icon(icon, size: 20, color: context.atelierInk),
+        ),
+        const SizedBox(height: 16),
+        AmountText(
+          value,
+          compactCurrency: true,
+          stackCurrency: true,
+          style: SaveTrackDesign.amount.copyWith(
+            fontSize: 24,
+            letterSpacing: -.6,
+            color: context.atelierInk,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(label, style: Theme.of(context).textTheme.bodySmall),
+      ],
+    ),
+  );
+}
+
+/// Keeps loading geometry close to the schedule it will replace.
+class FlowTimelineSkeleton extends StatelessWidget {
+  const FlowTimelineSkeleton({super.key});
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'Loading your schedule',
+    child: ExcludeSemantics(
+      child: Column(
+        children: [
+          for (var i = 0; i < 3; i++)
+            FlowTimelineEntry(
+              time: '',
+              child: Container(
+                height: 128,
+                decoration: BoxDecoration(
+                  color: context.atelierTonal,
+                  borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
+                ),
+                child: const AuroraSkeleton(),
+              ),
+            ),
+        ],
+      ),
+    ),
   );
 }
 
