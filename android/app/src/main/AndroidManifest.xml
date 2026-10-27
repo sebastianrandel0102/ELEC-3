@@ -47,6 +47,9 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <receiver android:name=".widgets.QuickSaveActionReceiver" android:exported="false" />
+        <service android:name=".widgets.QuickSaveJobService" android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

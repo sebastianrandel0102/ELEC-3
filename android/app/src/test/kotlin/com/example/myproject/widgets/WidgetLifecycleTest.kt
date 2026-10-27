@@ -99,7 +99,7 @@ class WidgetLifecycleTest {
                 val config = configure(id, type, theme = theme)
                 val root = WidgetRenderer.render(context, id, type, config, snapshot(config), 350f, 300f).apply(context, FrameLayout(context))
                 val expected = context.getColor(if (theme == "emerald") R.color.st_night_secondary_text else R.color.st_day_secondary_text)
-                assertEquals("$type $theme", expected, root.findViewById<TextView>(R.id.st_brand).currentTextColor)
+                assertEquals("$type $theme", expected, root.findViewById<TextView>(if (type == "quickSave") R.id.st_quick_goal else R.id.st_brand).currentTextColor)
             }
         }
     }
@@ -221,22 +221,21 @@ class WidgetLifecycleTest {
         assertEquals(View.GONE, root.findViewById<View>(R.id.st_actions).visibility)
         assertFalse(texts(root).contains("Private motorcycle"))
     }
-    @Test fun presetActionsAreDistinctPerInstanceAndOnlyLaunchTheApp() {
+    @Test fun nativeInputActionsAreDistinctAndNeverLaunchTheApp() {
         val ids = listOf(install("quickSave"), install("quickSave"))
         val intents = ids.map { id ->
             val config = configure(id, "quickSave")
+            store.publish("alice", listOf(snapshot(config).toString()))
             val before = store.config(id).toString()
-            val root = WidgetRenderer.render(context, id, "quickSave", config, snapshot(config), 350f, 300f).apply(context, FrameLayout(context))
-            val button = findText(root, "+₱50.00")
-            assertNotNull(button)
-            assertTrue(button!!.performClick())
-            val launched = shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity
-            assertEquals("savetrack.widget", launched.action)
-            assertEquals(id, launched.getIntExtra("widgetId", -1))
-            assertEquals("save", launched.getStringExtra("widgetAction"))
-            assertEquals(0, launched.getIntExtra("preset", -1))
+            val input = QuickSaveStore(context)
+            val flow = input.state(id).getString("flow")
+            val action = QuickSaveActionReceiver.action(context, id, config.getLong("revision"), flow, "preset:0")
+            assertTrue(input.dispatch(id, config.getLong("revision"), flow, "preset:0"))
+            assertEquals("50.00", input.state(id).getString("amount"))
+            assertNull(input.operation(id))
             assertEquals(before, store.config(id).toString())
-            launched
+            assertNull(shadowOf(RuntimeEnvironment.getApplication()).nextStartedActivity)
+            shadowOf(action).savedIntent
         }
         assertNotEquals(intents[0].data, intents[1].data)
     }

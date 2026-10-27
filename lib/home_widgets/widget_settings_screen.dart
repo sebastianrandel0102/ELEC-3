@@ -589,7 +589,7 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Optional amounts. Every contribution is reviewed and confirmed in SaveTrack.',
+                      'Optional amounts. Quick Save supports review and confirmation on the home screen with Full Details enabled.',
                       style: TextStyle(color: context.atelierMuted),
                     ),
                     const SizedBox(height: 12),

@@ -92,7 +92,7 @@ class WidgetAtelierRenderingTest {
     @Test fun allWidgetsRenderAcrossThemesAndShapes() {
         for (type in WidgetStore.providers.keys) for ((theme, night) in listOf("mint" to false, "emerald" to false, "white" to true, "system" to false, "system" to true)) {
             val context = context(night)
-            for ((width, height) in listOf(140 to 80, 350 to 100, 300 to 220, 350 to 360, 150 to 420, 500 to 550)) {
+            for ((width, height) in listOf(140 to 80, 180 to 100, 180 to 210, 350 to 100, 300 to 220, 350 to 360, 150 to 420, 500 to 550)) {
                 val root = measured(context, WidgetRenderer.render(context, 42, type, settings(type, theme), facts(), width.toFloat(), height.toFloat()), width, height)
                 val label = "$type-$theme-${if (night) "night" else "day"}-${width}x$height"
                 fits(root, label)
@@ -111,7 +111,8 @@ class WidgetAtelierRenderingTest {
         val root = measured(context, WidgetRenderer.render(context, 42, type, settings(type, theme), facts(), 300f, 220f), 300, 220)
         assertEquals(600, root.width)
         assertEquals(440, root.height)
-        assertTrue(root.findViewById<TextView>(R.id.st_brand).text.startsWith("SAVETRACK"))
+        if (type == "quickSave") assertEquals("Motorcycle Fund", root.findViewById<TextView>(R.id.st_quick_goal).text.toString())
+        else assertTrue(root.findViewById<TextView>(R.id.st_brand).text.startsWith("SAVETRACK"))
         fits(root, "picker-$type")
         export(root, "picker-$type.png")
     }
@@ -132,7 +133,7 @@ class WidgetAtelierRenderingTest {
     @Test fun mediumLayoutsKeepTheNextTaskSavingsProgressAndPresetShortcuts() {
         val context = context()
         for ((type, required) in listOf("goal" to listOf("PHP ₱12,000.00", "40%"),
-            "planner" to listOf("1 / 3", "Finish school project"), "quickSave" to listOf("+₱50.00", "+ Add Savings"))) {
+            "planner" to listOf("1 / 3", "Finish school project"), "quickSave" to listOf("PHP 0", "More", "Review"))) {
             val root = measured(context, WidgetRenderer.render(context, 42, type, settings(type), facts(), 300f, 220f), 300, 220)
             for (text in required) assertTrue("$type missing $text", visibleText(root).contains(text))
         }
@@ -156,7 +157,7 @@ class WidgetAtelierRenderingTest {
             val night = context(night = true)
             val root = measured(night, remote, 350, 360)
             val dark = theme == "system" || theme == "emerald"
-            assertEquals("$type $theme", night.getColor(if (dark) R.color.st_night_secondary_text else R.color.st_day_secondary_text), root.findViewById<TextView>(R.id.st_brand).currentTextColor)
+            assertEquals("$type $theme", night.getColor(if (dark) R.color.st_night_secondary_text else R.color.st_day_secondary_text), root.findViewById<TextView>(if (type == "quickSave") R.id.st_quick_goal else R.id.st_brand).currentTextColor)
             assertEquals(night.resources.getDimension(android.R.dimen.system_app_widget_background_radius), (root.background as GradientDrawable).cornerRadius)
         }
     }

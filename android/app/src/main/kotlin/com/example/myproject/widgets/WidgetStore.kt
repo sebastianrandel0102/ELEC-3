@@ -34,20 +34,23 @@ class WidgetStore(private val context: Context) {
     private fun decode(raw: String?): JSONObject? = try {
         raw?.let { JSONObject(it) }
     } catch (_: Exception) { null }
-    @Synchronized fun setSession(uid: String?) {
+    fun setSession(uid: String?) = synchronized(QuickSaveStore.lock) { setSessionLocked(uid) }
+    private fun setSessionLocked(uid: String?) {
         if (session() == uid) return
         val edit = prefs.edit()
         for (key in prefs.all.keys) {
-            if (key.startsWith("config_") || key.startsWith("snapshot_")) edit.remove(key)
+            if (listOf("config_", "snapshot_", "input_", "operation_").any { key.startsWith(it) }) edit.remove(key)
         }
         if (uid == null) edit.remove("session") else edit.putString("session", uid)
         check(edit.commit()) { "Could not clear widget storage" }
         WidgetRenderer.updateAll(context)
     }
-    @Synchronized fun save(raw: String): JSONObject {
+    fun save(raw: String): JSONObject = synchronized(QuickSaveStore.lock) { saveLocked(raw) }
+    private fun saveLocked(raw: String): JSONObject {
         require(raw.length < 8192)
         val data = JSONObject(raw)
         val id = data.getInt("id")
+        check(QuickSaveStore(context).operation(id) == null) { "Retry the unresolved Quick Save before changing its settings." }
         require(data.optInt("schemaVersion") == 1 && data.getString("uid") == session())
         require(installed()[id] == data.getString("type")) { "Widget is no longer installed" }
         require(data.getString("theme") in listOf("emerald", "mint", "white", "system"))
@@ -69,7 +72,7 @@ class WidgetStore(private val context: Context) {
         val revision = prefs.getLong("revision", 0) + 1
         data.put("revision", revision)
         check(prefs.edit().putLong("revision", revision)
-            .putString("config_$id", data.toString()).remove("snapshot_$id").commit())
+            .putString("config_$id", data.toString()).remove("snapshot_$id").remove("input_$id").commit())
         WidgetRenderer.update(context, id)
         return data
     }
@@ -103,7 +106,8 @@ class WidgetStore(private val context: Context) {
         return true
     }
 
-    @Synchronized fun publish(uid: String, payloads: List<String>) {
+    fun publish(uid: String, payloads: List<String>) = synchronized(QuickSaveStore.lock) { publishLocked(uid, payloads) }
+    private fun publishLocked(uid: String, payloads: List<String>) {
         require(uid == session()) { "Session changed" }
         val ids = installed()
         val changed = mutableListOf<Int>()
@@ -134,15 +138,21 @@ class WidgetStore(private val context: Context) {
             data.put("freshnessAt", freshness)
             val value = data.toString()
             if (prefs.getString("snapshot_$id", null) != value) {
-                edit.putString("snapshot_$id", value); changed.add(id)
+                edit.putString("snapshot_$id", value)
+                // Persist new freshness without redrawing every cached replay.
+                fun content(json: JSONObject): String = JSONObject(json.toString()).apply {
+                    remove("updatedAt"); remove("freshnessAt")
+                }.toString()
+                if (previous == null || content(previous) != content(data)) changed.add(id)
             }
         }
         check(edit.commit())
         changed.forEach { WidgetRenderer.update(context, it) }
     }
-    fun remove(ids: IntArray) {
+    fun remove(ids: IntArray) = synchronized(QuickSaveStore.lock) { removeLocked(ids) }
+    private fun removeLocked(ids: IntArray) {
         val edit = prefs.edit()
-        ids.forEach { edit.remove("config_$it").remove("snapshot_$it") }
+        ids.forEach { edit.remove("config_$it").remove("snapshot_$it").remove("input_$it").remove("operation_$it") }
         check(edit.commit())
     }
     fun restored(old: IntArray, new: IntArray) {
@@ -150,10 +160,11 @@ class WidgetStore(private val context: Context) {
         remove(old + new)
         new.forEach { WidgetRenderer.update(context, it) }
     }
-    fun prune() {
+    fun prune() = synchronized(QuickSaveStore.lock) { pruneLocked() }
+    private fun pruneLocked() {
         val ids = installed().keys
         val edit = prefs.edit()
-        prefs.all.keys.filter { it.startsWith("config_") || it.startsWith("snapshot_") }.forEach {
+        prefs.all.keys.filter { key -> listOf("config_", "snapshot_", "input_", "operation_").any { key.startsWith(it) } }.forEach {
             if (it.substringAfter('_').toIntOrNull() !in ids) edit.remove(it)
         }
         edit.apply()

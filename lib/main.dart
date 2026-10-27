@@ -36,6 +36,7 @@ import 'shared_savings_repository.dart';
 import 'smart_suggestions.dart';
 import 'smart_task_recommendation_service.dart';
 import 'home_widgets/widget_controller.dart';
+import 'home_widgets/widget_background.dart';
 import 'home_widgets/widget_host.dart';
 import 'home_widgets/widget_models.dart';
 import 'home_widgets/widget_settings_screen.dart';
@@ -49,6 +50,9 @@ part 'precision_flows.dart';
 
 final _appNavigator = GlobalKey<NavigatorState>();
 final _homeShellKey = GlobalKey<_HomeShellState>();
+
+@pragma('vm:entry-point')
+Future<void> widgetBackgroundMain() => runWidgetBackground();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -14,7 +14,8 @@ String widgetTypeName(HomeWidgetType type) => switch (type) {
 String widgetTypeDescription(HomeWidgetType type) => switch (type) {
   HomeWidgetType.goal => 'Your next milestone, always in view.',
   HomeWidgetType.planner => 'Today’s progress and what comes next.',
-  HomeWidgetType.quickSave => 'Start a save. Review and confirm in the app.',
+  HomeWidgetType.quickSave =>
+    'Enter, review and confirm savings on your widget.',
   HomeWidgetType.today => 'Savings and daily focus, together.',
 };
 

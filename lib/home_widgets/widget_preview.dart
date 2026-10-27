@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../branding/savetrack_logo.dart';
 import 'widget_models.dart';
 import 'widget_visuals.dart';
+import 'widget_native_preview.dart';
 
 /// Approximate native compositions. Preview controls never perform transactions.
 class WidgetPreviewCard extends StatelessWidget {
@@ -307,7 +308,7 @@ class WidgetPreviewCard extends StatelessWidget {
             if (expanded) ...[
               const SizedBox(height: 16),
               text(
-                'Choose an amount. Confirm in SaveTrack.',
+                'Enter amount, then Review. Confirm on the widget.',
                 sp: 12,
                 quiet: true,
               ),
@@ -373,51 +374,74 @@ class WidgetPreviewCard extends StatelessWidget {
         ),
       };
     }
-    return Semantics(
-      label: '${widgetTypeName(type)} preview, ${size.name} size',
-      child: Container(
-        constraints: BoxConstraints(
-          minHeight: compact
-              ? 88
-              : expanded
-              ? 320
-              : 190,
-        ),
-        padding: EdgeInsets.all(compact ? 12 : 16),
-        decoration: BoxDecoration(
-          color: palette.background,
-          gradient: palette.gradient,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: palette.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!compact) ...[
-              Row(
-                children: [
-                  SaveTrackLogo(size: 20, onDark: palette.dark),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: text(
-                      'SAVETRACK · ${switch (type) {
-                        HomeWidgetType.goal => 'SAVINGS',
-                        HomeWidgetType.planner => 'TODAY’S FOCUS',
-                        HomeWidgetType.quickSave => 'QUICK SAVE',
-                        HomeWidgetType.today => 'TODAY',
-                      }}',
-                      sp: 11,
-                      strong: true,
-                      quiet: true,
-                      lines: 1,
+    return NativeWidgetPreview(
+      type: type.name,
+      config: HomeWidgetConfig(
+        id: 1,
+        uid: 'preview',
+        type: type,
+        goal: goal?.ref,
+        currency: goal?.currency,
+        theme: theme ?? WidgetTheme.emerald,
+        privacy: selectedPrivacy,
+        showTaskTitles: showTaskTitles,
+        presets: presets,
+      ).toMap(),
+      snapshot: data,
+      width: compact ? 180 : 300,
+      height: type == HomeWidgetType.quickSave
+          ? (expanded ? 420 : 220)
+          : (compact
+                ? 100
+                : expanded
+                ? 360
+                : 220),
+      child: Semantics(
+        label: '${widgetTypeName(type)} preview, ${size.name} size',
+        child: Container(
+          constraints: BoxConstraints(
+            minHeight: compact
+                ? 88
+                : expanded
+                ? 320
+                : 190,
+          ),
+          padding: EdgeInsets.all(compact ? 12 : 16),
+          decoration: BoxDecoration(
+            color: palette.background,
+            gradient: palette.gradient,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: palette.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!compact) ...[
+                Row(
+                  children: [
+                    SaveTrackLogo(size: 20, onDark: palette.dark),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: text(
+                        'SAVETRACK · ${switch (type) {
+                          HomeWidgetType.goal => 'SAVINGS',
+                          HomeWidgetType.planner => 'TODAY’S FOCUS',
+                          HomeWidgetType.quickSave => 'QUICK SAVE',
+                          HomeWidgetType.today => 'TODAY',
+                        }}',
+                        sp: 11,
+                        strong: true,
+                        quiet: true,
+                        lines: 1,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
+                  ],
+                ),
+                const SizedBox(height: 16),
+              ],
+              content,
             ],
-            content,
-          ],
+          ),
         ),
       ),
     );

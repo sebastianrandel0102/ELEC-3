@@ -129,6 +129,7 @@ Future<void> recordCurrencySavings({
   required String note,
   required String requestId,
   required bool withdrawal,
+  bool requireActiveGoal = false,
   FirebaseAuth? auth,
 }) async {
   final authentication = auth ?? FirebaseAuth.instance;
@@ -175,6 +176,10 @@ Future<void> recordCurrencySavings({
       throw const CurrencyFailure(
         'This request was already used. Reopen the form before changing the amount.',
       );
+    }
+    if (requireActiveGoal &&
+        (data['archived'] == true || data['status'] == 'archived')) {
+      throw const CurrencyFailure('This savings goal is archived.');
     }
     final balance = data['savedAmount'];
     if (balance is! num || !balance.isFinite || balance < 0) {

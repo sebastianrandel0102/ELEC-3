@@ -233,6 +233,7 @@ class HomeWidgetSnapshot {
           'target': formatCurrency(goal.target, goal.currency),
           'remaining': formatCurrency(goal.remaining, goal.currency),
           'currency': goal.currency,
+          'currencyDigits': CurrencyCatalog.require(goal.currency).digits,
           if (deadline != null)
             'deadline': SmartTaskRecommendationService.dateKey(deadline),
           'presets': [
