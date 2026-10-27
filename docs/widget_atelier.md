@@ -1,5 +1,7 @@
 # Mint Aurora 6.0 — Widget Atelier
 
+> Current palette and export workflow: [Mint Atelier implementation and verification](mint-atelier-iphone.md). The exporter now uses visually reviewed native 300×220 matrix frames; the earlier xhdpi capture description below records the original implementation.
+
 ## Presentation audit
 
 The existing implementation uses Kotlin RemoteViews, XML resources and a Flutter configuration screen. Per-instance configuration, authenticated navigation, local snapshots and confirmation-based savings flows remain the integration contract.
@@ -55,7 +57,7 @@ Native important actions and task rows target at least 48dp. Compact widgets use
 
 ### Flutter customization studio
 
-The existing screen now groups preview, selected content, appearance, privacy and additional options. Compact/Medium/Expanded controls change the preview only. Light/Dark/System choices include icons and check marks; White remains available. Privacy choices include an explanation and selected-state icon. Preset entry updates the preview locally. Save commits through the existing controller, and explicit Cancel preserves saved configuration. Tests verify that changing preview appearance does not persist until Save, Cancel retains the instance and another installed widget stays unchanged.
+The existing screen now groups preview, selected content, appearance, privacy and additional options. A single preview replaces the Compact/Medium/Expanded controls; users resize the installed widget on their home screen, where its layout adjusts automatically. Light/Dark/System choices include icons and check marks; White remains available. Privacy choices include an explanation and selected-state icon. Preset entry updates the preview locally. Save commits through the existing controller, and explicit Cancel preserves saved configuration. Tests verify that changing preview appearance does not persist until Save, Cancel retains the instance and another installed widget stays unchanged.
 
 Previews use the production snapshot formatter/privacy filter, selected goal facts and read-only Planner facts from the existing subscription. Missing data uses honest placeholders. No demo balances or tasks were added to production widgets. No decorative preview animation was added. The gallery shows each widget's purpose, initial size guidance and its own composition.
 

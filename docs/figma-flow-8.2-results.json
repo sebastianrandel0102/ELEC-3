@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-25",
+  "edition": "Mint Aurora 8.2 — Figma Flow",
+  "baseline_flutter_tests": 1018,
+  "flutter_tests": {
+    "passed": 1038,
+    "failed": 0,
+    "log": "build/figma-flow-verified-tests.log"
+  },
+  "native_android_tests": {
+    "passed": 76,
+    "failed": 0,
+    "errors": 0,
+    "log": "build/figma-flow-native-tests.log"
+  },
+  "independent_golden_verification": {
+    "passed": 44,
+    "failed": 0,
+    "updated_references": false,
+    "log": "build/figma-flow-golden-verification.log"
+  },
+  "analysis": {
+    "issues": 0,
+    "log": "build/figma-flow-verified-analysis.log"
+  },
+  "formatting": {
+    "files": 21,
+    "changed": 0,
+    "log": "build/figma-flow-format.log"
+  },
+  "android_build": {
+    "status": "passed",
+    "path": "build/app/outputs/flutter-apk/app-debug.apk",
+    "bytes": 191121069,
+    "log": "build/figma-flow-verified-apk.log"
+  },
+  "preservation": {
+    "methods": 43,
+    "unchanged_service_and_configuration_files": 112,
+    "report": "docs/figma-flow-preservation-results.json"
+  },
+  "new_tests": {
+    "unit": 3,
+    "widget": 17,
+    "golden_images": 6
+  },
+  "source_counts": {
+    "production_dart": {
+      "added": 1180,
+      "removed": 486
+    },
+    "native_xml": {
+      "added": 15,
+      "removed": 15
+    },
+    "test_dart": {
+      "added": 417,
+      "removed": 6
+    }
+  },
+  "dependencies_changed": [],
+  "device_runtime_verified": false,
+  "device_performance_measured": false,
+  "limitations": [
+    "No connected Android device or configured emulator/system image.",
+    "Visual checks use actual Flutter widgets and native RemoteViews with isolated fixtures.",
+    "Authenticated Firebase, notification delivery, launcher acceptance and physical-device accessibility/performance require device/account testing."
+  ]
+}

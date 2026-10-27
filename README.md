@@ -1,6 +1,10 @@
 # SaveTrack
 
+The **Mint Aurora 8.2 — Figma Flow** redesign adapts the supplied visual reference across the existing Flutter app: a mint savings hero and rounded white Home sheet, compact goal carousel, calendar/time-rail Planner, and coordinated forms, reminders, AI, Agent and native widget surfaces. See the [implementation and verification report](docs/figma-flow-8.2.md).
+
 SaveTrack is a Flutter savings goals and daily planner app. It uses Firebase Authentication and Cloud Firestore for sign-in and cloud persistence.
+
+The **Mint Atelier iPhone-inspired UI** refines the existing app's Light/Dark foundations, compact savings overview, goal controls, planning, grouped preferences, AI/Agent surfaces and native Android widget palette. See the [implementation and verification report](docs/mint-atelier-iphone.md) and [complete surface/component coverage](docs/mint-atelier-coverage.md).
 
 Optional personal/shared **Goal Cover Photos** include gallery selection, landscape cropping, compact private Firestore photos and Mint Aurora cards. New covers work on Spark without a Storage bucket or billing upgrade. See [implementation, setup and verification](docs/goal-cover-photos.md).
 
@@ -33,7 +37,7 @@ The supplied Firestore rules restrict private document access to the signed-in u
 
 Implemented: email/password registration and sign-in, Firebase email password recovery, authenticated password changes, profile creation at registration, a live dashboard, savings goal create/edit/delete, batched deposits and transaction history, daily and weekly savings pace calculations for goals with deadlines, daily task create/edit/delete/completion, date navigation, summaries, and sign-out.
 
-Not yet implemented: personal goal/task filters and sorting, transaction correction/deletion, a weekly planner view, daily/weekly/monthly trend charts, and profile editing. Shared transaction and Firestore security regression tests run locally in an isolated emulator. Live Firebase behavior still requires configuration and manual account testing.
+Personal goals include search, status filters, sorting and gallery/grid/list views. Planner includes daily and weekly views; Savings Pulse summarizes recorded contributions, withdrawals and net change over supported periods. Home sections and appearance are customizable. Transaction correction/deletion and general profile editing are not implemented. Shared transaction and Firestore security regression tests run locally in an isolated emulator. Live Firebase behavior still requires configuration and manual account testing.
 
 Smart Reminders adds native Android/iOS scheduling for personal goals, each shared-goal member's own preferences, and planner tasks. Use the goal/task bell controls and **Profile → Smart Reminders**. See [setup, permissions, time policies, validation, and device limitations](docs/smart-reminders.md). Deploy the added Firestore reminder rules before using synced preferences. Native phone delivery still needs the documented real-device acceptance checks.
 

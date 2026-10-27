@@ -771,7 +771,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _voiceMode ? 'SaveTrack Voice' : 'Agent Studio',
+                    _voiceMode ? 'SaveTrack Voice' : 'Agent Studio Pro',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -782,7 +782,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                   if (!compact)
                     Text(
                       _strings.choose(
-                        'Your intelligent companion',
+                        'Plans, previews and approved actions',
                         'Kasama mo sa pagplano',
                       ),
                       style: TextStyle(
@@ -988,7 +988,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
             child: Text(
               recognition
                   ? '${_strings.choose('Recognition', 'Pagkilala')}: ${_voice.recognitionLocale.isEmpty ? _strings.choose('Device default', 'Default ng device') : _voice.recognitionLocale}'
-                  : '${agentLanguageLabel(_engine.settings.language)} · Mint Aurora 7.0',
+                  : agentLanguageLabel(_engine.settings.language),
             ),
           ),
           onPressed: () async {
@@ -1174,7 +1174,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
     children: [
       const SizedBox(height: 12),
       AgentHero(
-        eyebrow: 'MINT AURORA 7.0 / AGENT ATELIER',
+        eyebrow: 'AGENT STUDIO PRO',
         title: _strings.welcome,
         subtitle: _strings.choose(
           'Plan your savings, organize your day, and turn ideas into action.',
@@ -1182,7 +1182,7 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
         ),
         footer: Row(
           children: [
-            const Icon(Icons.shield_outlined, size: 15, color: mint),
+            Icon(Icons.shield_outlined, size: 15, color: context.atelierAccent),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -1190,7 +1190,11 @@ class _AgentStudioScreenState extends State<AgentStudioScreen>
                   'Intelligence, beautifully in motion.',
                   'Matalinong kasama sa bawat hakbang.',
                 ),
-                style: const TextStyle(fontSize: 12, color: mint, height: 1.5),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: context.atelierMuted,
+                  height: 1.5,
+                ),
               ),
             ),
           ],

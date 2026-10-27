@@ -224,6 +224,7 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                     ),
                     const SizedBox(height: 16),
                     if (preview != null) ...[
+                      const Divider(height: 32),
                       ConversionPreview(
                         amount: preview.input,
                         from: inputCurrency,
@@ -231,8 +232,18 @@ class _CurrencySavingsDialogState extends State<CurrencySavingsDialog> {
                         snapshot: preview.snapshot,
                       ),
                       if (validBalance)
-                        Text(
-                          'New Savings Balance: ${formatCurrency(widget.withdrawal ? ExactDecimal.fromNum(balance) - preview.amount : ExactDecimal.fromNum(balance) + preview.amount, code)}',
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: TonalPanel(
+                            padding: const EdgeInsets.all(16),
+                            child: Text(
+                              'Preview · New Savings Balance: ${formatCurrency(widget.withdrawal ? ExactDecimal.fromNum(balance) - preview.amount : ExactDecimal.fromNum(balance) + preview.amount, code)}',
+                              style: TextStyle(
+                                color: context.atelierInk,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
                       if (inputCurrency != code)
                         Text(

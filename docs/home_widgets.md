@@ -1,4 +1,4 @@
-> Current visual implementation and validation: [Mint Aurora 6.0 ? Widget Atelier](widget_atelier.md).
+> Current implementation and validation: [Mint Aurora 8.7 — Responsive Widget Engine](widget_responsiveness_8_7.md). The Home Edition notes below describe the original architecture and its initial foreground-only interaction path.
 
 # SaveTrack home-screen widgets — Mint Aurora Home Edition
 

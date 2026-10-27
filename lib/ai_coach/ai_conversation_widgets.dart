@@ -134,7 +134,7 @@ class AiComposer extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: context.atelierMuted,
-                    fontSize: 11,
+                    fontSize: 13,
                     height: 1.5,
                   ),
                 ),

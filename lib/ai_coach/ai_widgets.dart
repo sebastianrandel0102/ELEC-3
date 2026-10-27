@@ -29,31 +29,9 @@ class AiEmblem extends StatelessWidget {
         shape: BoxShape.circle,
         border: Border.all(color: context.atelierAccent.withValues(alpha: .16)),
       ),
-      child: CustomPaint(painter: _AiSparklePainter(context.atelierAccent)),
+      child: Center(child: AuroraEmblem(size: size * .72)),
     ),
   );
-}
-
-class _AiSparklePainter extends CustomPainter {
-  const _AiSparklePainter(this.color);
-  final Color color;
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(size.width / 2, size.height / 2);
-    final r = size.width * .27;
-    final path = Path()
-      ..moveTo(c.dx, c.dy - r)
-      ..quadraticBezierTo(c.dx + r * .2, c.dy - r * .2, c.dx + r, c.dy)
-      ..quadraticBezierTo(c.dx + r * .2, c.dy + r * .2, c.dx, c.dy + r)
-      ..quadraticBezierTo(c.dx - r * .2, c.dy + r * .2, c.dx - r, c.dy)
-      ..quadraticBezierTo(c.dx - r * .2, c.dy - r * .2, c.dx, c.dy - r)
-      ..close();
-    canvas.drawPath(path, Paint()..color = color);
-  }
-
-  @override
-  bool shouldRepaint(_AiSparklePainter oldDelegate) =>
-      oldDelegate.color != color;
 }
 
 class AiDashboardCard extends StatelessWidget {
@@ -196,69 +174,19 @@ class AiWelcomeHero extends StatelessWidget {
   const AiWelcomeHero({super.key, required this.mode});
   final AiMode mode;
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) => Padding(
-      padding: const EdgeInsets.fromLTRB(12, 20, 12, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [context.atelierSelected, context.atelierCanvas],
-              ),
-            ),
-            child: const AiEmblem(size: 52),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            mode == AiMode.askAnything
-                ? 'A SPACE FOR YOUR CURIOSITY'
-                : 'AI COACH LITE · READ ONLY',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: context.atelierAccent,
-              fontSize: 10,
-              letterSpacing: 1.6,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Semantics(
-            header: true,
-            child: Text(
-              mode == AiMode.askAnything
-                  ? 'A little clarity\ngoes a long way.'
-                  : 'Small steps.\nMeaningful progress.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.atelierInk,
-                fontSize: constraints.maxWidth < 340 ? 28 : 34,
-                height: 1.23,
-                letterSpacing: -1.2,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 380),
-            child: Text(
-              mode == AiMode.askAnything
-                  ? 'Explore ideas, untangle a question, and find a little direction.'
-                  : 'Understand your savings and make room for what matters, one thoughtful step at a time.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: context.atelierMuted,
-                height: 1.7,
-                fontSize: 13,
-              ),
-            ),
-          ),
-        ],
-      ),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 16),
+    child: FlowWorkspaceIntro(
+      icon: Icons.auto_awesome_outlined,
+      eyebrow: mode == AiMode.askAnything
+          ? 'A space for your curiosity'
+          : 'AI Coach Lite · Read only',
+      title: mode == AiMode.askAnything
+          ? 'A little clarity\ngoes a long way.'
+          : 'Small steps.\nMeaningful progress.',
+      detail: mode == AiMode.askAnything
+          ? 'Explore ideas, untangle a question, and find a little direction.'
+          : 'Understand your savings and make room for what matters, one thoughtful step at a time.',
     ),
   );
 }
@@ -275,64 +203,18 @@ class AiPromptCard extends StatelessWidget {
   final String title, detail;
   final VoidCallback onTap;
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    child: Material(
-      color: context.atelierSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: context.atelierBorder),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: context.atelierTonal,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, color: context.atelierAccent, size: 20),
-                  ),
-                  const Spacer(),
-                  Icon(
-                    Icons.north_east_rounded,
-                    color: context.atelierMuted,
-                    size: 16,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                style: TextStyle(
-                  fontWeight: FontWeight.w700,
-                  color: context.atelierInk,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                detail,
-                style: TextStyle(
-                  color: context.atelierMuted,
-                  height: 1.6,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
+  Widget build(BuildContext context) => FlowActionCard(
+    icon: icon,
+    title: title,
+    detail: detail,
+    onTap: onTap,
+    accent: icon == Icons.event_note_outlined
+        ? FlowAccent.lavender
+        : icon == Icons.pie_chart_outline_rounded
+        ? FlowAccent.peach
+        : icon == Icons.code_rounded
+        ? FlowAccent.coral
+        : FlowAccent.mint,
   );
 }
 

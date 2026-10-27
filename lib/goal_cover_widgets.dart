@@ -120,7 +120,7 @@ class _GoalCoverImageState extends State<GoalCoverImage> {
   }
 
   Widget _fallback() => DecoratedBox(
-    decoration: const BoxDecoration(gradient: SaveTrackDesign.premium),
+    decoration: BoxDecoration(color: context.flowCategory(FlowAccent.mint)),
     child: Stack(
       fit: StackFit.expand,
       children: [
@@ -134,7 +134,7 @@ class _GoalCoverImageState extends State<GoalCoverImage> {
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  SaveTrackDesign.luminous.withValues(alpha: .28),
+                  SaveTrackDesign.luminous.withValues(alpha: .14),
                   Colors.transparent,
                 ],
               ),
@@ -158,29 +158,15 @@ class _GoalCoverImageState extends State<GoalCoverImage> {
         ),
         Center(
           child: Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: .07),
               borderRadius: BorderRadius.circular(24),
               border: Border.all(color: mint.withValues(alpha: .2)),
             ),
-            child: Icon(widget.icon, color: mint, size: 38),
+            child: Icon(widget.icon, color: context.atelierAccent, size: 32),
           ),
         ),
-        if (MediaQuery.textScalerOf(context).scale(11) <= 16.5)
-          const Positioned(
-            left: 20,
-            right: 20,
-            bottom: 16,
-            child: Text(
-              'A little closer, every day.',
-              style: TextStyle(
-                color: SaveTrackDesign.onHeroMuted,
-                fontSize: 11,
-                letterSpacing: .4,
-              ),
-            ),
-          ),
       ],
     ),
   );

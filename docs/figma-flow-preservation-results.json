@@ -1,0 +1,245 @@
+{
+  "starting_revision": "869d46c1248e45852f34a39faaa02ba4fc1a24bd",
+  "protected_methods_verified": 43,
+  "unchanged_services_and_configuration": [
+    "android/app/src/main/AndroidManifest.xml",
+    "android/app/src/main/kotlin/com/example/myproject/MainActivity.kt",
+    "android/app/src/main/kotlin/com/example/myproject/agent/AgentRecognitionFailure.kt",
+    "android/app/src/main/kotlin/com/example/myproject/agent/AgentVoiceBridge.kt",
+    "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetBridge.kt",
+    "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetConfigurationActivity.kt",
+    "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetLayoutResolver.kt",
+    "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetProviders.kt",
+    "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+    "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetStore.kt",
+    "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetVisualTokens.kt",
+    "firebase.json",
+    "firestore.indexes.json",
+    "firestore.rules",
+    "functions/README.md",
+    "functions/goal_covers.js",
+    "functions/index.js",
+    "functions/package-lock.json",
+    "functions/package.json",
+    "functions/shared.js",
+    "functions/test/goal_covers.test.js",
+    "functions/test/shared.test.js",
+    "lib/agent_studio/agent_ai_gateway.dart",
+    "lib/agent_studio/agent_backend.dart",
+    "lib/agent_studio/agent_domain.dart",
+    "lib/agent_studio/agent_engine.dart",
+    "lib/agent_studio/agent_language_settings.dart",
+    "lib/agent_studio/agent_planner.dart",
+    "lib/agent_studio/agent_settings_screen.dart",
+    "lib/agent_studio/agent_step_editor.dart",
+    "lib/agent_studio/agent_store.dart",
+    "lib/agent_studio/agent_voice.dart",
+    "lib/agent_studio/autopilot/auto_execution_policy.dart",
+    "lib/agent_studio/autopilot/autopilot_activity_screen.dart",
+    "lib/agent_studio/autopilot/autopilot_settings.dart",
+    "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+    "lib/agent_studio/autopilot/execution_ledger.dart",
+    "lib/agent_studio/intelligence/agent_interpretation.dart",
+    "lib/agent_studio/intelligence/agent_language.dart",
+    "lib/agent_studio/intelligence/date_expression_parser.dart",
+    "lib/agent_studio/intelligence/domain_slot_resolvers.dart",
+    "lib/agent_studio/intelligence/draft_field_resolver.dart",
+    "lib/agent_studio/intelligence/financial_role_resolver.dart",
+    "lib/agent_studio/intelligence/interpretation_preview.dart",
+    "lib/agent_studio/intelligence/money_expression_parser.dart",
+    "lib/agent_studio/intelligence/multilingual_evaluator.dart",
+    "lib/agent_studio/intelligence/semantic_text.dart",
+    "lib/agent_studio/intelligence/title_resolver.dart",
+    "lib/agent_studio/intelligence/voice_locale_repository.dart",
+    "lib/agent_studio/presentation/agent_action_preview.dart",
+    "lib/agent_studio/presentation/agent_history_screen.dart",
+    "lib/agent_studio/presentation/agent_orb_artwork.dart",
+    "lib/agent_studio/presentation/agent_theme.dart",
+    "lib/ai_coach/ai_app_check.dart",
+    "lib/ai_coach/ai_coach_screen.dart",
+    "lib/ai_coach/ai_controller.dart",
+    "lib/ai_coach/ai_conversation_widgets.dart",
+    "lib/ai_coach/ai_domain.dart",
+    "lib/ai_coach/ai_facts.dart",
+    "lib/ai_coach/ai_gateway.dart",
+    "lib/ai_coach/ai_math.dart",
+    "lib/ai_coach/ai_response.dart",
+    "lib/ai_coach/ai_settings_sheet.dart",
+    "lib/ai_coach/ai_setup_sheet.dart",
+    "lib/ai_coach/ai_widgets.dart",
+    "lib/ai_coach/firebase_ai_gateway.dart",
+    "lib/ai_coach/firestore_ai_context_source.dart",
+    "lib/app_record_repository.dart",
+    "lib/atelier_preferences.dart",
+    "lib/auth_service.dart",
+    "lib/branding/savetrack_logo.dart",
+    "lib/branding/savetrack_logo_painter.dart",
+    "lib/currency_catalog_data.dart",
+    "lib/currency_money.dart",
+    "lib/currency_savings_dialog.dart",
+    "lib/currency_service.dart",
+    "lib/currency_transactions.dart",
+    "lib/currency_widgets.dart",
+    "lib/decrease_savings_dialog.dart",
+    "lib/firebase_options.dart",
+    "lib/goal_cover_cache.dart",
+    "lib/goal_cover_picker.dart",
+    "lib/goal_cover_processing.dart",
+    "lib/goal_cover_service.dart",
+    "lib/home_widgets/widget_bridge.dart",
+    "lib/home_widgets/widget_controller.dart",
+    "lib/home_widgets/widget_data_source.dart",
+    "lib/home_widgets/widget_host.dart",
+    "lib/home_widgets/widget_models.dart",
+    "lib/home_widgets/widget_preview.dart",
+    "lib/home_widgets/widget_settings_screen.dart",
+    "lib/password_recovery_service.dart",
+    "lib/password_service.dart",
+    "lib/platform_pickers.dart",
+    "lib/profile_photo_picker.dart",
+    "lib/profile_photo_processing.dart",
+    "lib/profile_photo_service.dart",
+    "lib/profile_photo_widgets.dart",
+    "lib/reminder_coordinator.dart",
+    "lib/reminder_models.dart",
+    "lib/reminder_repository.dart",
+    "lib/reminder_scheduler.dart",
+    "lib/reminder_widgets.dart",
+    "lib/savings_decrease.dart",
+    "lib/shared_savings.dart",
+    "lib/shared_savings_models.dart",
+    "lib/shared_savings_repository.dart",
+    "lib/shared_savings_store.dart",
+    "lib/smart_task_recommendation_service.dart",
+    "pubspec.lock",
+    "pubspec.yaml",
+    "storage.rules"
+  ],
+  "source_counts": {
+    "production_dart": {
+      "added": 1180,
+      "removed": 486
+    },
+    "native_xml": {
+      "added": 15,
+      "removed": 15
+    },
+    "test_dart": {
+      "added": 417,
+      "removed": 6
+    }
+  },
+  "files": [
+    {
+      "path": "android/app/src/main/res/values/widget_atelier.xml",
+      "added": 15,
+      "removed": 15
+    },
+    {
+      "path": "lib/agent_studio/agent_screen.dart",
+      "added": 6,
+      "removed": 2
+    },
+    {
+      "path": "lib/agent_studio/presentation/agent_widgets.dart",
+      "added": 24,
+      "removed": 14
+    },
+    {
+      "path": "lib/ai_coach/ai_theme.dart",
+      "added": 2,
+      "removed": 3
+    },
+    {
+      "path": "lib/currency_settings_screen.dart",
+      "added": 7,
+      "removed": 11
+    },
+    {
+      "path": "lib/design_system.dart",
+      "added": 110,
+      "removed": 60
+    },
+    {
+      "path": "lib/figma_flow_components.dart",
+      "added": 480,
+      "removed": 0
+    },
+    {
+      "path": "lib/goal_cover_widgets.dart",
+      "added": 2,
+      "removed": 2
+    },
+    {
+      "path": "lib/home_atelier.dart",
+      "added": 269,
+      "removed": 160
+    },
+    {
+      "path": "lib/home_widgets/widget_visuals.dart",
+      "added": 11,
+      "removed": 10
+    },
+    {
+      "path": "lib/main.dart",
+      "added": 198,
+      "removed": 152
+    },
+    {
+      "path": "lib/password_dialog.dart",
+      "added": 5,
+      "removed": 5
+    },
+    {
+      "path": "lib/password_recovery_dialog.dart",
+      "added": 4,
+      "removed": 7
+    },
+    {
+      "path": "lib/precision_components.dart",
+      "added": 11,
+      "removed": 5
+    },
+    {
+      "path": "lib/precision_flows.dart",
+      "added": 7,
+      "removed": 6
+    },
+    {
+      "path": "lib/reminder_agenda.dart",
+      "added": 8,
+      "removed": 8
+    },
+    {
+      "path": "lib/shared_savings_screens.dart",
+      "added": 16,
+      "removed": 16
+    },
+    {
+      "path": "lib/smart_suggestions.dart",
+      "added": 20,
+      "removed": 25
+    },
+    {
+      "path": "test/figma_flow_test.dart",
+      "added": 387,
+      "removed": 0
+    },
+    {
+      "path": "test/home_atelier_test.dart",
+      "added": 14,
+      "removed": 1
+    },
+    {
+      "path": "test/precision_edition_test.dart",
+      "added": 2,
+      "removed": 2
+    },
+    {
+      "path": "test/smart_suggestions_test.dart",
+      "added": 14,
+      "removed": 3
+    }
+  ],
+  "failures": []
+}

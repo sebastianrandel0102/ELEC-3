@@ -28,18 +28,18 @@ import java.util.TimeZone
 
 object WidgetRenderer {
     fun updateAll(context: Context) { WidgetStore(context).installed().keys.forEach { update(context, it) } }
-    fun update(context: Context, id: Int) {
+    fun update(context: Context, id: Int, hostOptions: Bundle? = null) {
         val manager = AppWidgetManager.getInstance(context)
         val store = WidgetStore(context)
         val type = store.installed()[id] ?: return
-        val options = manager.getAppWidgetOptions(id)
+        val options = hostOptions ?: manager.getAppWidgetOptions(id)
         val config = store.config(id)
         val snapshot = store.snapshot(id)
         val views = if (Build.VERSION.SDK_INT >= 31) {
             @Suppress("DEPRECATION")
             val sizes = options.getParcelableArrayList<SizeF>(AppWidgetManager.OPTION_APPWIDGET_SIZES)
             if (!sizes.isNullOrEmpty()) {
-                RemoteViews(sizes.filter { it.width > 0 && it.height > 0 }.take(16).associateWith {
+                RemoteViews(sizes.filter { it.width.isFinite() && it.height.isFinite() && it.width > 0 && it.height > 0 }.distinct().take(16).associateWith {
                     render(context, id, type, config, snapshot, it.width, it.height)
                 }.ifEmpty { mapOf(SizeF(270f, 190f) to render(context, id, type, config, snapshot, 270f, 190f)) })
             } else legacy(context, id, type, config, snapshot, options)
@@ -83,7 +83,7 @@ object WidgetRenderer {
         val foreground = palette.text
         val secondary = palette.secondaryText
         val full = config?.optString("privacy") == "full"
-        val wideCompact = compact && w >= 240 && h >= 55
+        val wideCompact = compact && WidgetLayoutResolver.composition(width, height, scale) == WidgetComposition.MEDIUM_SHORT && h >= 55
         val views = RemoteViews(context.packageName, if (wideCompact) R.layout.st_widget_wide else if (compact) R.layout.st_widget_compact else R.layout.st_widget)
         if (!compact) {
             // Hosts may reapply the same layout instead of inflating it again.
@@ -112,6 +112,11 @@ object WidgetRenderer {
         if (data?.optString("state") == "hidden" || expired) target = "dashboard"
         views.setOnClickPendingIntent(android.R.id.background, action(context, id, target))
         val goal = data?.optJSONObject("goal")
+        val quickStage = if (type == "quickSave") QuickSaveStore(context).state(id).optString("stage") else ""
+        if (type == "quickSave" && config != null && full && WidgetLayoutResolver.quickEntry(width, height, scale) &&
+            (neutral == null && goal?.optBoolean("canSave") == true || quickStage in listOf("pending", "retry", "saved"))) {
+            return QuickSaveRenderer.render(context, id, config, goal, width, height)
+        }
         val dateValid = data?.optString("day") == SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) &&
             data.optInt("timezoneOffsetMinutes") == TimeZone.getDefault().getOffset(now) / 60000
         val planner = if (dateValid) data.optJSONObject("planner")?.takeIf { it.optString("state") == "ready" } else null
@@ -119,6 +124,15 @@ object WidgetRenderer {
             return today(context, id, config, data, goal, planner, width, height, dark, background)
         }
         if (compact) {
+            if (!wideCompact) {
+                val show = neutral == null && type == "goal" && h >= 85
+                views.setViewVisibility(R.id.st_compact_progress, if (show && !dark) View.VISIBLE else View.GONE)
+                views.setViewVisibility(R.id.st_compact_progress_dark, if (show && dark) View.VISIBLE else View.GONE)
+                for (progressId in listOf(R.id.st_compact_progress, R.id.st_compact_progress_dark)) {
+                    palette.progress(context, views, progressId)
+                    views.setProgressBar(progressId, 1000, goal?.optInt("progress") ?: 0, false)
+                }
+            }
             if (wideCompact) {
                 val value = if (type == "goal") goal?.optInt("progress") else if (type == "planner") planner?.optInt("progress") else null
                 views.setViewVisibility(R.id.st_wide_progress, if (h >= 70 && neutral == null && value != null && !dark) View.VISIBLE else View.GONE)
@@ -135,13 +149,19 @@ object WidgetRenderer {
                 "Open SaveTrack" -> "Open app"
                 else -> "Set up"
             } else when (type) {
-                "planner" -> planner?.let { if (w < 140) it.optInt("remaining").toString() else "${it.optInt("remaining")} left" } ?: "Refresh"
+                "planner" -> if (full && config?.optBoolean("showTaskTitles") == true && h >= 80)
+                    planner?.optJSONArray("tasks")?.optJSONObject(0)?.let { task ->
+                        listOf(task.optString("time"), task.optString("title")).filter { it.isNotBlank() }.joinToString(" · ")
+                    } ?: planner?.let { "${it.optInt("remaining")} left" } ?: "Refresh"
+                    else planner?.let { if (w < 140) it.optInt("remaining").toString() else "${it.optInt("remaining")} left" } ?: "Refresh"
                 "quickSave" -> if (w < 160) "Add" else "Add Savings"
                 "today" -> "${goal?.let { "${it.optInt("percent")}%" } ?: "—"} · ${planner?.optInt("remaining")?.toString() ?: "—"}"
-                else -> "${goal?.optInt("percent") ?: 0}%"
+                else -> if (full && goal != null && w >= 150 && h >= 70 &&
+                    fittingAmountSize(context, goal.optString("saved"), width - 24, 18f) != null)
+                    goal.optString("saved") else "${goal?.optInt("percent") ?: 0}%"
             }
             palette.icon(context, views, R.id.st_compact_logo)
-            var showLogo = type != "today"
+            var showLogo = false
             val showTitle = neutral == null && h >= (if (wideCompact) 55 else 65)
             val labelHeight = if (showTitle && !wideCompact) 12 * scale * 1.3f else 0f
             val preferredSize = minOf(if (neutral != null) 14f else 18f, (height - 24 - labelHeight) / (scale * 1.3f)).coerceAtLeast(11f)
@@ -150,7 +170,7 @@ object WidgetRenderer {
                 showLogo = false
                 valueSize = fittingAmountSize(context, value, width - 24, preferredSize, 11f)
             }
-            if (valueSize == null) value = "Open"
+            if (valueSize == null && type != "planner") value = "Open"
             views.setViewVisibility(R.id.st_compact_logo, if (showLogo) View.VISIBLE else View.GONE)
             views.setContentDescription(android.R.id.background, "$title. $value")
             views.setTextViewText(R.id.st_compact_title, title)
@@ -512,7 +532,7 @@ object WidgetRenderer {
             setTextViewTextSize(R.id.st_text, TypedValue.COMPLEX_UNIT_SP, sp)
             palette.textColor(context, this, R.id.st_text, color)
         }
-    private fun fittingAmountSize(context: Context, amount: String, widthDp: Float, preferredSp: Float, minimumSp: Float = 14f): Float? {
+    internal fun fittingAmountSize(context: Context, amount: String, widthDp: Float, preferredSp: Float, minimumSp: Float = 14f): Float? {
         val paint = Paint().apply { typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL) }
         val available = widthDp * context.resources.displayMetrics.density
         var sp = preferredSp

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import 'design_system.dart';
 import 'reminder_coordinator.dart';
@@ -11,6 +12,8 @@ import 'reminder_repository.dart';
 import 'reminder_scheduler.dart';
 
 export 'reminder_models.dart';
+
+part 'reminder_agenda.dart';
 
 class ReminderScope extends InheritedNotifier<ReminderCoordinator> {
   const ReminderScope({
@@ -153,7 +156,7 @@ String reminderSummary(BuildContext context, ReminderConfiguration config) {
 Future<TimeOfDay?> showReminderTimePicker(
   BuildContext context,
   TimeOfDay time,
-) => showTimePicker(
+) => showSaveTrackTimePicker(
   context: context,
   initialTime: time,
   initialEntryMode: TimePickerEntryMode.dial,
@@ -164,7 +167,7 @@ Future<TimeOfDay?> showReminderTimePicker(
       timePickerTheme: TimePickerThemeData(
         backgroundColor: context.atelierSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        dialHandColor: SaveTrackDesign.emerald,
+        dialHandColor: context.atelierAccent,
         dialBackgroundColor: context.atelierSelected,
         hourMinuteColor: WidgetStateColor.resolveWith(
           (states) => states.contains(WidgetState.selected)
@@ -601,12 +604,13 @@ class _ReminderEditorState extends State<ReminderEditor> {
                           onPressed: busy
                               ? null
                               : () async {
-                                  final selected = await showDatePicker(
-                                    context: context,
-                                    initialDate: date,
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2100),
-                                  );
+                                  final selected =
+                                      await showSaveTrackDatePicker(
+                                        context: context,
+                                        initialDate: date,
+                                        firstDate: DateTime(2020),
+                                        lastDate: DateTime(2100),
+                                      );
                                   if (selected != null && mounted) {
                                     setState(() => date = selected);
                                   }
@@ -780,6 +784,9 @@ class SmartRemindersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coordinator = ReminderScope.maybeOf(context);
+    final agenda = coordinator == null
+        ? <ReminderAgendaEntry>[]
+        : reminderAgenda(coordinator);
     return Scaffold(
       appBar: AppBar(title: const Text('Smart Reminders')),
       body: PageSurface(
@@ -878,81 +885,49 @@ class SmartRemindersScreen extends StatelessWidget {
                           'Set a reminder from a goal or planner task. Reminders stay off until you choose to enable them.',
                         ),
                       ),
-                    ...coordinator.configurations.values.map((config) {
-                      final target = coordinator.targets[config.key];
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const MintIcon(Icons.notifications_none),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Text(
-                                      target?.title ?? 'Unavailable item',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  Switch.adaptive(
-                                    value: config.enabled,
-                                    onChanged: target == null
-                                        ? null
-                                        : (enabled) =>
-                                              _action(context, () async {
-                                                if (enabled) {
-                                                  await _ensurePermission(
-                                                    context,
-                                                    coordinator,
-                                                    config.type,
-                                                  );
-                                                }
-                                                await coordinator.save(
-                                                  config.withEnabled(enabled),
-                                                  target,
-                                                );
-                                              }),
-                                  ),
-                                ],
-                              ),
-                              Text(reminderSummary(context, config)),
-                              Text(
-                                coordinator.status(config.key).message,
-                                style: TextStyle(
-                                  color: context.atelierMuted,
-                                  fontSize: 12,
-                                ),
-                              ),
-                              Wrap(
-                                spacing: 8,
-                                children: [
-                                  TextButton(
-                                    onPressed: target == null
-                                        ? null
-                                        : () => showReminderEditor(
-                                            context,
-                                            target,
-                                          ),
-                                    child: const Text('Manage Reminder'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => _action(
-                                      context,
-                                      () => coordinator.remove(config.key),
-                                    ),
-                                    child: const Text('Remove'),
-                                  ),
-                                ],
-                              ),
-                            ],
+                    for (var i = 0; i < agenda.length; i++) ...[
+                      if (i == 0 || agenda[i].section != agenda[i - 1].section)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20, bottom: 12),
+                          child: Semantics(
+                            header: true,
+                            child: Text(
+                              agenda[i].section,
+                              style: Theme.of(context).textTheme.titleLarge,
+                            ),
                           ),
                         ),
-                      );
-                    }),
+                      ReminderAgendaCard(
+                        key: ValueKey(agenda[i].configuration.key),
+                        entry: agenda[i],
+                        status: coordinator.status(agenda[i].configuration.key),
+                        onManage: agenda[i].target == null
+                            ? null
+                            : () => showReminderEditor(
+                                context,
+                                agenda[i].target!,
+                              ),
+                        onToggle: agenda[i].target == null
+                            ? null
+                            : (enabled) => _action(context, () async {
+                                if (enabled) {
+                                  await _ensurePermission(
+                                    context,
+                                    coordinator,
+                                    agenda[i].configuration.type,
+                                  );
+                                }
+                                await coordinator.save(
+                                  agenda[i].configuration.withEnabled(enabled),
+                                  agenda[i].target!,
+                                );
+                              }),
+                        onRemove: () => _action(
+                          context,
+                          () => coordinator.remove(agenda[i].configuration.key),
+                        ),
+                      ),
+                    ],
                     ...coordinator.statuses.entries
                         .where(
                           (entry) => !coordinator.configurations.containsKey(

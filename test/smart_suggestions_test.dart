@@ -255,7 +255,13 @@ void main() {
         300,
       );
       await tester.pumpAndSettle();
-      expect(find.byType(TaskTile), findsNWidgets(3));
+      await tester.drag(find.byType(ListView), const Offset(0, 2000));
+      await tester.pumpAndSettle();
+      for (final id in ['soon', 'later', 'flexible']) {
+        final row = find.byKey(ValueKey('planner-task-$id'));
+        await tester.scrollUntilVisible(row, 300);
+        expect(tester.widget<FlowTaskGroupEntry>(row).doc.id, id);
+      }
       expect(store.docs.length, 3);
       expect(store.docs.every((doc) => doc.reference.updates.isEmpty), isTrue);
       expect(tester.takeException(), isNull);
@@ -280,10 +286,15 @@ void main() {
       expect(find.byKey(const ValueKey('smart-primary-low')), findsOneWidget);
       await tester.scrollUntilVisible(
         find.byKey(const ValueKey('planner-task-low')),
-        300,
+        -300,
       );
       await tester.pumpAndSettle();
-      expect(find.byType(TaskTile), findsNWidgets(2));
+      final completedRow = find.byKey(const ValueKey('planner-task-high'));
+      await tester.scrollUntilVisible(completedRow, -300);
+      expect(
+        tester.widget<FlowTaskGroupEntry>(completedRow).doc.data()['completed'],
+        isTrue,
+      );
       expect(store.docs.length, 2);
       expect(first.values['priority'], 'High');
       expect(first.values['time'], '');
@@ -411,12 +422,12 @@ void main() {
   ) async {
     final store = PlannerStore([]);
     await mountPlanner(tester, store, day: '2026-10-14');
-    expect(find.text('Your day is clear.'), findsOneWidget);
+    expect(find.text('Nothing scheduled for this day.'), findsOneWidget);
     expect(
-      find.text('Add a task to get personalized suggestions.'),
+      find.text('Make space for something that matters to you.'),
       findsOneWidget,
     );
-    await tester.tap(find.text('Add a task'));
+    await tester.tap(find.text('Add Task'));
     await tester.pumpAndSettle();
     expect(find.text('14/10/2026'), findsOneWidget);
     expect(find.byType(TextFormField), findsOneWidget);
@@ -432,7 +443,7 @@ void main() {
     await mountPlanner(tester, store);
     expect(find.text('All done for today!'), findsOneWidget);
     expect(find.byType(SmartSuggestionCard), findsNothing);
-    expect(find.text('Your Tasks'), findsOneWidget);
+    expect(find.text('Your tasks'), findsOneWidget);
     expect(find.text('1 of 1 tasks completed'), findsOneWidget);
     await tester.scrollUntilVisible(find.byType(TaskTile), 100);
     expect(find.byType(TaskTile), findsOneWidget);
@@ -540,7 +551,7 @@ void main() {
       ),
     );
     await tester.pump();
-    expect(find.byType(LoadingPanel), findsOneWidget);
+    expect(find.byType(FlowTimelineSkeleton), findsOneWidget);
     expect(find.text('Date navigation'), findsOneWidget);
     controller.addError(StateError('listener failed'));
     await tester.pumpAndSettle();

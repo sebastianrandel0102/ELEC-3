@@ -36,6 +36,7 @@ import 'shared_savings_repository.dart';
 import 'smart_suggestions.dart';
 import 'smart_task_recommendation_service.dart';
 import 'home_widgets/widget_controller.dart';
+import 'home_widgets/widget_background.dart';
 import 'home_widgets/widget_host.dart';
 import 'home_widgets/widget_models.dart';
 import 'home_widgets/widget_settings_screen.dart';
@@ -45,9 +46,13 @@ import 'design_system.dart';
 import 'atelier_preferences.dart';
 export 'design_system.dart';
 part 'home_atelier.dart';
+part 'precision_flows.dart';
 
 final _appNavigator = GlobalKey<NavigatorState>();
 final _homeShellKey = GlobalKey<_HomeShellState>();
+
+@pragma('vm:entry-point')
+Future<void> widgetBackgroundMain() => runWidgetBackground();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,9 +71,41 @@ Future<void> main() async {
   runApp(SaveTrackApp(startupError: startupError));
 }
 
-class SaveTrackApp extends StatelessWidget {
+class SaveTrackApp extends StatefulWidget {
   const SaveTrackApp({super.key, this.startupError});
   final Object? startupError;
+
+  @override
+  State<SaveTrackApp> createState() => _SaveTrackAppState();
+}
+
+class _SaveTrackAppState extends State<SaveTrackApp> {
+  late Object? _startupError = widget.startupError;
+  bool _retrying = false;
+
+  Future<void> _retry() async {
+    if (_retrying) {
+      return;
+    }
+    setState(() => _retrying = true);
+    Object? failure;
+    try {
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+      }
+      await AiAppCheck.initialize();
+    } catch (error) {
+      failure = error;
+    }
+    if (mounted) {
+      setState(() {
+        _startupError = failure;
+        _retrying = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) => AtelierHost(
@@ -81,7 +118,7 @@ class SaveTrackApp extends StatelessWidget {
         theme: SaveTrackDesign.theme,
         darkTheme: SaveTrackDesign.darkTheme,
         themeMode: mode,
-        builder: startupError == null
+        builder: _startupError == null
             ? (context, child) => HomeWidgetHost(
                 openTarget: _openHomeWidgetTarget,
                 child: ReminderHost(
@@ -90,8 +127,12 @@ class SaveTrackApp extends StatelessWidget {
                 ),
               )
             : null,
-        home: startupError != null
-            ? SetupScreen(error: startupError!)
+        home: _startupError != null
+            ? SetupScreen(
+                error: _startupError!,
+                onRetry: _retry,
+                busy: _retrying,
+              )
             : const AuthGate(),
       ),
     ),
@@ -99,8 +140,15 @@ class SaveTrackApp extends StatelessWidget {
 }
 
 class SetupScreen extends StatelessWidget {
-  const SetupScreen({super.key, required this.error});
+  const SetupScreen({
+    super.key,
+    required this.error,
+    this.onRetry,
+    this.busy = false,
+  });
   final Object error;
+  final VoidCallback? onRetry;
+  final bool busy;
   @override
   Widget build(BuildContext context) => Scaffold(
     body: PageSurface(
@@ -116,7 +164,7 @@ class SetupScreen extends StatelessWidget {
                 const BrandMark(),
                 const SizedBox(height: 28),
                 Text(
-                  'Connect your Firebase project',
+                  'We could not connect to SaveTrack.',
                   style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
@@ -125,18 +173,23 @@ class SetupScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'SaveTrack needs Firebase Authentication and Cloud Firestore to keep your data private and in sync.',
+                  'Your space is not available yet. Check your connection and try again.',
                   style: TextStyle(color: context.atelierMuted, height: 1.5),
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Run `flutterfire configure`, then install the generated Android configuration and enable Email/Password sign-in and Cloud Firestore.',
-                  style: TextStyle(height: 1.5),
-                ),
-                const SizedBox(height: 20),
+                if (onRetry != null)
+                  GradientButton(
+                    onPressed: busy ? null : onRetry,
+                    child: SaveActionLabel(
+                      busy: busy,
+                      label: 'Try again',
+                      busyLabel: 'Connecting',
+                    ),
+                  ),
+                const SizedBox(height: 16),
                 Text(
-                  'Startup detail: $error',
-                  style: TextStyle(color: context.atelierMuted, fontSize: 12),
+                  'If this continues, the app connection may need to be configured. Reopen SaveTrack after setup is complete.',
+                  style: Theme.of(context).textTheme.bodySmall,
                 ),
               ],
             ),
@@ -355,7 +408,12 @@ class _AuthScreenState extends State<AuthScreen> {
       child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: EdgeInsets.symmetric(
+              horizontal: SaveTrackDesign.pageInset(
+                MediaQuery.sizeOf(context).width,
+              ),
+              vertical: 24,
+            ),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1040),
               child: AuthComposition(
@@ -369,7 +427,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       Text(
                         _register ? 'Create your account' : 'Welcome back',
                         style: TextStyle(
-                          fontSize: 26,
+                          fontSize: 34,
                           fontWeight: FontWeight.w700,
                           letterSpacing: -.6,
                           color: context.atelierInk,
@@ -386,6 +444,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       if (_register) ...[
                         TextFormField(
                           controller: _name,
+                          autofillHints: const [AutofillHints.name],
+                          textInputAction: TextInputAction.next,
                           textCapitalization: TextCapitalization.words,
                           decoration: const InputDecoration(
                             labelText: 'Your name',
@@ -399,6 +459,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       ],
                       TextFormField(
                         controller: _email,
+                        autofillHints: const [AutofillHints.email],
+                        textInputAction: TextInputAction.next,
                         keyboardType: TextInputType.emailAddress,
                         autocorrect: false,
                         decoration: const InputDecoration(
@@ -415,6 +477,9 @@ class _AuthScreenState extends State<AuthScreen> {
                       const SizedBox(height: 14),
                       TextFormField(
                         controller: _password,
+                        autofillHints: _register
+                            ? const [AutofillHints.newPassword]
+                            : const [AutofillHints.password],
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
                           labelText: 'Password',
@@ -459,7 +524,10 @@ class _AuthScreenState extends State<AuthScreen> {
                                 dimension: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  color: Colors.white,
+                                  color: context.atelierAccent,
+                                  semanticsLabel: _register
+                                      ? 'Creating account'
+                                      : 'Signing in',
                                 ),
                               )
                             : Text(_register ? 'Create account' : 'Sign in'),
@@ -511,6 +579,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   dimension: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
+                                    color: teal,
                                     semanticsLabel: 'Signing in with Google',
                                   ),
                                 )
@@ -572,13 +641,8 @@ class _HomeShellState extends State<HomeShell> {
   int _index = 0;
   final _visited = <int>{0};
   String? _account;
-  static const _titles = [
-    'Today',
-    'Savings goals',
-    'Planner',
-    'Reports',
-    'Profile',
-  ];
+  var _plannerKey = GlobalKey<_PlannerScreenState>();
+  static const _titles = ['Today', 'Goals', 'Planner', 'Reports', 'Profile'];
 
   void selectTab(int index) {
     if (mounted) setState(() => _index = index);
@@ -589,6 +653,7 @@ class _HomeShellState extends State<HomeShell> {
     final account = FirebaseAuth.instance.currentUser!.uid;
     if (_account != account) {
       _account = account;
+      _plannerKey = GlobalKey<_PlannerScreenState>();
       _visited.clear();
       _index = 0;
     }
@@ -599,92 +664,76 @@ class _HomeShellState extends State<HomeShell> {
         uid: FirebaseAuth.instance.currentUser!.uid,
       ),
       GoalsScreen(key: ValueKey('goals-$account')),
-      PlannerScreen(key: ValueKey('planner-$account'), active: _index == 2),
+      PlannerScreen(key: _plannerKey, active: _index == 2),
       ReportsScreen(key: ValueKey('reports-$account')),
       ProfileScreen(key: ValueKey('profile-$account')),
     ];
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: MediaQuery.textScalerOf(context).scale(20) > 28
-            ? MediaQuery.textScalerOf(context).scale(20) * 3 + 24
-            : 64,
-        title: Row(
-          children: [
-            const BrandDot(),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                _titles[_index],
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          if (_index == 0)
-            IconButton(
-              tooltip: 'Smart Reminders',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) => const SmartRemindersScreen(),
-                ),
-              ),
-              icon: const Icon(Icons.notifications_outlined),
-            ),
-          if (_index != 0)
-            IconButton(
-              tooltip: 'Open Agent Studio',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(
-                  builder: (_) =>
-                      const AgentStudioScreen(onOpen: _openAgentDestination),
-                ),
-              ),
-              icon: Icon(Icons.hub_outlined, color: context.atelierAccent),
-            ),
-          if (_index != 0)
-            IconButton(
-              tooltip: 'Open AI Coach',
-              onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
-              ),
-              icon: Icon(
-                Icons.auto_awesome_rounded,
-                color: context.atelierAccent,
-                size: 26,
-              ),
-            ),
-          if (_index != 4)
-            IconButton(
-              tooltip: 'Profile',
-              onPressed: () => setState(() => _index = 4),
-              icon: ProfileAvatar(
-                name: FirebaseAuth.instance.currentUser?.displayName ?? '',
-                googlePhotoUrl: FirebaseAuth.instance.currentUser?.photoURL,
-                size: 36,
-              ),
-            ),
-        ],
-      ),
       body: PageSurface(
         child: IndexedStack(
           index: _index,
           children: [
             for (var i = 0; i < pages.length; i++)
-              _visited.contains(i) ? pages[i] : const SizedBox.shrink(),
+              if (_visited.contains(i))
+                TickerMode(
+                  enabled: _index == i,
+                  child: AuroraPage(
+                    title: _titles[i],
+                    storageKey: 'tab-$account-$i',
+                    actions: [
+                      if (i == 0)
+                        IconButton(
+                          tooltip: 'Smart Reminders',
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                              builder: (_) => const SmartRemindersScreen(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.notifications_outlined),
+                        ),
+                      IconButton(
+                        tooltip: 'Assist',
+                        onPressed: () => showAssistChooser(context),
+                        icon: const Icon(Icons.auto_awesome_outlined),
+                      ),
+                      if (i != 4)
+                        IconButton(
+                          tooltip: 'Profile',
+                          onPressed: () => selectTab(4),
+                          icon: ProfileAvatar(
+                            name:
+                                FirebaseAuth
+                                    .instance
+                                    .currentUser
+                                    ?.displayName ??
+                                '',
+                            googlePhotoUrl:
+                                FirebaseAuth.instance.currentUser?.photoURL,
+                            size: 32,
+                          ),
+                        ),
+                    ],
+                    child: pages[i],
+                  ),
+                )
+              else
+                const SizedBox.shrink(),
           ],
         ),
       ),
       floatingActionButton: _index == 1 || _index == 2
           ? FloatingActionButton.extended(
-              backgroundColor: context.atelierAccent,
-              foregroundColor: context.atelierSurface,
+              backgroundColor: context.flowAction,
+              foregroundColor: context.flowOnAction,
               onPressed: () => _index == 1
                   ? showGoalTypeChoice(context)
-                  : showTaskForm(context),
+                  : showTaskForm(
+                      context,
+                      dateKey: _dateKey(
+                        _plannerKey.currentState?._day ?? DateTime.now(),
+                      ),
+                    ),
               icon: const Icon(Icons.add),
               label: Text(_index == 1 ? 'New goal' : 'Add task'),
             )
@@ -713,14 +762,12 @@ class SaveTrackNavigation extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 760),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.only(top: 4),
           child: Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: context.atelierSurface,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: context.atelierBorder),
-              boxShadow: SaveTrackDesign.shadows,
+              border: Border(top: BorderSide(color: context.atelierBorder)),
             ),
             child: LayoutBuilder(
               builder: (context, constraints) {
@@ -749,6 +796,7 @@ class SaveTrackNavigation extends StatelessWidget {
                 }
                 final needed = (widestLabel + 4) * 5;
                 final navigation = NavigationBar(
+                  indicatorColor: context.atelierSelected,
                   height: MediaQuery.textScalerOf(context).scale(12) > 18
                       ? 60 + MediaQuery.textScalerOf(context).scale(12)
                       : 72,
@@ -841,7 +889,7 @@ class DashboardScreen extends StatelessWidget {
             builder: (context, snap) {
               if (snap.hasError) {
                 return ErrorPanel(
-                  message: 'Could not load your goals. ${snap.error}',
+                  message: 'Could not load your goals. Check your connection and try again.',
                 );
               }
               if (!snap.hasData) return const LoadingPanel(featured: true);
@@ -958,86 +1006,84 @@ class SavingsOverview extends StatelessWidget {
     this.totalLabel,
     this.targetLabel,
     this.showProgress = true,
+    this.embedded = false,
   });
   final String? totalLabel, targetLabel;
   final bool showProgress;
+  final bool embedded;
   final double total, target;
   final int count;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) => MintHero(
-      padding: EdgeInsets.all(constraints.maxWidth < 330 ? 20 : 24),
-      child: Column(
+    builder: (context, constraints) {
+      final content = Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
               Expanded(
-                child: Text(
-                  'Your savings',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: SaveTrackDesign.onHeroMuted,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Your savings',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: context.atelierInk,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    AmountText(
+                      totalLabel ?? _money(total),
+                      compactCurrency: true,
+                      style: SaveTrackDesign.amount.copyWith(
+                        color: context.atelierInk,
+                        fontSize: constraints.maxWidth < 330 ? 32 : 38,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$count personal ${count == 1 ? 'goal' : 'goals'}',
+                      style: TextStyle(fontSize: 13, color: context.atelierInk),
+                    ),
+                  ],
                 ),
               ),
-              SizedBox(width: 12),
-              Icon(Icons.account_balance_wallet_outlined, size: 24),
+              if (constraints.maxWidth >= 300 &&
+                  MediaQuery.textScalerOf(context).scale(14) <= 21) ...[
+                const SizedBox(width: 8),
+                FlowSavingsArt(size: constraints.maxWidth < 380 ? 100 : 128),
+              ],
             ],
           ),
           const SizedBox(height: 20),
-          AmountText(
-            totalLabel ?? _money(total),
-            onDark: true,
-            compactCurrency: true,
-            style: SaveTrackDesign.amount.copyWith(
-              color: Colors.white,
-              fontSize: constraints.maxWidth < 340 ? 36 : 42,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Total saved toward your goals',
-            style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
-          ),
-          const SizedBox(height: 24),
           if (showProgress)
-            MintProgress(
-              value: target == 0 ? 0 : (total / target).clamp(0, 1),
-              onDark: true,
-            ),
-          const SizedBox(height: 16),
-          Container(
+            MintProgress(value: target == 0 ? 0 : (total / target).clamp(0, 1)),
+          const SizedBox(height: 12),
+          SizedBox(
             width: double.infinity,
-            padding: const EdgeInsets.only(top: 16),
-            decoration: BoxDecoration(
-              border: Border(
-                top: BorderSide(color: mint.withValues(alpha: .2)),
-              ),
-            ),
             child: Wrap(
               spacing: 16,
               runSpacing: 8,
               children: [
-                DetailLine(
-                  icon: Icons.flag_outlined,
-                  label: '$count active ${count == 1 ? 'goal' : 'goals'}',
-                  color: SaveTrackDesign.onHeroMuted,
-                ),
                 Text(
                   '${targetLabel ?? _money(target)} target',
-                  style: const TextStyle(
-                    color: SaveTrackDesign.onHeroMuted,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: context.atelierInk, fontSize: 13),
                 ),
               ],
             ),
           ),
         ],
-      ),
-    ),
+      );
+      return embedded
+          ? content
+          : MintHero(
+              soft: true,
+              padding: const EdgeInsets.all(24),
+              child: content,
+            );
+    },
   );
 }
 
@@ -1181,7 +1227,10 @@ class _PersonalGoalsScreenState extends State<PersonalGoalsScreen> {
       stream: records,
       builder: (context, snap) {
         if (snap.hasError) {
-          return ErrorPanel(message: 'Could not load goals. ${snap.error}');
+          return ErrorPanel(
+            message:
+                'Could not load goals. Check your connection and try again.',
+          );
         }
         if (!snap.hasData) return const LoadingPanel();
         final docs = snap.data!.docs
@@ -1214,7 +1263,10 @@ class GoalsPreview extends StatelessWidget {
             .snapshots(),
         builder: (context, s) {
           if (s.hasError) {
-            return ErrorPanel(message: 'Could not load goals. ${s.error}');
+            return ErrorPanel(
+              message:
+                  'Could not load goals. Check your connection and try again.',
+            );
           }
           if (!s.hasData) return const LoadingPanel();
           if (s.data!.docs.isEmpty) {
@@ -1552,7 +1604,7 @@ class PersonalGoalDetailsScreen extends StatefulWidget {
 class _PersonalGoalDetailsScreenState extends State<PersonalGoalDetailsScreen> {
   late final stream = _goals(widget.uid)
       .where(FieldPath.documentId, isEqualTo: widget.goalId)
-      .snapshots();
+      .snapshots(includeMetadataChanges: true);
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('Goal Details')),
@@ -1575,10 +1627,18 @@ class _PersonalGoalDetailsScreenState extends State<PersonalGoalDetailsScreen> {
             child: Center(
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 860),
-                child: GoalCard(
-                  uid: widget.uid,
-                  doc: snapshot.data!.docs.single,
-                  details: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AuroraSyncStatus(
+                      cached: snapshot.data!.metadata.isFromCache,
+                      pending: snapshot.data!.metadata.hasPendingWrites,
+                    ),
+                    PersonalGoalOverview(
+                      uid: widget.uid,
+                      doc: snapshot.data!.docs.single,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1681,20 +1741,10 @@ class _PlannerScreenState extends State<PlannerScreen>
     final key = _dateKey(_day);
     final modeSwitch = Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Wrap(
-        spacing: 8,
-        children: [
-          ChoiceChip(
-            label: const Text('Daily'),
-            selected: !_weekly,
-            onSelected: (_) => setState(() => _weekly = false),
-          ),
-          ChoiceChip(
-            label: const Text('Weekly'),
-            selected: _weekly,
-            onSelected: (_) => setState(() => _weekly = true),
-          ),
-        ],
+      child: AuroraModeSelector<bool>(
+        selected: _weekly,
+        options: const {false: 'Daily', true: 'Weekly'},
+        onSelected: (value) => setState(() => _weekly = value),
       ),
     );
     if (_weekly) {
@@ -1714,12 +1764,23 @@ class _PlannerScreenState extends State<PlannerScreen>
         children: [
           modeSwitch,
           PlannerDateHeader(
+            date: _day,
+            onSelect: _selectDay,
             title: _dateTitle(_day),
             onPrevious: () =>
                 _selectDay(DateTime(_day.year, _day.month, _day.day - 1)),
             onNext: () =>
                 _selectDay(DateTime(_day.year, _day.month, _day.day + 1)),
             onToday: () => _selectDay(DateTime.now()),
+            onPick: () async {
+              final selected = await showSaveTrackDatePicker(
+                context: context,
+                initialDate: _day,
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2100),
+              );
+              if (selected != null && mounted) _selectDay(selected);
+            },
           ),
         ],
       ),
@@ -1734,109 +1795,79 @@ class PlannerDateHeader extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onToday,
+    this.onPick,
+    this.date,
+    this.onSelect,
+    this.today,
   });
   final String title;
   final VoidCallback onPrevious, onNext, onToday;
+  final VoidCallback? onPick;
+  final DateTime? date;
+  final DateTime? today;
+  final ValueChanged<DateTime>? onSelect;
   @override
   Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
-      const ScreenIntro(
-        eyebrow: 'Daily planner',
-        title: 'Make today count.',
-        detail: 'A clear plan. A little more focus.',
-      ),
-      Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Your schedule',
-              style: TextStyle(color: context.atelierMuted, fontSize: 13),
-            ),
-          ),
-          TextButton.icon(
-            onPressed: onToday,
-            icon: const Icon(Icons.today_outlined, size: 18),
-            label: const Text('Today'),
-          ),
-        ],
-      ),
-      const SizedBox(height: 8),
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-        decoration: BoxDecoration(
-          color: context.atelierSurface,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: context.atelierBorder),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final previous = IconButton(
-              tooltip: 'Previous day',
-              onPressed: onPrevious,
-              icon: const Icon(Icons.chevron_left),
-            );
-            final next = IconButton(
-              tooltip: 'Next day',
-              onPressed: onNext,
-              icon: const Icon(Icons.chevron_right),
-            );
-            final date = AnimatedContainer(
-              duration: SaveTrackDesign.duration(
-                context,
-                SaveTrackDesign.selectionMotion,
-              ),
-              curve: SaveTrackDesign.motionCurve,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              decoration: BoxDecoration(
-                color: context.atelierSelected,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: AnimatedSwitcher(
-                duration: SaveTrackDesign.duration(
-                  context,
-                  SaveTrackDesign.selectionMotion,
-                ),
+      if (date != null)
+        FlowDateHeading(date: date!, onToday: onToday, onPick: onPick)
+      else
+        Row(
+          children: [
+            Expanded(
+              child: TextButton(
+                onPressed: onPick,
                 child: Text(
                   title,
-                  key: ValueKey(title),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: context.atelierAccent,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
-            );
-            if (constraints.maxWidth < 380 &&
-                MediaQuery.textScalerOf(context).scale(16) > 24) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: date,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [previous, next],
-                  ),
-                ],
-              );
-            }
-            return Row(
-              children: [
-                previous,
-                Expanded(child: date),
-                next,
-              ],
-            );
-          },
+            ),
+            TextButton(onPressed: onToday, child: const Text('Today')),
+          ],
         ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          if (date != null && onSelect != null)
+            IconButton(
+              tooltip: 'Previous week',
+              onPressed: () =>
+                  onSelect!(DateTime(date!.year, date!.month, date!.day - 7)),
+              icon: const Icon(Icons.keyboard_double_arrow_left_rounded),
+            ),
+          IconButton(
+            tooltip: 'Previous day',
+            onPressed: onPrevious,
+            icon: const Icon(Icons.chevron_left_rounded),
+          ),
+          Expanded(
+            child: Text(
+              date == null ? title : DateFormat('MMM yyyy').format(date!),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          IconButton(
+            tooltip: 'Next day',
+            onPressed: onNext,
+            icon: const Icon(Icons.chevron_right_rounded),
+          ),
+          if (date != null && onSelect != null)
+            IconButton(
+              tooltip: 'Next week',
+              onPressed: () =>
+                  onSelect!(DateTime(date!.year, date!.month, date!.day + 7)),
+              icon: const Icon(Icons.keyboard_double_arrow_right_rounded),
+            ),
+        ],
       ),
-      const SizedBox(height: 20),
+      if (date != null && onSelect != null) ...[
+        const SizedBox(height: 8),
+        FlowWeekSelector(selected: date!, onSelected: onSelect!, today: today),
+      ],
+      const SizedBox(height: 16),
     ],
   );
 }
@@ -1845,54 +1876,8 @@ class DailyCompletion extends StatelessWidget {
   const DailyCompletion({super.key, required this.done, required this.total});
   final int done, total;
   @override
-  Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final ring = ProgressRing(
-            value: total == 0 ? 0 : done / total,
-            size: 64,
-          );
-          final label = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Daily progress',
-                style: TextStyle(
-                  color: context.atelierInk,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                '$done of $total tasks completed',
-                style: TextStyle(
-                  color: context.atelierMuted,
-                  fontSize: 14,
-                  height: 1.45,
-                ),
-              ),
-            ],
-          );
-          return constraints.maxWidth >= 240 &&
-                  MediaQuery.textScalerOf(context).scale(14) <= 21
-              ? Row(
-                  children: [
-                    ring,
-                    const SizedBox(width: 20),
-                    Expanded(child: label),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [ring, const SizedBox(height: 16), label],
-                );
-        },
-      ),
-    ),
-  );
+  Widget build(BuildContext context) =>
+      FlowPlannerSummary(done: done, total: total);
 }
 
 class TasksList extends StatefulWidget {
@@ -1959,14 +1944,27 @@ class _TasksListState extends State<TasksList> {
           : widget.compact
           ? child
           : ListView(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+              padding: SaveTrackDesign.pagePadding(
+                MediaQuery.sizeOf(context).width,
+                bottom: 100,
+              ).copyWith(top: 8),
               children: [?widget.header, child],
             );
       if (s.hasError) {
-        return state(ErrorPanel(message: 'Could not load tasks. ${s.error}'));
+        return state(
+          ErrorPanel(
+            message:
+                'Could not load tasks. Check your connection and try again.',
+            onRetry: () => setState(_setStream),
+          ),
+        );
       }
-      if (!s.hasData) return state(const LoadingPanel());
-      final docs = s.data!.docs;
+      if (!s.hasData) {
+        return state(
+          widget.compact ? const LoadingPanel() : const FlowTimelineSkeleton(),
+        );
+      }
+      final docs = flowOrderedTasks(s.data!.docs, widget.dateKey);
       if (widget.compact && docs.isEmpty) {
         return state(
           EmptyPanel(
@@ -2002,15 +2000,25 @@ class _TasksListState extends State<TasksList> {
               .toList(),
         );
       }
+      if (docs.isEmpty) {
+        return state(
+          EmptyPanel(
+            icon: Icons.event_available_outlined,
+            title: 'Nothing scheduled for this day.',
+            detail: 'Make space for something that matters to you.',
+            action: 'Add Task',
+            onTap: () => showTaskForm(context, dateKey: widget.dateKey),
+          ),
+        );
+      }
       final done = docs.where((d) => d.data()['completed'] == true).length;
       final selectedDate = SmartTaskRecommendationService.parseDateKey(
         widget.dateKey,
       );
       final byId = {for (final doc in docs) doc.id: doc};
-      final overview = Column(
+      final insights = Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ?widget.header,
           if (docs.isNotEmpty) ...[
             DailyCompletion(done: done, total: docs.length),
             const SizedBox(height: 24),
@@ -2041,18 +2049,34 @@ class _TasksListState extends State<TasksList> {
               },
             ),
           const SizedBox(height: 24),
-          if (docs.isNotEmpty) ...[
-            Text('Your Tasks', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 12),
-          ],
         ],
       );
+      final overview = Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          ?widget.header,
+          if (docs.isNotEmpty) ...[const FlowTimelineHeader()],
+        ],
+      );
+      final featuredId = flowFeaturedTask(docs, widget.dateKey);
+      final firstFlexible = docs.indexWhere(
+        (d) => !flowHasSchedule(d, widget.dateKey),
+      );
       return ListView.builder(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-        itemCount: docs.length + 1,
+        key: PageStorageKey('planner-${widget.uid}-${widget.dateKey}'),
+        padding: SaveTrackDesign.pagePadding(
+          MediaQuery.sizeOf(context).width,
+          bottom: 100,
+        ).copyWith(top: 8),
+        itemCount: docs.length + 2,
         itemBuilder: (context, index) => index == 0
             ? overview
-            : TaskTile(
+            : index == docs.length + 1
+            ? insights
+            : FlowTaskGroupEntry(
+                dateKey: widget.dateKey,
+                groupHeading: index - 1 == firstFlexible,
+                featured: docs[index - 1].id == featuredId,
                 key: ValueKey('planner-task-${docs[index - 1].id}'),
                 uid: widget.uid,
                 doc: docs[index - 1],
@@ -2072,155 +2096,104 @@ Future<void> setPlannerTaskCompleted(
 });
 
 class TaskTile extends StatelessWidget {
-  const TaskTile({super.key, required this.uid, required this.doc});
+  const TaskTile({
+    super.key,
+    required this.uid,
+    required this.doc,
+    this.timeline = false,
+    this.featured = false,
+    this.onOpen,
+    this.onComplete,
+  });
+  final bool timeline, featured;
   final String uid;
   final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  final VoidCallback? onOpen;
+  final Future<void> Function(bool)? onComplete;
+
   @override
   Widget build(BuildContext context) {
-    final d = doc.data();
-    final done = d['completed'] == true;
-    final time = d['time']?.toString() ?? '';
-    final reminderTarget = ReminderTarget.fromData(
+    final data = doc.data();
+    final title = data['title']?.toString() ?? 'Untitled task';
+    final time = data['time']?.toString() ?? '';
+    final day = SmartTaskRecommendationService.parseDateKey(
+      data['dateKey']?.toString() ?? '',
+    );
+    final schedule = day == null
+        ? const TaskSchedule()
+        : SmartTaskRecommendationService.parseSchedule(time, day);
+    final target = ReminderTarget.fromData(
       ReminderTargetType.task,
       doc.id,
-      d,
+      data,
     );
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: AnimatedContainer(
-        duration: SaveTrackDesign.duration(context, SaveTrackDesign.motion),
-        curve: SaveTrackDesign.motionCurve,
-        decoration: BoxDecoration(
-          color: done ? context.atelierTonal : context.atelierSurface,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: done ? context.atelierBorder : context.atelierBorder,
+    final card = FlowTaskCard(
+      title: title,
+      priority: data['priority']?.toString() ?? 'Normal',
+      completed: data['completed'] == true,
+      featured: featured,
+      schedule: !timeline ? time : null,
+      description: data['description']?.toString() ?? data['note']?.toString(),
+      onOpen: onOpen ?? () => showTaskForm(context, doc: doc),
+      onComplete: (value) async {
+        try {
+          if (onComplete != null) {
+            await onComplete!(value);
+          } else {
+            await setPlannerTaskCompleted(doc, value);
+          }
+        } catch (_) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Could not update this task. Please try again.'),
+              ),
+            );
+          }
+        }
+      },
+      footer: timeline ? null : ReminderButton(target: target),
+      menu: PopupMenuButton<String>(
+        tooltip: 'Task actions',
+        onSelected: (value) {
+          if (value == 'edit') showTaskForm(context, doc: doc);
+          if (value == 'reminder') showReminderEditor(context, target);
+          if (value == 'delete') {
+            confirmDelete(
+              context,
+              'Delete this task?',
+              () => doc.reference.delete(),
+            );
+          }
+        },
+        itemBuilder: (_) => [
+          const PopupMenuItem(value: 'edit', child: Text('Edit')),
+          PopupMenuItem(
+            value: 'reminder',
+            child: Text(
+              ReminderScope.maybeOf(context)?.configurations
+                          .containsKey(target.key) ==
+                      true
+                  ? 'Manage Reminder'
+                  : 'Set Reminder',
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Checkbox(
-                semanticLabel: 'Complete ${d['title']}',
-                value: done,
-                activeColor: context.atelierAccent,
-                onChanged: (v) async {
-                  try {
-                    await setPlannerTaskCompleted(doc, v == true);
-                  } catch (_) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Could not update this task. Please try again.',
-                          ),
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      AnimatedDefaultTextStyle(
-                        duration: SaveTrackDesign.duration(
-                          context,
-                          SaveTrackDesign.motion,
-                        ),
-                        curve: SaveTrackDesign.motionCurve,
-                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          decoration: done ? TextDecoration.lineThrough : null,
-                          color: done
-                              ? context.atelierMuted
-                              : context.atelierInk,
-                        ),
-                        child: Text('${d['title']}'),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            if (time.isNotEmpty)
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(
-                                    Icons.schedule_outlined,
-                                    size: 14,
-                                    color: context.atelierMuted,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Flexible(
-                                    child: Text(
-                                      time,
-                                      style: TextStyle(
-                                        color: context.atelierMuted,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            StatusPill(
-                              '${d['priority'] ?? 'Normal'} priority',
-                              color: d['priority'] == 'High'
-                                  ? context.atelierWarning
-                                  : context.atelierAccent,
-                            ),
-                            if (done) const StatusPill('Completed'),
-                          ],
-                        ),
-                      ),
-                      ReminderButton(target: reminderTarget),
-                    ],
-                  ),
-                ),
-              ),
-              PopupMenuButton<String>(
-                tooltip: 'Task actions',
-                onSelected: (v) {
-                  if (v == 'edit') showTaskForm(context, doc: doc);
-                  if (v == 'reminder') {
-                    showReminderEditor(context, reminderTarget);
-                  }
-                  if (v == 'delete') {
-                    confirmDelete(
-                      context,
-                      'Delete this task?',
-                      () => doc.reference.delete(),
-                    );
-                  }
-                },
-                itemBuilder: (_) => [
-                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  PopupMenuItem(
-                    value: 'reminder',
-                    child: Text(
-                      ReminderScope.maybeOf(context)?.configurations
-                                  .containsKey(reminderTarget.key) ==
-                              true
-                          ? 'Manage Reminder'
-                          : 'Set Reminder',
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+          const PopupMenuItem(value: 'delete', child: Text('Delete')),
+        ],
       ),
     );
+    return timeline
+        ? FlowTimelineEntry(
+            time: schedule.start == null
+                ? (time.isEmpty ? 'Anytime' : 'Flexible')
+                : DateFormat('HH:mm').format(schedule.start!),
+            caption: schedule.end == null
+                ? null
+                : DateFormat('HH:mm').format(schedule.end!),
+            featured: featured,
+            child: card,
+          )
+        : Padding(padding: const EdgeInsets.only(bottom: 12), child: card);
   }
 }
 
@@ -2245,7 +2218,9 @@ class _ReportsScreenState extends State<ReportsScreen> {
         stream: records,
         builder: (context, s) {
           if (s.hasError) {
-            return ErrorPanel(message: 'Could not load savings. ${s.error}');
+            return ErrorPanel(
+              message: 'Could not load savings. Check your connection and try again.',
+            );
           }
           if (!s.hasData) return const LoadingPanel(featured: true);
           final ds = s.data!.docs;
@@ -2352,10 +2327,9 @@ class ReportsLayout extends StatelessWidget {
         key: const PageStorageKey('reports-scroll'),
         padding: SaveTrackDesign.pagePadding(constraints.maxWidth),
         children: [
-          const ScreenIntro(
-            eyebrow: 'Reports & analytics',
-            title: 'Progress, in perspective.',
-            detail: 'A clear view of your savings and planning.',
+          const AtelierSectionHeader(
+            title: 'Overview',
+            subtitle: 'Your savings and planning, at a glance.',
           ),
           if (expanded)
             Row(
@@ -2395,39 +2369,41 @@ class ReportTaskMetric extends StatelessWidget {
   final String uid, dateKey, title;
   final bool week;
   @override
-  Widget build(BuildContext context) =>
-      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: week
-            ? _tasks(uid)
-                  .where('dateKey', isGreaterThanOrEqualTo: dateKey)
-                  .where(
-                    'dateKey',
-                    isLessThanOrEqualTo: _dateKey(
-                      DateTime.parse(dateKey).add(const Duration(days: 6)),
-                    ),
-                  )
-                  .snapshots()
-            : _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
-        builder: (context, s) {
-          if (s.hasError) {
-            return ErrorPanel(
-              message: 'Could not load task report. ${s.error}',
-            );
-          }
-          if (!s.hasData) return const LoadingPanel(minHeight: 236);
-          final all = s.data!.docs;
-          final done = all.where((d) => d.data()['completed'] == true).length;
-          return ReportMetric(
-            title: title,
-            value: '$done / ${all.length} completed',
-            progress: all.isEmpty ? 0 : done / all.length,
-            caption: all.isEmpty
-                ? 'No tasks scheduled'
-                : '${all.length - done} remaining',
-            icon: Icons.check_circle_outline,
-          );
-        },
+  Widget build(
+    BuildContext context,
+  ) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    stream: week
+        ? _tasks(uid)
+              .where('dateKey', isGreaterThanOrEqualTo: dateKey)
+              .where(
+                'dateKey',
+                isLessThanOrEqualTo: _dateKey(
+                  DateTime.parse(dateKey).add(const Duration(days: 6)),
+                ),
+              )
+              .snapshots()
+        : _tasks(uid).where('dateKey', isEqualTo: dateKey).snapshots(),
+    builder: (context, s) {
+      if (s.hasError) {
+        return ErrorPanel(
+          message: 'Could not load task report. Check your connection and try again.',
+        );
+      }
+      if (!s.hasData) return const LoadingPanel(minHeight: 236);
+      final all = s.data!.docs;
+      final done = all.where((d) => d.data()['completed'] == true).length;
+      return ReportMetric(
+        title: title,
+        value: '$done / ${all.length} completed',
+        progress: all.isEmpty ? 0 : done / all.length,
+        caption:
+            '${_shortDate(DateTime.parse(dateKey))}'
+            '${week ? ' – ${_shortDate(DateTime.parse(dateKey).add(const Duration(days: 6)))}' : ''}'
+            ' · ${all.isEmpty ? 'No tasks scheduled' : '${all.length - done} remaining'}',
+        icon: Icons.check_circle_outline,
       );
+    },
+  );
 }
 
 class ProfileScreen extends StatefulWidget {
@@ -2499,185 +2475,172 @@ class ProfileContent extends StatelessWidget {
   final String? profileError;
   @override
   Widget build(BuildContext context) {
+    final preferences = AtelierScope.maybeOf(context);
     return ListView(
-      padding: const EdgeInsets.all(20),
+      key: const PageStorageKey('profile-scroll'),
+      padding: SaveTrackDesign.pagePadding(
+        MediaQuery.sizeOf(context).width,
+        bottom: 32,
+      ),
       children: [
-        const ScreenIntro(
-          eyebrow: 'Your space',
-          title: 'Made for your everyday.',
-          detail: 'A little clarity for your goals and plans.',
-        ),
-        MintHero(
-          deep: true,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'YOUR ACCOUNT',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: SaveTrackDesign.onHeroMuted,
-                  fontSize: 11,
-                  letterSpacing: 1.4,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 20),
-              Center(child: avatar ?? ProfileAvatar(name: name)),
-              const SizedBox(height: 24),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text(
-                    name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    email,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: SaveTrackDesign.onHeroMuted),
-                  ),
-                ],
-              ),
-            ],
-          ),
+        AuroraIdentity(
+          name: name,
+          email: email,
+          avatar: avatar ?? ProfileAvatar(name: name, size: 56),
         ),
         if (profileError != null)
           Padding(
             padding: const EdgeInsets.only(top: 12),
-            child: Text(
-              profileError!,
-              style: TextStyle(color: context.atelierError),
-            ),
+            child: AuroraNotice(profileError!, error: true),
           ),
         const SizedBox(height: 24),
-        const FieldCaption('Preferences & app'),
-        if (AtelierScope.maybeOf(context) != null) ...[
-          Card(
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const MintIcon(Icons.palette_outlined),
-                  title: const Text('Appearance'),
-                  subtitle: Text(AtelierPreferences.themeMode.value.name),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => showAppearancePicker(
-                    context,
-                    AtelierScope.maybeOf(context)!,
-                  ),
-                ),
-                const Divider(height: 1, indent: 20, endIndent: 20),
-                ListTile(
-                  leading: const MintIcon(Icons.dashboard_customize_outlined),
-                  title: const Text('Customize Home'),
-                  subtitle: const Text(
-                    'Your views, sections and featured goal.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute<void>(
-                      builder: (_) => CustomizeHomeScreen(
-                        preferences: AtelierScope.maybeOf(context)!,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-        ],
-        Card(
-          child: Column(
+        if (preferences != null) ...[
+          AuroraGroupedSection(
+            title: 'Make it yours',
             children: [
               ListTile(
-                key: const ValueKey('open-currency-settings'),
-                leading: const MintIcon(Icons.currency_exchange),
-                title: const Text('Currency Settings'),
-                subtitle: Text(
-                  'Display savings in your preferred currency.\nCurrent: ${CurrencyScope.maybeOf(context)?.preferred ?? 'PHP'}',
-                ),
+                leading: const MintIcon(Icons.palette_outlined, size: 36),
+                title: const Text('Appearance'),
+                subtitle: Text(switch (AtelierPreferences.themeMode.value) {
+                  ThemeMode.system => 'System',
+                  ThemeMode.light => 'Light',
+                  ThemeMode.dark => 'Dark',
+                }),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(
-                    builder: (_) => const CurrencySettingsScreen(),
-                  ),
-                ),
+                onTap: () => showAppearancePicker(context, preferences),
               ),
-              const Divider(indent: 20, endIndent: 20, height: 1),
               ListTile(
-                leading: const MintIcon(Icons.notifications_outlined),
-                title: const Text('Smart Reminders'),
-                subtitle: const Text(
-                  'Manage reminders and phone notification settings.',
+                leading: const MintIcon(
+                  Icons.dashboard_customize_outlined,
+                  size: 36,
                 ),
+                title: const Text('Customize Home'),
+                subtitle: const Text('Views, sections and your featured goal'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.of(context).push(
+                onTap: () => Navigator.push(
+                  context,
                   MaterialPageRoute<void>(
-                    builder: (_) => const SmartRemindersScreen(),
+                    builder: (_) =>
+                        CustomizeHomeScreen(preferences: preferences),
                   ),
                 ),
-              ),
-              const Divider(indent: 20, endIndent: 20, height: 1),
-              if (HomeWidgetScope.maybeOf(context)?.bridge.supported ==
-                  true) ...[
-                ListTile(
-                  leading: const MintIcon(Icons.widgets_outlined),
-                  title: const Text('Home Screen Widgets'),
-                  subtitle: const Text(
-                    'Savings and daily plans on your Android home screen.',
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    final owner = FirebaseAuth.instance.currentUser?.uid;
-                    if (owner == null) return;
-                    Navigator.of(context).push(
-                      MaterialPageRoute<void>(
-                        builder: (_) => WidgetAccountGuard(
-                          uid: owner,
-                          child: const HomeWidgetsSettingsScreen(),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const Divider(indent: 20, endIndent: 20, height: 1),
-              ],
-              const ListTile(
-                leading: MintIcon(Icons.info_outline),
-                title: Text('SaveTrack'),
-                subtitle: Text('Your goals, your progress.'),
               ),
             ],
           ),
+          const SizedBox(height: 24),
+        ],
+        AuroraGroupedSection(
+          title: 'Everyday preferences',
+          children: [
+            ListTile(
+              key: const ValueKey('open-currency-settings'),
+              leading: const MintIcon(Icons.currency_exchange, size: 36),
+              title: const Text('Currency Settings'),
+              subtitle: Text(
+                'Display currency · ${CurrencyScope.maybeOf(context)?.preferred ?? 'PHP'}',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const CurrencySettingsScreen(),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const MintIcon(Icons.notifications_outlined, size: 36),
+              title: const Text('Smart Reminders'),
+              subtitle: const Text(
+                'Your agenda and phone notification settings',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) => const SmartRemindersScreen(),
+                ),
+              ),
+            ),
+            if (HomeWidgetScope.maybeOf(context)?.bridge.supported == true)
+              ListTile(
+                leading: const MintIcon(Icons.widgets_outlined, size: 36),
+                title: const Text('Home Screen Widgets'),
+                subtitle: const Text('Savings and daily plans, at a glance'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  final owner = FirebaseAuth.instance.currentUser?.uid;
+                  if (owner == null) return;
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => WidgetAccountGuard(
+                        uid: owner,
+                        child: const HomeWidgetsSettingsScreen(),
+                      ),
+                    ),
+                  );
+                },
+              ),
+          ],
         ),
         const SizedBox(height: 24),
-        const FieldCaption('Account security'),
-        Card(
-          child: ListTile(
-            leading: const MintIcon(Icons.lock_outline),
-            title: const Text('Change Password'),
-            subtitle: const Text('Keep your account secure'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: onPassword,
-          ),
+        AuroraGroupedSection(
+          title: 'AI & Assist',
+          children: [
+            ListTile(
+              leading: const MintIcon(Icons.auto_awesome_outlined, size: 36),
+              title: const Text('SaveTrack AI'),
+              subtitle: const Text(
+                'Questions, guidance and read-only coaching',
+              ),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(builder: (_) => const AiCoachScreen()),
+              ),
+            ),
+            ListTile(
+              leading: const MintIcon(Icons.hub_outlined, size: 36),
+              title: const Text('Agent Studio Pro'),
+              subtitle: const Text('Plans, missions and execution settings'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute<void>(
+                  builder: (_) =>
+                      const AgentStudioScreen(onOpen: _openAgentDestination),
+                ),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 24),
+        AuroraGroupedSection(
+          title: 'Account security',
+          children: [
+            ListTile(
+              leading: const MintIcon(Icons.lock_outline, size: 36),
+              title: const Text('Change Password'),
+              subtitle: const Text('Keep your account secure'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: onPassword,
+            ),
+          ],
+        ),
+        const SizedBox(height: 24),
         OutlinedButton.icon(
           onPressed: onSignOut,
           icon: const Icon(Icons.logout),
           label: const Text('Sign out'),
           style: OutlinedButton.styleFrom(
             foregroundColor: context.atelierError,
-            minimumSize: const Size.fromHeight(50),
           ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'SaveTrack · Beautiful progress. Effortless control.',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodySmall,
         ),
       ],
     );
@@ -2703,7 +2666,10 @@ class SummaryTile extends StatelessWidget {
     stream: stream,
     builder: (context, s) {
       if (s.hasError) {
-        return ErrorPanel(message: 'Could not load $label. ${s.error}');
+        return ErrorPanel(
+          message:
+              'Could not load $label. Check your connection and try again.',
+        );
       }
       if (!s.hasData) return const LoadingPanel();
       return AuroraMetricCard(
@@ -2785,8 +2751,12 @@ class ReportMetric extends StatelessWidget {
         ),
       );
     }
-    return MintHero(
-      deep: true,
+    return Container(
+      padding: const EdgeInsets.all(SaveTrackDesign.spaceLg),
+      decoration: BoxDecoration(
+        color: context.flowCategory(FlowAccent.mint),
+        borderRadius: BorderRadius.circular(SaveTrackDesign.radiusHero),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -2796,55 +2766,46 @@ class ReportMetric extends StatelessWidget {
                 child: Text(
                   title,
                   style: TextStyle(
-                    color: SaveTrackDesign.onHeroMuted,
+                    color: context.atelierMuted,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              Icon(icon, size: 24),
+              Icon(icon, size: 24, color: context.atelierAccent),
             ],
           ),
           const SizedBox(height: 16),
           AmountText(
             value,
-            onDark: true,
             compactCurrency: true,
             style: SaveTrackDesign.amount.copyWith(
-              fontSize: 40,
-              color: Colors.white,
+              fontSize: 38,
+              color: context.atelierInk,
             ),
           ),
           const SizedBox(height: 6),
           Text(
             caption,
-            style: TextStyle(color: SaveTrackDesign.onHeroMuted, fontSize: 13),
+            style: TextStyle(color: context.atelierMuted, fontSize: 13),
           ),
           if (progress != null) ...[
             const SizedBox(height: 18),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: SaveTrackDesign.heroSurface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: mint.withValues(alpha: .16)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${(progress! * 100).round()}% of total target',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${(progress! * 100).round()}% of total target',
+                  style: TextStyle(
+                    color: context.atelierInk,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 12),
-                  MintProgress(value: progress!, onDark: true),
-                ],
-              ),
+                ),
+                const SizedBox(height: 12),
+                MintProgress(value: progress!),
+              ],
             ),
           ],
         ],
@@ -2922,13 +2883,17 @@ class LoadingPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 8),
-    child: AuroraLoadingSurface(featured: featured, minHeight: minHeight),
+    child: ConstrainedBox(
+      constraints: BoxConstraints(minHeight: minHeight),
+      child: AuroraSkeleton(featured: featured),
+    ),
   );
 }
 
 class ErrorPanel extends StatelessWidget {
-  const ErrorPanel({super.key, required this.message});
+  const ErrorPanel({super.key, required this.message, this.onRetry});
   final String message;
+  final VoidCallback? onRetry;
   @override
   Widget build(BuildContext context) => StateSurface(
     padding: const EdgeInsets.all(16),
@@ -2952,7 +2917,7 @@ class ErrorPanel extends StatelessWidget {
               message,
               style: TextStyle(color: context.atelierError, height: 1.5),
             );
-            return constraints.maxWidth < 220
+            final content = constraints.maxWidth < 220
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [icon, const SizedBox(height: 8), text],
@@ -2965,6 +2930,20 @@ class ErrorPanel extends StatelessWidget {
                       Expanded(child: text),
                     ],
                   );
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                content,
+                if (onRetry != null) ...[
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ],
+            );
           },
         ),
       ),
@@ -3188,8 +3167,7 @@ Future<void> showTransactionHistory(
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return ErrorPanel(
-                      message:
-                          'Could not load savings history. ${snapshot.error}',
+                      message: 'Could not load savings history. Check your connection and try again.',
                     );
                   }
                   if (!snapshot.hasData) return const LoadingPanel();
@@ -3225,7 +3203,6 @@ Future<void> showTransactionHistory(
                       itemBuilder: (context, index) {
                         final record = records[index];
                         final data = record.data();
-                        final withdrawal = data['type'] == 'withdrawal';
                         final timestamp = data['date'];
                         return TransactionDateGroup(
                           at: timestamp,
@@ -3234,83 +3211,12 @@ Future<void> showTransactionHistory(
                               : records[index - 1].data()['date'],
                           first: index == 0,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                MintIcon(
-                                  withdrawal
-                                      ? Icons.south_east
-                                      : Icons.south_west,
-                                  color: withdrawal
-                                      ? context.atelierError
-                                      : context.atelierAccent,
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      AmountText(
-                                        '${withdrawal ? '-' : '+'}${displayMoney(context, _number(data['amount']), data['currencyCode'] as String? ?? goalCurrency(goal.data()))}',
-                                        style: TextStyle(
-                                          fontSize: 21,
-                                          fontWeight: FontWeight.w700,
-                                          color: withdrawal
-                                              ? context.atelierError
-                                              : context.atelierAccent,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      CurrencyContextLabel(
-                                        source:
-                                            data['currencyCode'] as String? ??
-                                            goalCurrency(goal.data()),
-                                        historical: true,
-                                      ),
-                                      Text(
-                                        originalMoney(
-                                          _number(data['amount']),
-                                          data['currencyCode'] as String? ??
-                                              goalCurrency(goal.data()),
-                                        ),
-                                        style: TextStyle(
-                                          color: context.atelierMuted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                      if (data['conversion'] is Map)
-                                        TransactionConversionDetails(
-                                          data: Map<String, dynamic>.from(
-                                            data['conversion'] as Map,
-                                          ),
-                                        ),
-                                      if (withdrawal) ...[
-                                        const Text('Savings Decreased'),
-                                        const SizedBox(height: 4),
-                                      ],
-                                      Text(
-                                        (data['note'] as String? ?? '').isEmpty
-                                            ? (withdrawal
-                                                  ? 'Savings withdrawal'
-                                                  : 'Savings deposit')
-                                            : '${withdrawal ? 'Reason: ' : ''}${data['note']}',
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        timestamp is Timestamp
-                                            ? _shortDate(timestamp.toDate())
-                                            : 'Date unavailable',
-                                        style: TextStyle(
-                                          color: context.atelierMuted,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Card(
+                              child: PersonalTransactionTile(
+                                data: data,
+                                currency: goalCurrency(goal.data()),
+                              ),
                             ),
                           ),
                         );
@@ -3583,7 +3489,7 @@ Future<void> showGoalForm(
                               const SizedBox(height: 8),
                               OutlinedButton.icon(
                                 onPressed: () async {
-                                  final d = await showDatePicker(
+                                  final d = await showSaveTrackDatePicker(
                                     context: ctx,
                                     firstDate: DateTime.now().subtract(
                                       const Duration(days: 1),
@@ -3906,7 +3812,7 @@ Future<void> showTaskForm(
                     OutlinedButton.icon(
                       onPressed: () async {
                         final d = DateTime.tryParse(day) ?? DateTime.now();
-                        final chosen = await showDatePicker(
+                        final chosen = await showSaveTrackDatePicker(
                           context: ctx,
                           firstDate: DateTime(2020),
                           lastDate: DateTime(2100),

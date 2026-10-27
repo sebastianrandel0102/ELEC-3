@@ -47,27 +47,25 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                         detail: 'View your savings in the currency that works for you.',
                       ),
                       MintHero(
-                        deep: true,
+                        soft: true,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
+                            Text(
                               'Your display currency',
-                              style: TextStyle(
-                                color: SaveTrackDesign.onHeroMuted,
-                              ),
+                              style: TextStyle(color: context.atelierInk),
                             ),
                             const SizedBox(height: 12),
                             Text(
                               '${current.code}  ${current.symbol}',
                               style: SaveTrackDesign.amount.copyWith(
-                                color: Colors.white,
+                                color: context.atelierInk,
                               ),
                             ),
                             Text(
                               current.name,
-                              style: const TextStyle(
-                                color: Colors.white,
+                              style: TextStyle(
+                                color: context.atelierInk,
                                 fontSize: 18,
                               ),
                             ),
@@ -76,9 +74,7 @@ class _CurrencySettingsScreenState extends State<CurrencySettingsScreen> {
                               current.regions.length == 1
                                   ? current.regions.first
                                   : 'Used across ${current.regions.length} countries and regions',
-                              style: const TextStyle(
-                                color: SaveTrackDesign.onHeroMuted,
-                              ),
+                              style: TextStyle(color: context.atelierInk),
                             ),
                           ],
                         ),

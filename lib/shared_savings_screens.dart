@@ -159,7 +159,7 @@ class MemberAvatar extends StatelessWidget {
       label: name,
       child: CircleAvatar(
         backgroundColor: mint,
-        foregroundColor: context.atelierAccent,
+        foregroundColor: SaveTrackDesign.midnight,
         child: Text(
           words.isEmpty
               ? '?'
@@ -268,11 +268,13 @@ class _SharedGoalsPanelState extends State<SharedGoalsPanel> {
             ),
           ),
         if (!widget.compact && !widget.report) ...[
-          const ScreenIntro(
+          const FlowWorkspaceIntro(
+            icon: Icons.groups_outlined,
             eyebrow: 'Save Together',
             title: 'A shared goal. Real progress.',
             detail: 'Record savings with people you trust.',
           ),
+          const SizedBox(height: 20),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -371,23 +373,27 @@ class SharedGoalCard extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 16),
     child: Card(
+      color: context.flowCategory(FlowAccent.mint),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
         onTap: () => openSharedGoal(context, goal.id),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GoalCoverImage(
-                target: goal.coverTarget,
-                name: goal.name,
-                path: goal.cover.path,
-                icon: sharedIcons[goal.iconKey] ?? Icons.groups_outlined,
-                viewerUid: uid,
-                load: coverLoad,
-              ),
-              const SizedBox(height: 20),
+              if (goal.cover.path != null) ...[
+                GoalCoverImage(
+                  target: goal.coverTarget,
+                  name: goal.name,
+                  path: goal.cover.path,
+                  icon: sharedIcons[goal.iconKey] ?? Icons.groups_outlined,
+                  viewerUid: uid,
+                  load: coverLoad,
+                ),
+                const SizedBox(height: 20),
+              ],
               Row(
                 children: [
                   MintIcon(sharedIcons[goal.iconKey] ?? Icons.groups_outlined),
@@ -415,9 +421,7 @@ class SharedGoalCard extends StatelessWidget {
                 children: [
                   const StatusPill('Shared'),
                   StatusPill(goal.statusAt(DateTime.now())),
-                  Text(
-                    '${goal.memberCount} members · ${goal.ownerId == uid ? 'Owner' : 'Contributor'}',
-                  ),
+                  StatusPill(goal.ownerId == uid ? 'Owner' : 'Contributor'),
                 ],
               ),
               const SizedBox(height: 16),
@@ -441,27 +445,72 @@ class SharedGoalCard extends StatelessWidget {
                 '${(goal.progress * 100).round()}% · Due ${sharedDateText(goal.deadline)}',
                 style: TextStyle(color: context.atelierMuted, fontSize: 13),
               ),
-              if ((goal.data['memberNames'] as Map?)?.isNotEmpty ?? false)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: Wrap(
-                    spacing: 6,
-                    runSpacing: 6,
-                    children: [
-                      ...(goal.data['memberNames'] as Map).values
-                          .take(3)
-                          .map((n) => MemberAvatar(n as String)),
-                      if (goal.memberCount > 3)
-                        Text('+${goal.memberCount - 3}'),
-                    ],
-                  ),
-                ),
+              const SizedBox(height: 16),
+              SharedMemberSummary(goal: goal),
             ],
           ),
         ),
       ),
     ),
   );
+}
+
+/// Only names present in the authorized goal record are shown here.
+class SharedMemberSummary extends StatelessWidget {
+  const SharedMemberSummary({super.key, required this.goal});
+  final SharedSavingsGoal goal;
+  @override
+  Widget build(BuildContext context) {
+    final names =
+        (goal.data['memberNames'] as Map?)?.values
+            .whereType<String>()
+            .where((name) => name.trim().isNotEmpty)
+            .take(3)
+            .toList() ??
+        const <String>[];
+    return Wrap(
+      spacing: 12,
+      runSpacing: 8,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (names.isNotEmpty)
+          SizedBox(
+            width: 40 + (names.length - 1) * 28,
+            height: 40,
+            child: Stack(
+              children: [
+                for (var i = 0; i < names.length; i++)
+                  Positioned(
+                    left: i * 28,
+                    top: 0,
+                    width: 40,
+                    height: 40,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: context.atelierSurface,
+                          width: 2,
+                        ),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(2),
+                        child: MemberAvatar(names[i]),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          )
+        else
+          Icon(Icons.people_outline, size: 22, color: context.atelierAccent),
+        Text(
+          '${goal.memberCount} ${goal.memberCount == 1 ? 'member' : 'members'}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+      ],
+    );
+  }
 }
 
 class SharedGoalFormScreen extends StatefulWidget {
@@ -512,7 +561,7 @@ class _SharedGoalFormScreenState extends State<SharedGoalFormScreen> {
   }
 
   Future<void> pick(bool isStart) async {
-    final d = await showDatePicker(
+    final d = await showSaveTrackDatePicker(
       context: context,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100, 12, 31),
@@ -1045,8 +1094,12 @@ class SharedGoalHero extends StatelessWidget {
   const SharedGoalHero({super.key, required this.goal});
   final SharedSavingsGoal goal;
   @override
-  Widget build(BuildContext context) => MintHero(
-    deep: true,
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(SaveTrackDesign.section),
+    decoration: BoxDecoration(
+      color: context.flowCategory(FlowAccent.mint),
+      borderRadius: BorderRadius.circular(SaveTrackDesign.radiusHero),
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1054,62 +1107,64 @@ class SharedGoalHero extends StatelessWidget {
           spacing: 10,
           runSpacing: 8,
           children: [
-            Icon(sharedIcons[goal.iconKey], color: mint),
-            const Text('Shared goal', style: TextStyle(color: mint)),
+            Icon(sharedIcons[goal.iconKey], color: context.atelierInk),
+            Text('Shared goal', style: TextStyle(color: context.atelierInk)),
             Text(
               goal.statusAt(DateTime.now()),
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: context.atelierInk),
             ),
           ],
         ),
         const SizedBox(height: 16),
         Text(
           goal.name,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 25,
             fontWeight: FontWeight.w700,
-            color: Colors.white,
+            color: context.atelierInk,
           ),
         ),
         const SizedBox(height: 16),
         AmountText(
           sharedDisplayMoney(context, goal.balance),
-          onDark: true,
+          onDark: false,
           compactCurrency: true,
           style: SaveTrackDesign.amount.copyWith(
-            color: Colors.white,
-            fontSize: 42,
+            color: context.atelierInk,
+            fontSize: 36,
           ),
         ),
-        const Text(
+        Text(
           'Combined recorded savings',
-          style: TextStyle(color: SaveTrackDesign.onHeroMuted),
+          style: TextStyle(color: context.atelierInk),
         ),
         const SizedBox(height: 20),
-        MintProgress(value: goal.progress, onDark: true),
+        MintProgress(value: goal.progress, onDark: false),
         const SizedBox(height: 16),
         Text(
           '${(goal.progress * 100).round()}% · ${sharedDisplayMoney(context, goal.target)} target',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: context.atelierInk,
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
         ),
         const SizedBox(height: 20),
-        Divider(color: mint.withValues(alpha: .2), height: 1),
+        Divider(color: context.atelierInk.withValues(alpha: .2), height: 1),
         const SizedBox(height: 16),
         DetailLine(
           icon: Icons.account_balance_wallet_outlined,
           label: '${sharedDisplayMoney(context, goal.remaining)} remaining',
-          color: SaveTrackDesign.onHeroMuted,
+          color: context.atelierInk,
         ),
         const SizedBox(height: 8),
         DetailLine(
           icon: Icons.event_outlined,
           label: 'Due ${sharedDateText(goal.deadline)}',
-          color: SaveTrackDesign.onHeroMuted,
+          color: context.atelierInk,
         ),
+        const SizedBox(height: 16),
+        SharedMemberSummary(goal: goal),
       ],
     ),
   );
@@ -1384,7 +1439,7 @@ class _SharedContributionScreenState extends State<SharedContributionScreen> {
                             );
                             return;
                           }
-                          final d = await showDatePicker(
+                          final d = await showSaveTrackDatePicker(
                             context: context,
                             firstDate: DateTime(
                               widget.goal.startDate.year,

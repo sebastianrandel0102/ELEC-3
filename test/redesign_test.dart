@@ -531,7 +531,7 @@ void main() {
     await tester.tap(find.text('History'));
     await tester.pumpAndSettle();
     expect(find.text('+PHP ₱12,345,678.90'), findsOneWidget);
-    expect(find.text('10/10/2026'), findsOneWidget);
+    expect(find.textContaining('Oct 10, 2026'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await capture(tester, 'history-populated-narrow');
     await tester.tap(find.byTooltip('Close history'));
@@ -816,7 +816,7 @@ void main() {
     await tester.tap(find.text('Today'));
     await tester.ensureVisible(find.text('3 of 4 tasks completed'));
     expect(calls, ['previous', 'next', 'today']);
-    expect(tester.widget<ProgressRing>(find.byType(ProgressRing)).value, .75);
+    expect(tester.widget<MintProgress>(find.byType(MintProgress)).value, .75);
     expect(tester.takeException(), isNull);
   });
 

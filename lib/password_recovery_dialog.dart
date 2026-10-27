@@ -92,7 +92,7 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               MintHero(
-                deep: true,
+                soft: true,
                 edgeToEdge: true,
                 padding: const EdgeInsets.all(24),
                 child: Column(
@@ -100,7 +100,7 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
                   children: [
                     Icon(
                       _sent ? Icons.mark_email_read_outlined : Icons.lock_reset,
-                      color: mint,
+                      color: context.atelierInk,
                       size: 32,
                     ),
                     const SizedBox(height: 12),
@@ -109,7 +109,7 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
                       child: Text(
                         _sent ? 'Check Your Email' : 'Forgot Password?',
                         style: Theme.of(context).textTheme.titleLarge
-                            ?.copyWith(color: Colors.white),
+                            ?.copyWith(color: context.atelierInk),
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -117,10 +117,7 @@ class _PasswordRecoveryDialogState extends State<PasswordRecoveryDialog> {
                       _sent
                           ? 'If this email address is associated with an eligible SaveTrack account, password-reset instructions will be sent. Please check your inbox or spam folder.'
                           : "Enter your email address and we'll send you a secure link to reset your password.",
-                      style: const TextStyle(
-                        color: SaveTrackDesign.onHeroMuted,
-                        height: 1.5,
-                      ),
+                      style: TextStyle(color: context.atelierInk, height: 1.5),
                     ),
                   ],
                 ),

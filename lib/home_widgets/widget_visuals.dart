@@ -14,7 +14,8 @@ String widgetTypeName(HomeWidgetType type) => switch (type) {
 String widgetTypeDescription(HomeWidgetType type) => switch (type) {
   HomeWidgetType.goal => 'Your next milestone, always in view.',
   HomeWidgetType.planner => 'Today’s progress and what comes next.',
-  HomeWidgetType.quickSave => 'Start a save. Review and confirm in the app.',
+  HomeWidgetType.quickSave =>
+    'Enter, review and confirm savings on your widget.',
   HomeWidgetType.today => 'Savings and daily focus, together.',
 };
 
@@ -55,22 +56,19 @@ class WidgetAtelierPalette {
   Color get background => white
       ? Colors.white
       : dark
-      ? const Color(0xFF073F34)
-      : const Color(0xFFEDFAF3);
-  Color get surface => dark ? const Color(0xFF165346) : Colors.white;
+      ? const Color(0xFF142824)
+      : const Color(0xFFF6FAF8);
+  Color get surface => dark ? const Color(0xFF203630) : Colors.white;
   Color get secondarySurface =>
-      dark ? const Color(0xFF0B5B4B) : const Color(0xFFE3F5EA);
-  Color get text => dark ? Colors.white : const Color(0xFF14362B);
+      dark ? const Color(0xFF2B453C) : const Color(0xFFDDF5E9);
+  Color get text => dark ? Colors.white : const Color(0xFF202C29);
   Color get secondary =>
-      dark ? const Color(0xFFDCF8EB) : const Color(0xFF526E61);
-  Color get accent => dark ? const Color(0xFF75E7BF) : const Color(0xFF13876D);
-  Color get track => dark ? const Color(0xFF286A5B) : const Color(0xFFD6EDE0);
-  Color get action => dark ? const Color(0xFF4BD4A8) : const Color(0xFF0F745D);
-  Color get onAction => dark ? const Color(0xFF052F28) : Colors.white;
-  Color get border => dark ? const Color(0xFF286A5B) : const Color(0xFFD5EEDF);
-  Gradient? get gradient => dark
-      ? const LinearGradient(
-          colors: [Color(0xFF052F28), Color(0xFF073F34), Color(0xFF0B5B4B)],
-        )
-      : null;
+      dark ? const Color(0xFFB7D4C7) : const Color(0xFF626F69);
+  Color get accent => dark ? const Color(0xFF75E7BF) : const Color(0xFF236C57);
+  Color get track => dark ? const Color(0xFF315D50) : const Color(0xFFD8E8E0);
+  Color get action => dark ? const Color(0xFF65D5A9) : const Color(0xFF48BF91);
+  Color get onAction =>
+      dark ? const Color(0xFF142824) : const Color(0xFF202C29);
+  Color get border => dark ? const Color(0xFF315D50) : const Color(0xFFE6EDE9);
+  Gradient? get gradient => null;
 }

@@ -1,27 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/cupertino.dart'
+    show
+        CupertinoDatePicker,
+        CupertinoDatePickerMode,
+        CupertinoTheme,
+        CupertinoThemeData;
 
 import 'dart:math' as math;
 
 import 'branding/savetrack_logo.dart';
 
-const mint = Color(0xFFABF2D7);
-const teal = Color(0xFF0B5B4B);
-const canvas = Color(0xFFF6FBF8);
-const ink = Color(0xFF14362B);
+part 'precision_components.dart';
+part 'figma_flow_components.dart';
+part 'platform_pickers.dart';
+
+const mint = Color(0xFFB7F0D3);
+const teal = Color(0xFF236C57);
+const canvas = Color(0xFFF6FAF8);
+const ink = Color(0xFF202C29);
 // A darker supporting tone than the decorative muted mint, for readable text.
-const muted = Color(0xFF526E61);
+const muted = Color(0xFF626F69);
 
 /// Semantic surface and text roles used by every application feature.
 extension AtelierColors on BuildContext {
   bool get isDark => Theme.of(this).brightness == Brightness.dark;
   Color get atelierInk => Theme.of(this).colorScheme.onSurface;
   Color get atelierMuted => Theme.of(this).colorScheme.onSurfaceVariant;
-  Color get atelierAccent => Theme.of(this).colorScheme.primary;
+  Color get atelierAccent => isDark ? Theme.of(this).colorScheme.primary : teal;
   Color get atelierSurface => Theme.of(this).colorScheme.surface;
   Color get atelierCanvas => Theme.of(this).scaffoldBackgroundColor;
   Color get atelierBorder => Theme.of(this).colorScheme.outlineVariant;
   Color get atelierTonal => Theme.of(this).colorScheme.surfaceContainer;
   Color get atelierSelected => Theme.of(this).colorScheme.secondaryContainer;
+  Color get atelierInput => Theme.of(this).inputDecorationTheme.fillColor!;
+  Color get atelierTrack =>
+      isDark ? const Color(0xFF315D50) : const Color(0xFFD8E8E0);
   Color get atelierError => Theme.of(this).colorScheme.error;
   Color get atelierWarning =>
       isDark ? const Color(0xFFFFD38A) : SaveTrackDesign.warning;
@@ -51,26 +65,26 @@ abstract final class SaveTrackDesign {
   static const emerald = Color(0xFF13876D);
   // The text-bearing stop is deeper than the accent emerald to meet AA.
   static const heroEnd = Color(0xFF106550);
-  static const fresh = Color(0xFF4BD4A8);
+  static const fresh = Color(0xFF65D5A9);
   static const luminous = Color(0xFF75E7BF);
   static const premiumMint = Color(0xFF26B58E);
-  static const lightMint = Color(0xFFDCF8EB);
-  static const mist = Color(0xFFEDFAF3);
+  static const lightMint = Color(0xFFDDF5E9);
+  static const mist = Color(0xFFF0FAF5);
   static const cloud = Color(0xFFF4FCF8);
   static const textMuted = Color(0xFF91A59A);
-  static const divider = Color(0xFFEBF3EE);
+  static const divider = Color(0xFFEDF1EF);
   static const info = Color(0xFF326C94);
-  static const input = Color(0xFFF8FCFA);
+  static const input = Color(0xFFF4F6F5);
   static const completed = Color(0xFFEDF7F1);
   static const errorSurface = Color(0xFFFFF3F3);
   static const warningSurface = Color(0xFFFFF6E5);
-  static const border = Color(0xFFE1EEE7);
+  static const border = Color(0xFFE6EDE9);
   static const elevatedBorder = Color(0xFFD7EAE0);
   static const heroTrack = Color(0x33FFFFFF);
   static const heroSurface = Color(0x14FFFFFF);
   static const heroHighlight = Color(0x2475E7BF);
   static const error = Color(0xFFB83E48);
-  static const warning = Color(0xFF926014);
+  static const warning = Color(0xFF80520E);
   static const success = Color(0xFF187F5B);
   static const spaceXs = 4.0;
   static const spaceSm = 8.0;
@@ -81,10 +95,13 @@ abstract final class SaveTrackDesign {
   static const region = 32.0;
   static const spaceXl = 40.0;
   static const spaceXxl = 48.0;
-  static const radius = 22.0;
+  static const radius = 20.0;
   static const radiusSmall = 12.0;
   static const radiusMedium = 16.0;
-  static const radiusHero = 30.0;
+  static const radiusHero = 28.0;
+  static const radiusSheet = 28.0;
+  static const touchMin = 48.0;
+  static const buttonHeight = 52.0;
   static const maxWidth = 1080.0;
   static const pressMotion = Duration(milliseconds: 120);
   static const selectionMotion = Duration(milliseconds: 190);
@@ -122,8 +139,9 @@ abstract final class SaveTrackDesign {
     end: Alignment.bottomRight,
     colors: [Colors.white, cloud, mist],
   );
-  static const progressOnDark = LinearGradient(
-    colors: [mint, fresh, premiumMint],
+  static const progressOnDark = LinearGradient(colors: [mint, luminous]);
+  static const progressOnLight = LinearGradient(
+    colors: [Color(0xFF197C68), Color(0xFF268B67)],
   );
   static const amount = TextStyle(
     fontFamily: 'Manrope',
@@ -135,7 +153,7 @@ abstract final class SaveTrackDesign {
   );
   static const heading = TextStyle(
     fontFamily: 'Manrope',
-    fontSize: 29,
+    fontSize: 30,
     fontWeight: FontWeight.w700,
     letterSpacing: -.7,
     color: ink,
@@ -162,7 +180,7 @@ abstract final class SaveTrackDesign {
     );
     final inputBorder = OutlineInputBorder(
       borderRadius: BorderRadius.circular(16),
-      borderSide: const BorderSide(color: border),
+      borderSide: const BorderSide(color: Color(0xFF7A8D83)),
     );
     return base.copyWith(
       scaffoldBackgroundColor: canvas,
@@ -174,8 +192,11 @@ abstract final class SaveTrackDesign {
         surface: Colors.white,
         onSurface: ink,
         onSurfaceVariant: muted,
-        surfaceContainer: mist,
+        surfaceContainer: FigmaFlowPalette.neutral,
+        surfaceContainerLow: Colors.white,
         error: error,
+        errorContainer: errorSurface,
+        onErrorContainer: error,
         outline: muted,
         outlineVariant: border,
         surfaceContainerHighest: lightMint,
@@ -188,18 +209,18 @@ abstract final class SaveTrackDesign {
             headlineMedium: heading,
             headlineLarge: amount.copyWith(color: ink, fontSize: 44),
             titleLarge: const TextStyle(
-              fontSize: 21,
+              fontSize: 22,
               fontWeight: FontWeight.w700,
               letterSpacing: -.4,
               color: ink,
             ),
             titleMedium: const TextStyle(
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: FontWeight.w600,
               color: ink,
             ),
-            bodyLarge: const TextStyle(fontSize: 16, height: 1.5, color: ink),
-            bodyMedium: const TextStyle(fontSize: 14, height: 1.5, color: ink),
+            bodyLarge: const TextStyle(fontSize: 17, height: 1.5, color: ink),
+            bodyMedium: const TextStyle(fontSize: 15, height: 1.5, color: ink),
             bodySmall: const TextStyle(
               fontSize: 13,
               height: 1.45,
@@ -218,7 +239,7 @@ abstract final class SaveTrackDesign {
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        toolbarHeight: 72,
+        toolbarHeight: 56,
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
@@ -227,7 +248,7 @@ abstract final class SaveTrackDesign {
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radius),
-          side: const BorderSide(color: border),
+          side: BorderSide.none,
         ),
       ),
       tabBarTheme: TabBarThemeData(
@@ -283,6 +304,7 @@ abstract final class SaveTrackDesign {
           borderSide: const BorderSide(color: error, width: 2),
         ),
         labelStyle: const TextStyle(color: muted),
+        hintStyle: const TextStyle(color: muted),
         floatingLabelStyle: const TextStyle(
           color: teal,
           fontWeight: FontWeight.w600,
@@ -294,6 +316,8 @@ abstract final class SaveTrackDesign {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(48, 52),
+          backgroundColor: FigmaFlowPalette.mint,
+          foregroundColor: ink,
           shape: shape,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
         ),
@@ -302,6 +326,7 @@ abstract final class SaveTrackDesign {
         style: OutlinedButton.styleFrom(
           minimumSize: const Size(48, 52),
           shape: shape,
+          foregroundColor: teal,
           side: const BorderSide(color: border),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         ),
@@ -309,6 +334,7 @@ abstract final class SaveTrackDesign {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           minimumSize: const Size(48, 48),
+          foregroundColor: teal,
           shape: shape,
         ),
       ),
@@ -319,9 +345,9 @@ abstract final class SaveTrackDesign {
         ),
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: teal,
-        foregroundColor: Colors.white,
-        elevation: 2,
+        backgroundColor: FigmaFlowPalette.mint,
+        foregroundColor: ink,
+        elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         extendedTextStyle: const TextStyle(
           fontWeight: FontWeight.w600,
@@ -447,17 +473,20 @@ abstract final class SaveTrackDesign {
       onPrimary: obsidian,
       secondary: fresh,
       onSecondary: obsidian,
-      surface: const Color(0xFF103D33),
-      onSurface: const Color(0xFFF2FAF5),
-      onSurfaceVariant: const Color(0xFFB8CEC2),
-      surfaceContainer: const Color(0xFF16483B),
-      surfaceContainerHighest: const Color(0xFF205745),
-      secondaryContainer: const Color(0xFF225B47),
+      surface: FigmaFlowPalette.darkSurface,
+      onSurface: const Color(0xFFEFFAF5),
+      onSurfaceVariant: const Color(0xFFB7D4C7),
+      surfaceContainerLow: FigmaFlowPalette.darkSurface,
+      surfaceContainer: FigmaFlowPalette.darkElevated,
+      surfaceContainerHighest: const Color(0xFF355247),
+      secondaryContainer: FigmaFlowPalette.darkElevated,
       onSecondaryContainer: mint,
-      outlineVariant: const Color(0xFF346052),
+      outlineVariant: const Color(0xFF315D50),
       outline: const Color(0xFF9BB9AA),
-      error: const Color(0xFFFFB4BA),
+      error: const Color(0xFFFFADB4),
       onError: const Color(0xFF650D20),
+      errorContainer: const Color(0xFF4A252B),
+      onErrorContainer: const Color(0xFFFFADB4),
     );
     final base = ThemeData(
       useMaterial3: true,
@@ -466,18 +495,18 @@ abstract final class SaveTrackDesign {
       colorScheme: scheme,
     );
     return base.copyWith(
-      scaffoldBackgroundColor: obsidian,
+      scaffoldBackgroundColor: FigmaFlowPalette.darkCanvas,
       textTheme: theme.textTheme.apply(
         bodyColor: scheme.onSurface,
         displayColor: scheme.onSurface,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: obsidian,
+        backgroundColor: FigmaFlowPalette.darkCanvas,
         foregroundColor: scheme.onSurface,
         elevation: 0,
         scrolledUnderElevation: 0,
         centerTitle: false,
-        toolbarHeight: 72,
+        toolbarHeight: 56,
       ),
       cardTheme: theme.cardTheme.copyWith(
         color: scheme.surface,
@@ -487,12 +516,18 @@ abstract final class SaveTrackDesign {
         ),
       ),
       inputDecorationTheme: theme.inputDecorationTheme.copyWith(
-        fillColor: scheme.surfaceContainer,
+        fillColor: FigmaFlowPalette.darkCanvas,
         labelStyle: TextStyle(color: scheme.onSurfaceVariant),
         hintStyle: TextStyle(color: scheme.onSurfaceVariant),
+        floatingLabelStyle: TextStyle(
+          color: scheme.primary,
+          fontWeight: FontWeight.w600,
+        ),
+        prefixIconColor: scheme.primary,
+        suffixIconColor: scheme.onSurfaceVariant,
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: scheme.outlineVariant),
+          borderSide: const BorderSide(color: Color(0xFF6E9F89)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -501,6 +536,10 @@ abstract final class SaveTrackDesign {
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: scheme.error),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: scheme.error, width: 2),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
@@ -529,24 +568,41 @@ abstract final class SaveTrackDesign {
           foregroundColor: scheme.primary,
         ),
       ),
-      listTileTheme: ListTileThemeData(
+      listTileTheme: theme.listTileTheme.copyWith(
         textColor: scheme.onSurface,
         iconColor: scheme.primary,
+        titleTextStyle: theme.listTileTheme.titleTextStyle?.copyWith(
+          color: scheme.onSurface,
+        ),
+        subtitleTextStyle: theme.listTileTheme.subtitleTextStyle?.copyWith(
+          color: scheme.onSurfaceVariant,
+        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,
         indicatorColor: scheme.secondaryContainer,
         elevation: 0,
-        labelTextStyle: WidgetStatePropertyAll(
-          TextStyle(
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
             fontFamily: 'Manrope',
             fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: scheme.onSurface,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w700
+                : FontWeight.w500,
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : scheme.onSurfaceVariant,
           ),
         ),
-        iconTheme: WidgetStatePropertyAll(IconThemeData(color: scheme.primary)),
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            size: 23,
+            color: states.contains(WidgetState.selected)
+                ? scheme.primary
+                : scheme.onSurfaceVariant,
+          ),
+        ),
       ),
       tabBarTheme: theme.tabBarTheme.copyWith(
         labelColor: scheme.primary,
@@ -556,26 +612,58 @@ abstract final class SaveTrackDesign {
           borderRadius: BorderRadius.circular(14),
         ),
       ),
-      chipTheme: base.chipTheme.copyWith(
+      chipTheme: theme.chipTheme.copyWith(
         backgroundColor: scheme.surface,
         selectedColor: scheme.secondaryContainer,
-        labelStyle: TextStyle(color: scheme.onSurface),
+        labelStyle: theme.chipTheme.labelStyle?.copyWith(
+          color: scheme.onSurface,
+        ),
+        checkmarkColor: scheme.primary,
         side: BorderSide(color: scheme.outlineVariant),
       ),
-      dialogTheme: DialogThemeData(
+      dialogTheme: theme.dialogTheme.copyWith(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        titleTextStyle: theme.dialogTheme.titleTextStyle?.copyWith(
+          color: scheme.onSurface,
+        ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         showDragHandle: true,
+        dragHandleColor: scheme.onSurfaceVariant,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
       ),
       popupMenuTheme: PopupMenuThemeData(color: scheme.surface),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(48, 48),
+          foregroundColor: scheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+      ),
+      floatingActionButtonTheme: theme.floatingActionButtonTheme.copyWith(
+        backgroundColor: scheme.primary,
+        foregroundColor: scheme.onPrimary,
+      ),
+      datePickerTheme: theme.datePickerTheme.copyWith(
+        backgroundColor: scheme.surface,
+        headerBackgroundColor: scheme.surfaceContainer,
+        headerForegroundColor: scheme.onSurface,
+      ),
+      timePickerTheme: theme.timePickerTheme.copyWith(
+        backgroundColor: scheme.surface,
+        hourMinuteColor: scheme.secondaryContainer,
+        hourMinuteTextColor: scheme.onSurface,
+        dialBackgroundColor: obsidian,
+        dialHandColor: scheme.primary,
+      ),
       dividerTheme: DividerThemeData(
         color: scheme.outlineVariant,
         thickness: 1,
@@ -591,40 +679,6 @@ abstract final class SaveTrackDesign {
       ),
     );
   }
-}
-
-/// Static light and contour artwork; it never represents financial data.
-class _AuroraPainter extends CustomPainter {
-  const _AuroraPainter();
-  @override
-  void paint(Canvas canvas, Size size) {
-    final glow = Rect.fromCircle(
-      center: Offset(size.width * 1.05, size.height * .04),
-      radius: size.width * .65,
-    );
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [
-            SaveTrackDesign.heroHighlight,
-            SaveTrackDesign.luminous.withValues(alpha: 0),
-          ],
-        ).createShader(glow),
-    );
-    final center = Offset(size.width * 1.2, size.height * 1.1);
-    final stroke = Paint()
-      ..color = mint.withValues(alpha: .09)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    for (var i = 0; i < 4; i++) {
-      final radius = size.width * (.38 + i * .12);
-      canvas.drawCircle(center, radius, stroke);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_AuroraPainter oldDelegate) => false;
 }
 
 class AuroraEmblem extends StatelessWidget {
@@ -655,7 +709,7 @@ class TonalPanel extends StatelessWidget {
     width: double.infinity,
     padding: padding,
     decoration: BoxDecoration(
-      gradient: context.atelierSurfaceGradient,
+      color: context.atelierTonal,
       border: Border.all(color: context.atelierBorder),
       borderRadius: BorderRadius.circular(20),
     ),
@@ -764,6 +818,7 @@ class AuroraLoadingSurface extends StatelessWidget {
         liveRegion: true,
         child: ExcludeSemantics(
           child: MintHero(
+            soft: true,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 220),
               child: Column(
@@ -776,7 +831,7 @@ class AuroraLoadingSurface extends StatelessWidget {
                     child: Container(
                       height: 36,
                       decoration: BoxDecoration(
-                        color: SaveTrackDesign.heroSurface,
+                        color: context.atelierInk.withValues(alpha: .08),
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
@@ -787,7 +842,7 @@ class AuroraLoadingSurface extends StatelessWidget {
                     child: Container(
                       height: 12,
                       decoration: BoxDecoration(
-                        color: SaveTrackDesign.heroSurface,
+                        color: context.atelierInk.withValues(alpha: .08),
                         borderRadius: BorderRadius.circular(6),
                       ),
                     ),
@@ -889,12 +944,14 @@ class AmountText extends StatelessWidget {
     required this.style,
     this.onDark = false,
     this.compactCurrency = false,
+    this.stackCurrency = false,
     this.supportingSuffix,
   });
   final String text;
   final TextStyle style;
   final bool onDark;
   final bool compactCurrency;
+  final bool stackCurrency;
   final String? supportingSuffix;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -909,6 +966,27 @@ class AmountText extends StatelessWidget {
           supportingSuffix != null && text.endsWith(supportingSuffix!)
           ? supportingSuffix!
           : '';
+      if (stackCurrency && prefix != null && prefix.length < text.length) {
+        return Semantics(
+          label: text,
+          excludeSemantics: true,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                prefix.trim(),
+                style: resolved.copyWith(
+                  fontSize: (resolved.fontSize ?? 24) * .55,
+                  letterSpacing: 0,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 4),
+              AmountText(text.substring(prefix.length), style: resolved),
+            ],
+          ),
+        );
+      }
       final span = prefix == null || prefix.length == text.length
           ? TextSpan(text: text, style: resolved)
           : TextSpan(
@@ -951,6 +1029,32 @@ class AmountText extends StatelessWidget {
           ? Text.rich(span, softWrap: softWrap)
           : Text(text, style: style, softWrap: softWrap);
       if (!overflow) return figure();
+      // Let the currency move onto its own line before requiring horizontal
+      // scrolling. The exact formatted value remains one accessibility value.
+      if (compactCurrency && prefix != null && prefix.length < text.length) {
+        final digits = text.substring(prefix.length);
+        final digitsMeasure = TextPainter(
+          text: TextSpan(text: digits, style: resolved),
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final fits = digitsMeasure.width <= constraints.maxWidth;
+        digitsMeasure.dispose();
+        if (fits) {
+          return Semantics(
+            label: text,
+            excludeSemantics: true,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(prefix.trim(), style: resolved.copyWith(fontSize: 15)),
+                const SizedBox(height: 4),
+                Text(digits, style: resolved),
+              ],
+            ),
+          );
+        }
+      }
       final hintColor = onDark
           ? SaveTrackDesign.onHeroMuted
           : context.atelierMuted;
@@ -982,9 +1086,10 @@ class AmountText extends StatelessWidget {
 }
 
 class AuroraNotice extends StatelessWidget {
-  const AuroraNotice(this.message, {super.key, this.error = false});
+  const AuroraNotice(this.message, {super.key, this.error = false, this.icon});
   final String message;
   final bool error;
+  final IconData? icon;
   @override
   Widget build(BuildContext context) => Semantics(
     liveRegion: error,
@@ -1003,7 +1108,9 @@ class AuroraNotice extends StatelessWidget {
         ),
       ),
       child: DetailLine(
-        icon: error ? Icons.error_outline_rounded : Icons.info_outline_rounded,
+        icon:
+            icon ??
+            (error ? Icons.error_outline_rounded : Icons.info_outline_rounded),
         label: message,
         color: error ? context.atelierError : context.atelierMuted,
       ),
@@ -1039,15 +1146,7 @@ class PageSurface extends StatelessWidget {
   final Widget child;
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: context.atelierCanvas,
-      gradient: RadialGradient(
-        center: Alignment(1, -1),
-        radius: 1.6,
-        colors: [context.atelierSelected, context.atelierCanvas],
-        stops: [0, .75],
-      ),
-    ),
+    decoration: BoxDecoration(color: context.atelierCanvas),
     child: SafeArea(
       top: false,
       bottom: false,
@@ -1066,11 +1165,12 @@ class MintHero extends StatelessWidget {
     super.key,
     required this.child,
     this.deep = false,
+    this.soft = false,
     this.edgeToEdge = false,
     this.padding = const EdgeInsets.all(24),
   });
   final Widget child;
-  final bool deep;
+  final bool deep, soft;
   final bool edgeToEdge;
   final EdgeInsets padding;
   @override
@@ -1078,28 +1178,41 @@ class MintHero extends StatelessWidget {
     width: double.infinity,
     clipBehavior: Clip.antiAlias,
     decoration: BoxDecoration(
-      gradient: deep ? SaveTrackDesign.premium : SaveTrackDesign.signature,
+      color: soft ? context.flowHero : null,
+      gradient: soft
+          ? null
+          : deep
+          ? SaveTrackDesign.premium
+          : SaveTrackDesign.signature,
       borderRadius: edgeToEdge
           ? BorderRadius.zero
           : BorderRadius.circular(SaveTrackDesign.radiusHero),
       border: Border.all(color: mint.withValues(alpha: .16)),
-      boxShadow: edgeToEdge ? null : SaveTrackDesign.shadows,
     ),
     child: Stack(
       children: [
-        const Positioned.fill(
-          child: IgnorePointer(
-            child: ExcludeSemantics(
-              child: CustomPaint(painter: _AuroraPainter()),
+        Positioned(
+          top: -80,
+          right: -70,
+          child: ExcludeSemantics(
+            child: Container(
+              width: 260,
+              height: 260,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [SaveTrackDesign.heroHighlight, Colors.transparent],
+                ),
+              ),
             ),
           ),
         ),
         Padding(
           padding: padding,
           child: DefaultTextStyle.merge(
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: soft ? context.atelierInk : Colors.white),
             child: IconTheme(
-              data: const IconThemeData(color: mint),
+              data: IconThemeData(color: soft ? context.atelierInk : mint),
               child: child,
             ),
           ),
@@ -1172,9 +1285,7 @@ class MintProgress extends StatelessWidget {
           children: [
             Container(
               height: 8,
-              color: onDark
-                  ? SaveTrackDesign.heroTrack
-                  : context.atelierSelected,
+              color: onDark ? SaveTrackDesign.heroTrack : context.atelierTrack,
             ),
             FractionallySizedBox(
               widthFactor: progress.clamp(0, 1),
@@ -1183,7 +1294,9 @@ class MintProgress extends StatelessWidget {
                 decoration: BoxDecoration(
                   gradient: onDark
                       ? SaveTrackDesign.progressOnDark
-                      : SaveTrackDesign.spectrum,
+                      : context.isDark
+                      ? SaveTrackDesign.progressOnDark
+                      : SaveTrackDesign.progressOnLight,
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
@@ -1224,18 +1337,18 @@ class _GradientButtonState extends State<GradientButton> {
       curve: SaveTrackDesign.motionCurve,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: widget.onPressed == null ? null : SaveTrackDesign.signature,
-          color: widget.onPressed == null ? context.atelierMuted : null,
+          color: widget.onPressed == null
+              ? context.atelierTonal
+              : context.flowAction,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: widget.onPressed == null ? null : SaveTrackDesign.shadows,
         ),
         child: FilledButton(
           onPressed: widget.onPressed,
           style: FilledButton.styleFrom(
             backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white,
+            foregroundColor: context.flowOnAction,
             disabledBackgroundColor: Colors.transparent,
-            disabledForegroundColor: SaveTrackDesign.onHeroMuted,
+            disabledForegroundColor: context.atelierMuted,
             minimumSize: widget.expand
                 ? const Size.fromHeight(54)
                 : const Size(48, 52),
@@ -1315,9 +1428,14 @@ class EnterOnce extends StatelessWidget {
 }
 
 class SaveActionLabel extends StatelessWidget {
-  const SaveActionLabel({super.key, required this.busy, required this.label});
+  const SaveActionLabel({
+    super.key,
+    required this.busy,
+    required this.label,
+    this.busyLabel = 'Saving',
+  });
   final bool busy;
-  final String label;
+  final String label, busyLabel;
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -1325,11 +1443,14 @@ class SaveActionLabel extends StatelessWidget {
       if (busy) ...[
         SizedBox.square(
           dimension: 16,
-          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            color: context.atelierAccent,
+          ),
         ),
         const SizedBox(width: 8),
       ],
-      Flexible(child: Text(busy ? 'Saving' : label)),
+      Flexible(child: Text(busy ? busyLabel : label)),
     ],
   );
 }
@@ -1557,20 +1678,20 @@ class FormHeading extends StatelessWidget {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          MintIcon(icon, size: 48),
+          MintIcon(icon, size: 40),
           const SizedBox(width: 12),
-          const Expanded(child: Divider()),
+          Expanded(
+            child: Semantics(
+              header: true,
+              child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+            ),
+          ),
         ],
       ),
-      const SizedBox(height: 20),
-      Text(title, style: Theme.of(context).textTheme.titleLarge),
-      const SizedBox(height: 6),
-      Text(
-        detail,
-        style: Theme.of(context).textTheme.bodySmall
-            ?.copyWith(color: context.atelierMuted, height: 1.5),
-      ),
+      const SizedBox(height: 10),
+      Text(detail, style: Theme.of(context).textTheme.bodySmall),
     ],
   );
 }
@@ -1654,7 +1775,13 @@ class ProgressRing extends StatelessWidget {
             size *
             (MediaQuery.textScalerOf(context).scale(16) / 16).clamp(1, 1.7),
         child: CustomPaint(
-          painter: _RingPainter(progress, onDark: onDark),
+          painter: _RingPainter(
+            progress,
+            track: onDark ? SaveTrackDesign.heroTrack : context.atelierTrack,
+            gradient: onDark || context.isDark
+                ? SaveTrackDesign.progressOnDark
+                : SaveTrackDesign.progressOnLight,
+          ),
           child: Center(
             child: ExcludeSemantics(
               child: Text(
@@ -1675,9 +1802,10 @@ class ProgressRing extends StatelessWidget {
 }
 
 class _RingPainter extends CustomPainter {
-  const _RingPainter(this.value, {this.onDark = false});
+  const _RingPainter(this.value, {required this.track, required this.gradient});
   final double value;
-  final bool onDark;
+  final Color track;
+  final LinearGradient gradient;
   @override
   void paint(Canvas canvas, Size size) {
     final bounds = (Offset.zero & size).deflate(6);
@@ -1685,29 +1813,23 @@ class _RingPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 7
       ..strokeCap = StrokeCap.round;
-    canvas.drawOval(
-      bounds,
-      stroke
-        ..color = onDark
-            ? SaveTrackDesign.heroTrack
-            : SaveTrackDesign.lightMint,
-    );
+    canvas.drawOval(bounds, stroke..color = track);
     if (value > 0) {
       canvas.drawArc(
         bounds,
         -math.pi / 2,
         math.pi * 2 * value.clamp(0, 1),
         false,
-        stroke
-          ..shader = (onDark ? SaveTrackDesign.glow : SaveTrackDesign.spectrum)
-              .createShader(bounds),
+        stroke..shader = gradient.createShader(bounds),
       );
     }
   }
 
   @override
   bool shouldRepaint(_RingPainter oldDelegate) =>
-      oldDelegate.value != value || oldDelegate.onDark != onDark;
+      oldDelegate.value != value ||
+      oldDelegate.track != track ||
+      oldDelegate.gradient != gradient;
 }
 
 class AuthComposition extends StatelessWidget {
@@ -1719,23 +1841,20 @@ class AuthComposition extends StatelessWidget {
   });
   final Widget brand, child;
   final bool register;
-  Widget _showcase({required bool compact}) => MintHero(
-    deep: true,
+  Widget _showcase(BuildContext context, {required bool compact}) => MintHero(
+    soft: true,
     padding: EdgeInsets.all(compact ? 24 : 36),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const AuroraEmblem(size: 40, onDark: true),
+            const AuroraEmblem(size: 40),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
                 'A little closer, every day.',
-                style: TextStyle(
-                  color: SaveTrackDesign.onHeroMuted,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: context.atelierInk, fontSize: 12),
               ),
             ),
           ],
@@ -1754,10 +1873,10 @@ class AuthComposition extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        const Text(
+        Text(
           'Your financial goals and daily plans, beautifully organized.',
           style: TextStyle(
-            color: SaveTrackDesign.onHeroMuted,
+            color: context.atelierInk,
             fontSize: 13,
             height: 1.6,
           ),
@@ -1766,16 +1885,16 @@ class AuthComposition extends StatelessWidget {
           const SizedBox(height: 48),
           const Divider(color: SaveTrackDesign.heroTrack),
           const SizedBox(height: 20),
-          const DetailLine(
+          DetailLine(
             icon: Icons.flag_outlined,
             label: 'Save for what matters to you.',
-            color: SaveTrackDesign.onHeroMuted,
+            color: context.atelierInk,
           ),
           const SizedBox(height: 16),
-          const DetailLine(
+          DetailLine(
             icon: Icons.event_available_outlined,
             label: 'Make room for a more focused day.',
-            color: SaveTrackDesign.onHeroMuted,
+            color: context.atelierInk,
           ),
         ],
       ],
@@ -1786,7 +1905,7 @@ class AuthComposition extends StatelessWidget {
     builder: (context, constraints) {
       final wide = constraints.maxWidth >= 760;
       final form = Padding(
-        padding: EdgeInsets.all(wide ? 32 : 4),
+        padding: EdgeInsets.all(wide ? 32 : 0),
         child: child,
       );
       return Column(
@@ -1798,14 +1917,31 @@ class AuthComposition extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _showcase(compact: false)),
+                Expanded(child: _showcase(context, compact: false)),
                 const SizedBox(width: 32),
                 Expanded(child: Card(child: form)),
               ],
             )
           else ...[
-            _showcase(compact: true),
-            const SizedBox(height: 32),
+            Container(
+              margin: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: context.flowCategory(FlowAccent.mint),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Your progress, beautifully in flow.',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  const FlowSavingsArt(size: 84),
+                ],
+              ),
+            ),
             form,
           ],
         ],

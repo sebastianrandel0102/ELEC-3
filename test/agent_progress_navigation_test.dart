@@ -199,8 +199,16 @@ void main() {
         await tester.pumpAndSettle();
         await tester.tap(find.text('Review my progress'));
         await tester.pumpAndSettle();
-        expect(find.text('Progress, in perspective.'), findsOneWidget);
-        expect(find.text('PHP ₱1,000.00'), findsWidgets);
+        expect(
+          find.text('Your savings and planning, at a glance.'),
+          findsOneWidget,
+        );
+        expect(
+          find.byWidgetPredicate(
+            (widget) => widget is AmountText && widget.text == 'PHP ₱1,000.00',
+          ),
+          findsWidgets,
+        );
         expect(tester.takeException(), isNull);
         await tester.scrollUntilVisible(
           find.text('Shared savings'),
@@ -235,7 +243,7 @@ void main() {
         expect(tester.takeException(), isNull);
         await tester.pageBack();
         await tester.pumpAndSettle();
-        expect(find.text('Agent Studio'), findsOneWidget);
+        expect(find.text('Agent Studio Pro'), findsOneWidget);
         await tester.pageBack();
         await tester.pumpAndSettle();
         expect(repository.cancellations, 0);
@@ -255,7 +263,12 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.textContaining('Your access may have changed'), findsOneWidget);
-    expect(find.text('PHP ₱1,000.00'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is AmountText && widget.text == 'PHP ₱1,000.00',
+      ),
+      findsOneWidget,
+    );
     await tester.scrollUntilVisible(
       find.text('Planning rhythm'),
       150,
@@ -272,7 +285,12 @@ void main() {
   ) async {
     await mount(tester, progressReport());
     expect(find.byType(AuroraLoadingSurface), findsOneWidget);
-    expect(find.text('PHP ₱1,000.00'), findsOneWidget);
+    expect(
+      find.byWidgetPredicate(
+        (widget) => widget is AmountText && widget.text == 'PHP ₱1,000.00',
+      ),
+      findsOneWidget,
+    );
     expect(find.byType(ErrorWidget), findsNothing);
     expect(tester.takeException(), isNull);
     repositories['owner']!.events.add([]);

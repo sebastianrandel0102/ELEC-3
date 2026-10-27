@@ -1,5 +1,190 @@
 part of 'main.dart';
 
+/// Presentation ordering reuses the existing strict time parser. Free-text
+/// schedules stay visible after timed entries; no missing time is invented.
+List<QueryDocumentSnapshot<Map<String, dynamic>>> flowOrderedTasks(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> records,
+  String dateKey,
+) {
+  final day = SmartTaskRecommendationService.parseDateKey(dateKey);
+  if (day == null) return records;
+  DateTime? start(QueryDocumentSnapshot<Map<String, dynamic>> d) =>
+      SmartTaskRecommendationService.parseSchedule(
+        d.data()['time']?.toString() ?? '',
+        day,
+      ).start;
+  return records.toList()..sort((a, b) {
+    final x = start(a), y = start(b);
+    if (x == null && y != null) return 1;
+    if (x != null && y == null) return -1;
+    final order = x == null ? 0 : x.compareTo(y!);
+    return order == 0 ? a.id.compareTo(b.id) : order;
+  });
+}
+
+bool flowHasSchedule(
+  QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  String dateKey,
+) {
+  final day = SmartTaskRecommendationService.parseDateKey(dateKey);
+  return day != null &&
+      SmartTaskRecommendationService.parseSchedule(
+            doc.data()['time']?.toString() ?? '',
+            day,
+          ).start !=
+          null;
+}
+
+class FlowTaskGroupEntry extends StatelessWidget {
+  const FlowTaskGroupEntry({
+    super.key,
+    required this.uid,
+    required this.doc,
+    required this.dateKey,
+    this.groupHeading = false,
+    this.featured = false,
+  });
+  final String uid, dateKey;
+  final QueryDocumentSnapshot<Map<String, dynamic>> doc;
+  final bool groupHeading, featured;
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      if (groupHeading)
+        Padding(
+          padding: const EdgeInsets.only(top: 8, bottom: 16),
+          child: Text(
+            'Flexible & unscheduled',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
+      TaskTile(
+        uid: uid,
+        doc: doc,
+        timeline: flowHasSchedule(doc, dateKey),
+        featured: featured,
+      ),
+    ],
+  );
+}
+
+String? flowFeaturedTask(
+  List<QueryDocumentSnapshot<Map<String, dynamic>>> records,
+  String dateKey, {
+  DateTime? now,
+}) {
+  final day = SmartTaskRecommendationService.parseDateKey(dateKey);
+  if (day == null) return null;
+  final clock = now ?? DateTime.now();
+  for (final doc in records) {
+    if (doc.data()['completed'] == true) continue;
+    final schedule = SmartTaskRecommendationService.parseSchedule(
+      doc.data()['time']?.toString() ?? '',
+      day,
+    );
+    if (schedule.start != null &&
+        (schedule.end ?? schedule.start!).isAfter(clock)) {
+      return doc.id;
+    }
+  }
+  return null;
+}
+
+/// One scrolling canvas: the mint header meets a rounded white sheet. Sections
+/// stay lazy and retain the user's existing order and visibility preferences.
+class FlowHomeLayout extends StatefulWidget {
+  const FlowHomeLayout({
+    super.key,
+    required this.header,
+    required this.quickActions,
+    required this.sectionCount,
+    required this.sectionBuilder,
+  });
+  final Widget header, quickActions;
+  final int sectionCount;
+  final IndexedWidgetBuilder sectionBuilder;
+
+  @override
+  State<FlowHomeLayout> createState() => _FlowHomeLayoutState();
+}
+
+class _FlowHomeLayoutState extends State<FlowHomeLayout> {
+  final _heroKey = GlobalKey();
+  bool _surfaceCheckScheduled = false;
+
+  void _scheduleSurfaceCheck() {
+    if (_surfaceCheckScheduled) return;
+    _surfaceCheckScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _surfaceCheckScheduled = false;
+      if (!mounted) return;
+      final heroContext = _heroKey.currentContext;
+      final hero = heroContext?.findRenderObject();
+      if (heroContext == null || hero is! RenderBox || !hero.hasSize) return;
+      // Report the actual sheet boundary, including nested-scroll overlap and
+      // changes to the hero's height from text size, data, or screen width.
+      final contentTop = hero.localToGlobal(Offset(0, hero.size.height)).dy;
+      AuroraHeaderSurfaceNotification(contentTop: contentTop).dispatch(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _scheduleSurfaceCheck();
+    final inset = SaveTrackDesign.pageInset(MediaQuery.sizeOf(context).width);
+    return NotificationListener<Notification>(
+      onNotification: (notification) {
+        if ((notification is ScrollNotification && notification.depth == 0) ||
+            (notification is ScrollMetricsNotification &&
+                notification.depth == 0) ||
+            notification is SizeChangedLayoutNotification) {
+          _scheduleSurfaceCheck();
+        }
+        return false;
+      },
+      child: CustomScrollView(
+        key: const PageStorageKey('home-atelier'),
+        slivers: [
+          SliverToBoxAdapter(
+            child: ColoredBox(
+              color: context.flowHero,
+              child: Column(
+                children: [
+                  SizeChangedLayoutNotifier(
+                    child: Padding(
+                      key: _heroKey,
+                      padding: EdgeInsets.fromLTRB(inset, 8, inset, 28),
+                      child: widget.header,
+                    ),
+                  ),
+                  FlowContentSheet(
+                    padding: EdgeInsets.fromLTRB(inset, 12, inset, 24),
+                    child: widget.quickActions,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          DecoratedSliver(
+            decoration: BoxDecoration(color: context.atelierSurface),
+            sliver: SliverPadding(
+              padding: EdgeInsets.fromLTRB(inset, 0, inset, 32),
+              sliver: SliverList.builder(
+                itemCount: widget.sectionCount,
+                itemBuilder: (context, i) => Padding(
+                  padding: const EdgeInsets.only(bottom: 28),
+                  child: widget.sectionBuilder(context, i),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class AtelierSectionHeader extends StatelessWidget {
   const AtelierSectionHeader({
     super.key,
@@ -12,25 +197,12 @@ class AtelierSectionHeader extends StatelessWidget {
   final String? action;
   final VoidCallback? onTap;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 14),
-    child: Wrap(
-      alignment: WrapAlignment.spaceBetween,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 12,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 3),
-            Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
-          ],
-        ),
-        if (onTap != null)
-          TextButton(onPressed: onTap, child: Text(action ?? 'View all')),
-      ],
-    ),
+  Widget build(BuildContext context) => FlowSectionHeader(
+    title: title,
+    subtitle: subtitle,
+    trailing: onTap == null
+        ? null
+        : TextButton(onPressed: onTap, child: Text(action ?? 'View all')),
   );
 }
 
@@ -45,7 +217,7 @@ class HomeAtelier extends StatefulWidget {
 class _HomeAtelierState extends State<HomeAtelier> {
   late final goals = _goals(widget.uid)
       .orderBy('createdAt', descending: true)
-      .snapshots();
+      .snapshots(includeMetadataChanges: true);
   @override
   Widget build(BuildContext context) {
     final preferences = AtelierScope.maybeOf(context);
@@ -202,137 +374,121 @@ class _HomeAtelierState extends State<HomeAtelier> {
             ),
           ),
         };
-        return CustomScrollView(
-          key: const PageStorageKey('home-atelier'),
-          slivers: [
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              sliver: SliverList.list(
+        final visible = (preferences?.order ?? HomeSection.values)
+            .where(
+              (s) =>
+                  !(preferences?.hidden.contains(s) ??
+                      (s == HomeSection.agent)),
+            )
+            .toList();
+        return FlowHomeLayout(
+          header: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ScreenIntro(
-                          eyebrow: DateFormat('EEEE, MMMM d').format(now),
-                          title: greeting,
-                          detail: 'Your progress, beautifully organized.',
-                        ),
-                      ),
-                      if (preferences != null)
-                        IconButton(
-                          tooltip: 'Customize Home',
-                          icon: const Icon(Icons.tune_rounded),
-                          onPressed: () => Navigator.push(
-                            context,
-                            MaterialPageRoute<void>(
-                              builder: (_) =>
-                                  CustomizeHomeScreen(preferences: preferences),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  if (snapshot.hasError)
-                    const AuroraNotice(
-                      'Your savings are unavailable. Reopen Home after reconnecting.',
-                      error: true,
-                    )
-                  else if (!snapshot.hasData)
-                    const LoadingPanel(featured: true)
-                  else
-                    SavingsOverview(
-                      total: summary.$1,
-                      target: summary.$2,
-                      count: records.length,
-                      totalLabel:
-                          currency?.totalDisplay(balances) ??
-                          (summary.$3 ? null : 'Conversion unavailable'),
-                      targetLabel:
-                          currency?.totalDisplay(targets) ??
-                          (summary.$3 ? null : 'See individual goals'),
-                      showProgress: summary.$3,
+                  Expanded(
+                    child: AuroraGreeting(
+                      date: DateFormat('EEEE, MMMM d').format(now),
+                      greeting: greeting,
                     ),
-                  if (snapshot.data?.metadata.isFromCache == true)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 8),
-                      child: Text(
-                        'Showing cached goals. Reconnect for the latest updates.',
+                  ),
+                  if (preferences != null)
+                    IconButton(
+                      tooltip: 'Customize Home',
+                      icon: const Icon(Icons.tune_rounded),
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) =>
+                              CustomizeHomeScreen(preferences: preferences),
+                        ),
                       ),
                     ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      FilledButton.icon(
-                        onPressed: () => showGoalTypeChoice(context),
-                        icon: const Icon(Icons.add),
-                        label: const Text('New goal'),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: records.isEmpty
-                            ? null
-                            : () => _chooseSavingsGoal(
-                                context,
-                                widget.uid,
-                                records,
-                              ),
-                        icon: const Icon(Icons.savings_outlined),
-                        label: const Text('Add savings'),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => _openTab(context, 2),
-                        icon: const Icon(Icons.calendar_today_outlined),
-                        label: const Text('Planner'),
-                      ),
-                      TextButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute<void>(
-                            builder: (_) => const AgentStudioScreen(
-                              onOpen: _openAgentDestination,
-                            ),
-                          ),
-                        ),
-                        icon: const Icon(Icons.hub_outlined),
-                        label: const Text('Agent'),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 28),
                 ],
               ),
-            ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverList.builder(
-                itemCount: (preferences?.order ?? HomeSection.values)
-                    .where(
-                      (s) =>
-                          !(preferences?.hidden.contains(s) ??
-                              (s == HomeSection.agent)),
-                    )
-                    .length,
-                itemBuilder: (context, index) {
-                  final visible = (preferences?.order ?? HomeSection.values)
-                      .where(
-                        (s) =>
-                            !(preferences?.hidden.contains(s) ??
-                                (s == HomeSection.agent)),
-                      )
-                      .toList();
-                  return _KeepHomeSection(
-                    child: Padding(
-                      key: ValueKey(visible[index]),
-                      padding: const EdgeInsets.only(bottom: 28),
-                      child: sections[visible[index]]!(),
+              if (snapshot.hasError)
+                const AuroraNotice(
+                  'Your savings are unavailable. Reopen Home after reconnecting.',
+                  error: true,
+                )
+              else if (!snapshot.hasData)
+                const LoadingPanel(featured: true)
+              else
+                SavingsOverview(
+                  embedded: true,
+                  total: summary.$1,
+                  target: summary.$2,
+                  count: records.length,
+                  totalLabel:
+                      currency?.totalDisplay(balances) ??
+                      (summary.$3 ? null : 'Conversion unavailable'),
+                  targetLabel:
+                      currency?.totalDisplay(targets) ??
+                      (summary.$3 ? null : 'See individual goals'),
+                  showProgress: summary.$3,
+                ),
+              if (snapshot.hasData)
+                AuroraSyncStatus(
+                  cached: snapshot.data!.metadata.isFromCache,
+                  pending: snapshot.data!.metadata.hasPendingWrites,
+                ),
+            ],
+          ),
+          quickActions: LayoutBuilder(
+            builder: (context, constraints) {
+              final columns =
+                  constraints.maxWidth < 300 ||
+                      MediaQuery.textScalerOf(context).scale(13) > 18
+                  ? 2
+                  : 4;
+              final actions = [
+                AuroraQuickAction(
+                  icon: Icons.add_rounded,
+                  label: 'Add savings',
+                  disabledReason: 'Create a goal before adding savings.',
+                  onTap: records.isEmpty
+                      ? null
+                      : () => _chooseSavingsGoal(context, widget.uid, records),
+                ),
+                AuroraQuickAction(
+                  icon: Icons.flag_outlined,
+                  label: 'New goal',
+                  onTap: () => showGoalTypeChoice(context),
+                ),
+                AuroraQuickAction(
+                  icon: Icons.checklist_rounded,
+                  label: 'Add task',
+                  onTap: () => showTaskForm(context),
+                ),
+                AuroraQuickAction(
+                  icon: Icons.notifications_outlined,
+                  label: 'Reminders',
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SmartRemindersScreen(),
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
+                  ),
+                ),
+              ];
+              return Wrap(
+                children: [
+                  for (final action in actions)
+                    SizedBox(
+                      width: constraints.maxWidth / columns,
+                      child: action,
+                    ),
+                ],
+              );
+            },
+          ),
+          sectionCount: visible.length,
+          sectionBuilder: (context, index) => _KeepHomeSection(
+            key: ValueKey(visible[index]),
+            child: sections[visible[index]]!(),
+          ),
         );
       },
     );
@@ -385,7 +541,7 @@ Future<void> _chooseSavingsGoal(
 }
 
 class _KeepHomeSection extends StatefulWidget {
-  const _KeepHomeSection({required this.child});
+  const _KeepHomeSection({super.key, required this.child});
   final Widget child;
   @override
   State<_KeepHomeSection> createState() => _KeepHomeSectionState();
@@ -545,54 +701,31 @@ class GoalGallery extends StatelessWidget {
             .toList(),
       );
     }
-    // A wrapping gallery respects text scaling without fixed carousel heights.
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth >= 840 &&
-            visible.length > 1 &&
-            MediaQuery.textScalerOf(context).scale(14) <= 21) {
-          return Row(
+        final wideText = MediaQuery.textScalerOf(context).scale(14) > 21;
+        final cardWidth = wideText
+            ? constraints.maxWidth
+            : (constraints.maxWidth * .62).clamp(200.0, 224.0).toDouble();
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                flex: 3,
-                child: AtelierGoalTile(
-                  uid: uid,
-                  doc: visible.first,
-                  featured: true,
+              for (var i = 0; i < visible.length; i++) ...[
+                if (i > 0) const SizedBox(width: 14),
+                SizedBox(
+                  width: cardWidth,
+                  child: AtelierGoalTile(
+                    uid: uid,
+                    doc: visible[i],
+                    featured: visible[i].id == featuredId,
+                    preview: true,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                flex: 2,
-                child: Column(
-                  children: visible
-                      .skip(1)
-                      .map(
-                        (d) => AtelierGoalTile(uid: uid, doc: d, compact: true),
-                      )
-                      .toList(),
-                ),
-              ),
+              ],
             ],
-          );
-        }
-        return Column(
-          children: [
-            AtelierGoalTile(uid: uid, doc: visible.first, featured: true),
-            if (visible.length > 1) ...[
-              const SizedBox(height: 12),
-              AdaptiveCards(
-                breakpoint: 600,
-                children: visible
-                    .skip(1)
-                    .map(
-                      (d) => AtelierGoalTile(uid: uid, doc: d, compact: true),
-                    )
-                    .toList(),
-              ),
-            ],
-          ],
+          ),
         );
       },
     );
@@ -606,11 +739,12 @@ class AtelierGoalTile extends StatelessWidget {
     required this.doc,
     this.compact = false,
     this.featured = false,
+    this.preview = false,
     this.onOpen,
   });
   final String uid;
   final QueryDocumentSnapshot<Map<String, dynamic>> doc;
-  final bool compact, featured;
+  final bool compact, featured, preview;
   final VoidCallback? onOpen;
   @override
   Widget build(BuildContext context) {
@@ -638,7 +772,17 @@ class AtelierGoalTile extends StatelessWidget {
     final coverTarget = GoalCoverTarget.personal(uid, doc.id);
     final cover = GoalCoverRecord.fromMap(data, coverTarget);
     final preferences = AtelierScope.maybeOf(context);
+    final tone = saved >= target && target > 0
+        ? FlowAccent.mint
+        : date != null && date.isBefore(today)
+        ? FlowAccent.coral
+        : featured
+        ? FlowAccent.lavender
+        : date != null && date.difference(today).inDays <= 14
+        ? FlowAccent.peach
+        : FlowAccent.mint;
     return Card(
+      color: context.flowCategory(tone),
       margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -651,126 +795,138 @@ class AtelierGoalTile extends StatelessWidget {
                     PersonalGoalDetailsScreen(uid: uid, goalId: doc.id),
               ),
             ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (!compact)
-              Stack(
-                children: [
-                  GoalCoverImage(
-                    target: coverTarget,
-                    name: title,
-                    path: cover.path,
-                    radius: 0,
-                    decodeWidth: featured ? 960 : 640,
-                  ),
-                  if (featured)
-                    const Positioned(
-                      left: 16,
-                      top: 16,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: SaveTrackDesign.obsidian,
-                          borderRadius: BorderRadius.all(Radius.circular(12)),
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 7,
+        child: FlowCategoryDecoration(
+          accent: tone,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!compact && cover.path != null)
+                Stack(
+                  children: [
+                    GoalCoverImage(
+                      target: coverTarget,
+                      name: title,
+                      path: cover.path,
+                      radius: 0,
+                      decodeWidth: featured ? 960 : 640,
+                    ),
+                    if (featured)
+                      const Positioned(
+                        left: 16,
+                        top: 16,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: SaveTrackDesign.obsidian,
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
                           ),
-                          child: Text(
-                            'IN FOCUS',
-                            style: TextStyle(
-                              color: mint,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.2,
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 7,
+                            ),
+                            child: Text(
+                              'Featured',
+                              style: TextStyle(
+                                color: mint,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (compact) ...[
-                        const MintIcon(Icons.flag_outlined, size: 40),
-                        const SizedBox(width: 12),
-                      ],
-                      Expanded(
-                        child: Text(
-                          title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                      if (preferences != null)
-                        IconButton(
-                          tooltip: preferences.featuredGoal == doc.id
-                              ? 'Unpin featured goal'
-                              : 'Feature this goal',
-                          onPressed: () {
-                            preferences.featuredGoal =
-                                preferences.featuredGoal == doc.id
-                                ? null
-                                : doc.id;
-                            unawaited(preferences.save());
-                          },
-                          icon: Icon(
-                            preferences.featuredGoal == doc.id
-                                ? Icons.push_pin
-                                : Icons.push_pin_outlined,
+                  ],
+                ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (compact || cover.path == null) ...[
+                          MintIcon(
+                            saved >= target && target > 0
+                                ? Icons.check_rounded
+                                : Icons.flag_outlined,
+                            size: 36,
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
                         ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  AmountText(
-                    displayMoney(context, saved, code),
-                    style: SaveTrackDesign.amount.copyWith(
-                      fontSize: featured ? 32 : 24,
-                      color: context.atelierInk,
+                        if (preferences != null)
+                          IconButton(
+                            tooltip: preferences.featuredGoal == doc.id
+                                ? 'Unpin featured goal'
+                                : 'Feature this goal',
+                            onPressed: () {
+                              preferences.featuredGoal =
+                                  preferences.featuredGoal == doc.id
+                                  ? null
+                                  : doc.id;
+                              unawaited(preferences.save());
+                            },
+                            icon: Icon(
+                              preferences.featuredGoal == doc.id
+                                  ? Icons.push_pin
+                                  : Icons.push_pin_outlined,
+                            ),
+                          ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'of ${displayMoney(context, target, code)}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 14),
-                  MintProgress(value: progress),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 6,
-                    children: [
-                      Text(
-                        target > 0 && saved >= target
-                            ? 'Target reached'
-                            : '${(progress * 100).round()}% saved',
-                        style: TextStyle(
-                          color: context.atelierAccent,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 12,
-                        ),
+                    const SizedBox(height: 12),
+                    AmountText(
+                      displayMoney(context, saved, code),
+                      compactCurrency: true,
+                      style: SaveTrackDesign.amount.copyWith(
+                        fontSize: preview
+                            ? 25
+                            : featured
+                            ? 32
+                            : 24,
+                        color: context.atelierInk,
                       ),
-                      if (date != null)
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'of ${displayMoney(context, target, code)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 14),
+                    MintProgress(value: progress),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 6,
+                      children: [
                         Text(
-                          '${date.isBefore(today) && saved < target ? 'Past deadline · ' : 'Due '}${DateFormat.yMMMd().format(date)}',
-                          style: Theme.of(context).textTheme.bodySmall,
+                          target > 0 && saved >= target
+                              ? 'Target reached'
+                              : '${(progress * 100).round()}% saved',
+                          style: TextStyle(
+                            color: context.isDark ? context.atelierInk : teal,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13,
+                          ),
                         ),
-                    ],
-                  ),
-                ],
+                        if (date != null)
+                          Text(
+                            '${date.isBefore(today) && saved < target ? 'Past deadline · ' : 'Due '}${DateFormat.yMMMd().format(date)}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -796,9 +952,30 @@ class GoalBrowser extends StatefulWidget {
 }
 
 class _GoalBrowserState extends State<GoalBrowser> {
+  final _search = TextEditingController();
   String search = '';
   GoalFilter filter = GoalFilter.all;
   GoalSort sort = GoalSort.newest;
+  String sortLabel(GoalSort value) => switch (value) {
+    GoalSort.newest => 'Newest first',
+    GoalSort.deadline => 'Nearest deadline',
+    GoalSort.highestProgress => 'Highest progress',
+    GoalSort.lowestProgress => 'Lowest progress',
+    GoalSort.alphabetical => 'Alphabetical',
+  };
+
+  void reset() => setState(() {
+    _search.clear();
+    search = '';
+    filter = GoalFilter.all;
+  });
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
   double progress(QueryDocumentSnapshot<Map<String, dynamic>> d) {
     final target = _number(d.data()['targetAmount']);
     return target <= 0 ? 0 : _number(d.data()['savedAmount']) / target;
@@ -811,6 +988,7 @@ class _GoalBrowserState extends State<GoalBrowser> {
   @override
   Widget build(BuildContext context) {
     final preferences = AtelierScope.maybeOf(context);
+    final inset = SaveTrackDesign.pageInset(MediaQuery.sizeOf(context).width);
     final mode = preferences?.goals ?? GoalPresentation.gallery;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -854,62 +1032,109 @@ class _GoalBrowserState extends State<GoalBrowser> {
     return CustomScrollView(
       slivers: [
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          padding: EdgeInsets.fromLTRB(inset, 8, inset, 0),
           sliver: SliverList.list(
             children: [
-              const ScreenIntro(
-                eyebrow: 'Personal savings',
-                title: 'Save for what matters.',
-                detail: 'Your milestones, one contribution at a time.',
-              ),
               TextField(
-                decoration: const InputDecoration(
+                controller: _search,
+                decoration: InputDecoration(
                   labelText: 'Search goals',
-                  prefixIcon: Icon(Icons.search),
+                  prefixIcon: const Icon(Icons.search),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  suffixIcon: search.isEmpty
+                      ? null
+                      : IconButton(
+                          tooltip: 'Clear search',
+                          onPressed: () => setState(() {
+                            _search.clear();
+                            search = '';
+                          }),
+                          icon: const Icon(Icons.close_rounded),
+                        ),
                 ),
                 onChanged: (v) => setState(() => search = v),
               ),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: GoalFilter.values
-                    .map(
-                      (f) => ChoiceChip(
-                        label: Text(switch (f) {
-                          GoalFilter.all => 'All',
-                          GoalFilter.active => 'Active',
-                          GoalFilter.completed => 'Completed',
-                          GoalFilter.overdue => 'Overdue',
-                        }),
-                        selected: f == filter,
-                        onSelected: (_) => setState(() => filter = f),
-                      ),
-                    )
-                    .toList(),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 8,
+                  children: GoalFilter.values
+                      .map(
+                        (f) => ChoiceChip(
+                          label: Text(switch (f) {
+                            GoalFilter.all => 'All',
+                            GoalFilter.active => 'Active',
+                            GoalFilter.completed => 'Completed',
+                            GoalFilter.overdue => 'Overdue',
+                          }),
+                          selected: f == filter,
+                          showCheckmark: false,
+                          materialTapTargetSize: MaterialTapTargetSize.padded,
+                          onSelected: (_) => setState(() => filter = f),
+                        ),
+                      )
+                      .toList(),
+                ),
               ),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<GoalSort>(
-                initialValue: sort,
-                isExpanded: true,
-                decoration: const InputDecoration(labelText: 'Sort goals'),
-                items: GoalSort.values
-                    .map(
-                      (s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(switch (s) {
-                          GoalSort.newest => 'Newest first',
-                          GoalSort.deadline => 'Nearest deadline',
-                          GoalSort.highestProgress => 'Highest progress',
-                          GoalSort.lowestProgress => 'Lowest progress',
-                          GoalSort.alphabetical => 'Alphabetical',
-                        }),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Flexible(
+                    child: Text(
+                      '${docs.length} ${docs.length == 1 ? 'goal' : 'goals'}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ),
+                  Flexible(
+                    flex: 3,
+                    child: PopupMenuButton<GoalSort>(
+                      tooltip: 'Sort goals',
+                      initialValue: sort,
+                      onSelected: (value) => setState(() => sort = value),
+                      itemBuilder: (_) => [
+                        for (final value in GoalSort.values)
+                          CheckedPopupMenuItem(
+                            value: value,
+                            checked: sort == value,
+                            child: Text(sortLabel(value)),
+                          ),
+                      ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 8,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.sort_rounded,
+                              size: 18,
+                              color: context.atelierAccent,
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                sortLabel(sort),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: context.atelierAccent,
+                                ),
+                              ),
+                            ),
+                            const Icon(Icons.expand_more_rounded, size: 18),
+                          ],
+                        ),
                       ),
-                    )
-                    .toList(),
-                onChanged: (v) {
-                  if (v != null) setState(() => sort = v);
-                },
+                    ),
+                  ),
+                ],
               ),
               if (preferences != null)
                 Padding(
@@ -931,20 +1156,45 @@ class _GoalBrowserState extends State<GoalBrowser> {
                   ),
                 ),
               if (docs.isEmpty)
-                const TonalPanel(
-                  child: Text('No goals match your search and filters.'),
+                TonalPanel(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.records.isEmpty
+                            ? 'Make room for your first goal.'
+                            : 'No goals match your search and filters.',
+                      ),
+                      const SizedBox(height: 8),
+                      TextButton.icon(
+                        onPressed: widget.records.isEmpty
+                            ? () => showGoalTypeChoice(context)
+                            : reset,
+                        icon: Icon(
+                          widget.records.isEmpty
+                              ? Icons.add_rounded
+                              : Icons.restart_alt_rounded,
+                        ),
+                        label: Text(
+                          widget.records.isEmpty
+                              ? 'New goal'
+                              : 'Reset search and filters',
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),
         ),
         SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+          padding: EdgeInsets.fromLTRB(inset, 12, inset, 100),
           sliver: SliverLayoutBuilder(
             builder: (context, constraints) {
               final columns =
                   mode == GoalPresentation.grid &&
-                      constraints.crossAxisExtent >= 600 &&
-                      MediaQuery.textScalerOf(context).scale(14) < 22
+                      constraints.crossAxisExtent >= 350 &&
+                      MediaQuery.textScalerOf(context).scale(14) <= 16
                   ? 2
                   : 1;
               return SliverList.builder(
@@ -953,7 +1203,7 @@ class _GoalBrowserState extends State<GoalBrowser> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     for (var column = 0; column < columns; column++) ...[
-                      if (column > 0) const SizedBox(width: 16),
+                      if (column > 0) const SizedBox(width: 12),
                       Expanded(
                         child: row * columns + column < docs.length
                             ? AtelierGoalTile(
@@ -990,12 +1240,14 @@ class WeeklyPlanner extends StatefulWidget {
     required this.onSelect,
     required this.header,
     this.taskStream,
+    this.today,
   });
   final String uid;
   final DateTime selected;
   final ValueChanged<DateTime> onSelect;
   final Widget header;
   final Stream<QuerySnapshot<Map<String, dynamic>>>? taskStream;
+  final DateTime? today;
   @override
   State<WeeklyPlanner> createState() => _WeeklyPlannerState();
 }
@@ -1030,6 +1282,7 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
     super.didUpdateWidget(old);
     final d = widget.selected;
     if (old.uid != widget.uid ||
+        old.taskStream != widget.taskStream ||
         _dateKey(DateTime(d.year, d.month, d.day - d.weekday + 1)) !=
             _dateKey(start)) {
       _subscribe();
@@ -1040,14 +1293,26 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
   Widget build(
     BuildContext context,
   ) => StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+    key: ValueKey('${widget.uid}/week-${_dateKey(start)}'),
     stream: stream,
     builder: (context, snapshot) {
       final records =
           snapshot.data?.docs ??
           <QueryDocumentSnapshot<Map<String, dynamic>>>[];
-      final selected = records
-          .where((d) => d.data()['dateKey'] == _dateKey(widget.selected))
-          .toList();
+      final selected = flowOrderedTasks(
+        records
+            .where((d) => d.data()['dateKey'] == _dateKey(widget.selected))
+            .toList(),
+        _dateKey(widget.selected),
+      );
+      final featuredId = flowFeaturedTask(
+        selected,
+        _dateKey(widget.selected),
+        now: widget.today,
+      );
+      final firstFlexible = selected.indexWhere(
+        (d) => !flowHasSchedule(d, _dateKey(widget.selected)),
+      );
       return CustomScrollView(
         slivers: [
           SliverPadding(
@@ -1055,10 +1320,10 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
             sliver: SliverList.list(
               children: [
                 widget.header,
-                const ScreenIntro(
-                  eyebrow: 'Weekly planner',
-                  title: 'Find your rhythm.',
-                  detail: 'A little perspective for the days ahead.',
+                FlowDateHeading(
+                  date: widget.selected,
+                  onToday: () =>
+                      widget.onSelect(widget.today ?? DateTime.now()),
                 ),
                 Wrap(
                   alignment: WrapAlignment.spaceBetween,
@@ -1092,42 +1357,31 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 8,
-                  children: [
+                FlowWeekSelector(
+                  selected: widget.selected,
+                  today: widget.today,
+                  onSelected: widget.onSelect,
+                  counts: {
                     for (var i = 0; i < 7; i++)
-                      Builder(
-                        builder: (context) {
-                          final day = DateTime(
-                                start.year,
-                                start.month,
-                                start.day + i,
-                              ),
-                              key = _dateKey(
-                                DateTime(
-                                  start.year,
-                                  start.month,
-                                  start.day + i,
+                      i + 1: records
+                          .where(
+                            (d) =>
+                                d.data()['dateKey'] ==
+                                _dateKey(
+                                  DateTime(
+                                    start.year,
+                                    start.month,
+                                    start.day + i,
+                                  ),
                                 ),
-                              );
-                          final count = records
-                              .where((d) => d.data()['dateKey'] == key)
-                              .length;
-                          return ChoiceChip(
-                            label: Text(
-                              '${DateFormat('EEE d').format(day)}\n$count ${count == 1 ? 'task' : 'tasks'}',
-                            ),
-                            selected: key == _dateKey(widget.selected),
-                            onSelected: (_) => widget.onSelect(day),
-                          );
-                        },
-                      ),
-                  ],
+                          )
+                          .length,
+                  },
                 ),
                 const SizedBox(height: 20),
-                if (snapshot.hasData)
-                  DailyCompletion(
+                if (snapshot.hasData && !snapshot.hasError)
+                  FlowPlannerSummary(
+                    label: 'Weekly progress',
                     done: records
                         .where((d) => d.data()['completed'] == true)
                         .length,
@@ -1139,12 +1393,12 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 if (snapshot.hasError)
-                  const AuroraNotice(
-                    'This week could not be loaded. Reopen Planner after reconnecting.',
-                    error: true,
+                  ErrorPanel(
+                    message: 'This week could not be loaded. Check your connection and try again.',
+                    onRetry: () => setState(_subscribe),
                   )
                 else if (!snapshot.hasData)
-                  const LoadingPanel()
+                  const FlowTimelineSkeleton()
                 else if (selected.isEmpty)
                   EmptyPanel(
                     icon: Icons.event_available_outlined,
@@ -1162,9 +1416,14 @@ class _WeeklyPlannerState extends State<WeeklyPlanner> {
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
             sliver: SliverList.builder(
-              itemCount: selected.length,
-              itemBuilder: (context, i) =>
-                  TaskTile(uid: widget.uid, doc: selected[i]),
+              itemCount: snapshot.hasError ? 0 : selected.length,
+              itemBuilder: (context, i) => FlowTaskGroupEntry(
+                uid: widget.uid,
+                doc: selected[i],
+                dateKey: _dateKey(widget.selected),
+                groupHeading: i == firstFlexible,
+                featured: selected[i].id == featuredId,
+              ),
             ),
           ),
         ],
@@ -1276,60 +1535,93 @@ class ReminderTimeline extends StatelessWidget {
       );
     }
     return Column(
-      children: items.map((item) {
+      children: items.indexed.map((entry) {
+        final item = entry.$2;
+        final featured = entry.$1 == 0;
         final time = TimeOfDay.fromDateTime(item.at).format(context);
-        final task = item.target.type == ReminderTargetType.task;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (presentation == ReminderPresentation.timeline &&
-                  MediaQuery.textScalerOf(context).scale(14) <= 21) ...[
-                SizedBox(
-                  width: 76,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 18),
-                    child: Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+        final timeline = presentation == ReminderPresentation.timeline;
+        final (icon, category) = switch (item.target.type) {
+          ReminderTargetType.task => (
+            Icons.check_circle_outline,
+            'Task reminder',
+          ),
+          ReminderTargetType.sharedGoal => (
+            Icons.groups_outlined,
+            'Shared goal reminder',
+          ),
+          ReminderTargetType.personalGoal => (
+            Icons.savings_outlined,
+            'Savings reminder',
+          ),
+        };
+        final card = Material(
+          color: featured
+              ? context.flowCategory(FlowAccent.mint)
+              : context.atelierTonal,
+          borderRadius: BorderRadius.circular(SaveTrackDesign.radius),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => onOpen(item),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.target.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        size: 20,
                         color: context.atelierAccent,
                       ),
-                    ),
+                    ],
                   ),
-                ),
-                Container(
-                  width: 2,
-                  height: 90,
-                  margin: const EdgeInsets.only(right: 14),
-                  color: context.atelierBorder,
-                ),
-              ],
-              Expanded(
-                child: Card(
-                  child: ListTile(
-                    leading: MintIcon(
-                      task
-                          ? Icons.check_circle_outline
-                          : Icons.savings_outlined,
-                      size: 36,
-                    ),
-                    title: Text(
-                      item.target.title,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    subtitle: Text(
-                      '${DateFormat.yMMMd().format(item.at)} · $time\n${reminderSummary(context, item.configuration)}',
-                    ),
-                    onTap: () => onOpen(item),
+                  const SizedBox(height: 6),
+                  Text(
+                    reminderSummary(context, item.configuration),
+                    style: Theme.of(context).textTheme.bodySmall,
                   ),
-                ),
+                  if (!timeline) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      '${DateFormat.yMMMd().format(item.at)} · $time',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(icon, size: 16, color: context.atelierAccent),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          category,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         );
+        return timeline
+            ? FlowTimelineEntry(
+                time: time,
+                caption: DateFormat.MMMd().format(item.at),
+                featured: featured,
+                child: card,
+              )
+            : Padding(padding: const EdgeInsets.only(bottom: 12), child: card);
       }).toList(),
     );
   }
@@ -1621,6 +1913,7 @@ class PulseContent extends StatelessWidget {
           ),
           AmountText(
             money(totals.net),
+            key: const ValueKey('pulse-net-savings'),
             style: SaveTrackDesign.amount.copyWith(
               fontSize: 30,
               color: context.atelierInk,
@@ -1631,25 +1924,33 @@ class PulseContent extends StatelessWidget {
           ),
         ] else ...[
           AdaptiveCards(
-            breakpoint: 540,
+            breakpoint: 300,
             children: [
-              AuroraMetricCard(
+              FlowFinancialMetric(
                 icon: Icons.south_west,
                 value: money(totals.contributions),
                 label: 'Contributions',
               ),
-              AuroraMetricCard(
+              FlowFinancialMetric(
+                accent: FlowAccent.peach,
                 icon: Icons.north_east,
                 value: money(totals.withdrawals),
                 label: 'Withdrawals',
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
           Text(
-            'Net savings change: ${money(totals.net)}',
-            style: TextStyle(
-              fontWeight: FontWeight.w700,
+            'Net savings change',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 4),
+          AmountText(
+            money(totals.net),
+            key: const ValueKey('pulse-net-savings'),
+            compactCurrency: true,
+            style: SaveTrackDesign.amount.copyWith(
+              fontSize: 30,
               color: context.atelierInk,
             ),
           ),
@@ -1667,37 +1968,58 @@ class PulseContent extends StatelessWidget {
             )
           else
             SizedBox(
-              height: 110,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: points.map((point) {
-                  final label =
-                      '${DateFormat.yMMMd().format(point.$1)}: ${formatCurrency(totals.days[_dateKey(point.$1)] ?? ExactDecimal.zero, totals.currency)} contributed';
-                  return Expanded(
-                    child: Tooltip(
-                      message: label,
-                      triggerMode: TooltipTriggerMode.tap,
-                      child: Semantics(
-                        label: label,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 2),
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Container(
-                              height: (point.$2 / maximum * 100).clamp(2, 100),
-                              decoration: BoxDecoration(
-                                color: point.$2 > 0
-                                    ? context.atelierAccent
-                                    : context.atelierBorder,
-                                borderRadius: BorderRadius.circular(4),
+              height: 160,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ExcludeSemantics(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        for (var i = 0; i < 4; i++)
+                          Divider(height: 1, color: context.atelierBorder),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: points.map((point) {
+                      final label =
+                          '${DateFormat.yMMMd().format(point.$1)}: ${formatCurrency(totals.days[_dateKey(point.$1)] ?? ExactDecimal.zero, totals.currency)} contributed';
+                      return Expanded(
+                        child: Tooltip(
+                          message: label,
+                          triggerMode: TooltipTriggerMode.tap,
+                          child: Semantics(
+                            label: label,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 2,
+                              ),
+                              child: Align(
+                                alignment: Alignment.bottomCenter,
+                                child: Container(
+                                  height: (point.$2 / maximum * 150).clamp(
+                                    2,
+                                    150,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: point.$2 > 0
+                                        ? context.atelierAccent
+                                        : context.atelierBorder,
+                                    borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(6),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
             ),
           Row(
@@ -1711,6 +2033,27 @@ class PulseContent extends StatelessWidget {
                 DateFormat.MMMd().format(points.last.$1),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          ExpansionTile(
+            // Keep disclosure state separate from the ancestor scroll offset.
+            key: PageStorageKey(
+              'pulse-details-${totals.currency}-'
+              '${_dateKey(totals.start)}-${_dateKey(totals.end)}',
+            ),
+            tilePadding: EdgeInsets.zero,
+            title: const Text('Daily contribution details'),
+            subtitle: Text('${totals.currency} · Recorded activity'),
+            children: [
+              for (final point in points)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(DateFormat.yMMMd().format(point.$1)),
+                  subtitle: Text(
+                    money(totals.days[_dateKey(point.$1)] ?? ExactDecimal.zero),
+                  ),
+                ),
             ],
           ),
         ],

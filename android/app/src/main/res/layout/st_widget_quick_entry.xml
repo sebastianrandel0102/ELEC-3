@@ -1,0 +1,6 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@android:id/background" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="12dp" android:background="@drawable/st_widget_mint">
+    <TextView android:id="@+id/st_quick_goal" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:maxLines="1" android:ellipsize="end" />
+    <TextView android:id="@+id/st_quick_amount" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="22sp" android:fontFamily="sans-serif-medium" android:maxLines="1" android:ellipsize="end" />
+    <TextView android:id="@+id/st_quick_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="12sp" android:maxLines="2" android:ellipsize="end" />
+    <LinearLayout android:id="@+id/st_quick_keys" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:gravity="bottom" />
+</LinearLayout>

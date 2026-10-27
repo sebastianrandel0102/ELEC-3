@@ -1,8 +1,24 @@
 package com.example.myproject.widgets
 
 enum class WidgetSize { COMPACT, SMALL, MEDIUM, EXPANDED, EXTRA_LARGE }
+enum class WidgetComposition { COMPACT_NARROW, COMPACT_STANDARD, MEDIUM_SHORT, MEDIUM_STANDARD, EXPANDED, EXPANDED_WIDE }
 
 object WidgetLayoutResolver {
+    fun composition(width: Float, height: Float, fontScale: Float): WidgetComposition {
+        val scale = if (fontScale.isFinite()) fontScale.coerceAtLeast(1f) else 1f
+        val w = (if (width.isFinite() && width > 0) width else 110f) / scale
+        val h = (if (height.isFinite() && height > 0) height else 56f) / scale
+        return when {
+            w >= 240 && h < 120 -> WidgetComposition.MEDIUM_SHORT
+            w < 156 -> WidgetComposition.COMPACT_NARROW
+            w < 250 || h < 190 -> WidgetComposition.COMPACT_STANDARD
+            h < 270 -> WidgetComposition.MEDIUM_STANDARD
+            w >= 360 -> WidgetComposition.EXPANDED_WIDE
+            else -> WidgetComposition.EXPANDED
+        }
+    }
+    fun quickEntry(width: Float, height: Float, scale: Float) = width / scale >= 156 && height / scale >= 210
+    fun quickFullPad(width: Float, height: Float, scale: Float) = width / scale >= 240 && height / scale >= 360
     // Constraints are dp from the host, adjusted for text scaling, not grid cells.
     fun resolve(width: Float, height: Float, fontScale: Float): WidgetSize {
         val scale = if (fontScale.isFinite()) fontScale.coerceAtLeast(1f) else 1f

@@ -419,7 +419,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
           ),
         );
       } else if (action == 'day') {
-        final date = await showDatePicker(
+        final date = await showSaveTrackDatePicker(
           context: context,
           initialDate: DateTime.now(),
           firstDate: DateTime(2020),
@@ -429,7 +429,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
         setState(() => _contextStep = _ContextStep.loading);
         facts = await source.planner(date).timeout(AiConfig.contextReadTimeout);
       } else {
-        final date = await showDatePicker(
+        final date = await showSaveTrackDatePicker(
           context: context,
           initialDate: DateTime.now(),
           firstDate: DateTime(2020),
@@ -540,7 +540,7 @@ class _AiCoachScreenState extends State<AiCoachScreen> {
                               ),
                               if (!compact)
                                 Text(
-                                  'A little space to think',
+                                  'Your personal AI companion',
                                   style: TextStyle(
                                     color: context.atelierMuted,
                                     fontSize: 11,

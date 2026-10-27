@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../currency_money.dart';
+import '../design_system.dart';
 import 'agent_domain.dart';
 import 'agent_engine.dart';
 import 'intelligence/agent_language.dart';
@@ -154,7 +155,7 @@ class _StepEditorState extends State<_StepEditor> {
       child: OutlinedButton.icon(
         onPressed: () async {
           final today = DateTime.now(), parsed = DateTime.tryParse(value ?? '');
-          final selected = await showDatePicker(
+          final selected = await showSaveTrackDatePicker(
             context: context,
             firstDate: DateTime(today.year, today.month, today.day),
             lastDate: DateTime(today.year + 10, 12, 31),
@@ -190,7 +191,7 @@ class _StepEditorState extends State<_StepEditor> {
                 minute: int.parse(value.split(':')[1]),
               )
             : TimeOfDay.now();
-        final selected = await showTimePicker(
+        final selected = await showSaveTrackTimePicker(
           context: context,
           initialTime: initial,
         );
