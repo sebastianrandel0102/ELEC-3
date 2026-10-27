@@ -200,7 +200,6 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
   WidgetGoalFacts? _goal;
   late WidgetTheme _theme;
   late WidgetPrivacy _privacy;
-  WidgetPreviewSize _previewSize = WidgetPreviewSize.medium;
   bool _tasks = false,
       _cover = false,
       _busy = false,
@@ -389,37 +388,11 @@ class _WidgetConfigurationScreenState extends State<WidgetConfigurationScreen> {
                                     true)
                                   field.text.trim(),
                             ],
-                      size: _previewSize,
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final size in WidgetPreviewSize.values)
-                        _StudioOption(
-                          label: switch (size) {
-                            WidgetPreviewSize.compact => 'Compact',
-                            WidgetPreviewSize.medium => 'Medium',
-                            WidgetPreviewSize.expanded => 'Expanded',
-                          },
-                          icon: switch (size) {
-                            WidgetPreviewSize.compact =>
-                              Icons.view_stream_outlined,
-                            WidgetPreviewSize.medium =>
-                              Icons.view_agenda_outlined,
-                            WidgetPreviewSize.expanded =>
-                              Icons.dashboard_outlined,
-                          },
-                          selected: _previewSize == size,
-                          onTap: () => setState(() => _previewSize = size),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
                   Text(
-                    'Preview only. Resize the actual widget from your home screen; layouts vary by launcher.',
+                    'Long-press the widget on your home screen and drag the resize handles. The layout adjusts automatically.',
                     style: TextStyle(
                       fontSize: 12,
                       color: context.atelierMuted,

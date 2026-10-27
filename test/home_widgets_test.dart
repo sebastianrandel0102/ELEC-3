@@ -695,16 +695,17 @@ void main() {
       );
       await tester.tap(find.text('Configure'));
       await tester.pumpAndSettle();
+      expect(find.text('Compact'), findsNothing);
+      expect(find.text('Medium'), findsNothing);
+      expect(find.text('Expanded'), findsNothing);
       await tester.scrollUntilVisible(find.text('Light'), 350);
       await tester.tap(find.text('Light'));
       await tester.pumpAndSettle();
       expect(bridge.installed.first.config!.theme, WidgetTheme.emerald);
-      await tester.scrollUntilVisible(find.text('Expanded'), -350);
-      await tester.tap(find.text('Expanded'));
-      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(find.byType(WidgetPreviewCard), -350);
       expect(
-        tester.widget<WidgetPreviewCard>(find.byType(WidgetPreviewCard)).size,
-        WidgetPreviewSize.expanded,
+        tester.widget<WidgetPreviewCard>(find.byType(WidgetPreviewCard)).theme,
+        WidgetTheme.mint,
       );
       expect(bridge.installed.first.config!.theme, WidgetTheme.emerald);
       await tester.scrollUntilVisible(find.text('Save Widget'), 500);
