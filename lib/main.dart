@@ -113,7 +113,7 @@ class _SaveTrackAppState extends State<SaveTrackApp> {
       valueListenable: AtelierPreferences.themeMode,
       builder: (context, mode, _) => MaterialApp(
         navigatorKey: _appNavigator,
-        title: 'SaveTrack',
+        title: 'bebe planner',
         debugShowCheckedModeBanner: false,
         theme: SaveTrackDesign.theme,
         darkTheme: SaveTrackDesign.darkTheme,
@@ -417,7 +417,9 @@ class _AuthScreenState extends State<AuthScreen> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1040),
               child: AuthComposition(
-                brand: const BrandMark(),
+                brand: BrandMark(
+                  name: _register ? 'SaveTrack' : 'bebe planner',
+                ),
                 register: _register,
                 child: Form(
                   key: _form,
@@ -425,7 +427,9 @@ class _AuthScreenState extends State<AuthScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        _register ? 'Create your account' : 'Welcome back',
+                        _register
+                            ? 'Create your account'
+                            : 'Welcome back, my love',
                         style: TextStyle(
                           fontSize: 34,
                           fontWeight: FontWeight.w700,
@@ -608,7 +612,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         child: Text(
                           _register
                               ? 'Already have an account? Sign in'
-                              : 'New to SaveTrack? Create an account',
+                              : 'New to bebe planner? Create an account',
                         ),
                       ),
                     ],
@@ -2847,7 +2851,8 @@ class SectionHeader extends StatelessWidget {
 }
 
 class BrandMark extends StatelessWidget {
-  const BrandMark({super.key});
+  const BrandMark({super.key, this.name = 'SaveTrack'});
+  final String name;
   @override
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -2856,7 +2861,7 @@ class BrandMark extends StatelessWidget {
       SizedBox(width: 10),
       Flexible(
         child: Text(
-          'SaveTrack',
+          name,
           style: TextStyle(
             fontFamily: 'Manrope',
             fontSize: 20,

@@ -213,7 +213,7 @@ void main() {
       await tester.tap(find.text('Back to Login'));
       await tester.pumpAndSettle();
       expect(find.byType(PasswordRecoveryDialog), findsNothing);
-      expect(find.text('Welcome back'), findsOneWidget);
+      expect(find.text('Welcome back, my love'), findsOneWidget);
       expect(auth.emails, isEmpty);
     },
   );

@@ -1,6 +1,6 @@
 {
-    "name": "SaveTrack",
-    "short_name": "SaveTrack",
+    "name": "bebe planner",
+    "short_name": "bebe planner",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#073F34",

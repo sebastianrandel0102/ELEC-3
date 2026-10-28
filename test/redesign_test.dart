@@ -241,10 +241,10 @@ void main() {
       'secret123',
     );
     await tester.ensureVisible(
-      find.text('New to SaveTrack? Create an account'),
+      find.text('New to bebe planner? Create an account'),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.text('New to SaveTrack? Create an account'));
+    await tester.tap(find.text('New to bebe planner? Create an account'));
     await tester.pumpAndSettle();
     expect(find.text('Create your account'), findsOneWidget);
     expect(
@@ -272,7 +272,7 @@ void main() {
     await capture(tester, 'password-recovery');
     await tester.tap(find.text('Back to Login'));
     await tester.pumpAndSettle();
-    expect(find.text('Welcome back'), findsOneWidget);
+    expect(find.text('Welcome back, my love'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -862,9 +862,9 @@ void main() {
       await mount(tester, const AuthScreen(), size: const Size(1280, 800));
       await capture(tester, 'login-wide');
       await tester.ensureVisible(
-        find.text('New to SaveTrack? Create an account'),
+        find.text('New to bebe planner? Create an account'),
       );
-      await tester.tap(find.text('New to SaveTrack? Create an account'));
+      await tester.tap(find.text('New to bebe planner? Create an account'));
       await tester.pumpAndSettle();
       expect(find.byType(TextFormField), findsNWidgets(3));
       expect(find.text('Big plans.\nStart right here.'), findsOneWidget);

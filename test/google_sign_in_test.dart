@@ -495,7 +495,10 @@ void main() {
       expect(find.text('Password'), findsOneWidget);
       expect(find.text('Sign in'), findsOneWidget);
       expect(find.text('Forgot password?'), findsOneWidget);
-      expect(find.text('New to SaveTrack? Create an account'), findsOneWidget);
+      expect(
+        find.text('New to bebe planner? Create an account'),
+        findsOneWidget,
+      );
       expect(find.text('OR'), findsOneWidget);
       expect(find.text('Continue with Google'), findsOneWidget);
       final logo = tester.widget<Image>(
@@ -520,11 +523,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(googleButton.hitTestable(), findsOneWidget);
       await tester.ensureVisible(
-        find.text('New to SaveTrack? Create an account'),
+        find.text('New to bebe planner? Create an account'),
       );
       await tester.pumpAndSettle();
       expect(
-        find.text('New to SaveTrack? Create an account').hitTestable(),
+        find.text('New to bebe planner? Create an account').hitTestable(),
         findsOneWidget,
       );
       expect(tester.takeException(), isNull);
@@ -553,7 +556,7 @@ void main() {
       expect(tester.widget<OutlinedButton>(googleButton).onPressed, isNotNull);
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(find.byType(ErrorPanel), findsNothing);
-      expect(find.text('Welcome back'), findsOneWidget);
+      expect(find.text('Welcome back, my love'), findsOneWidget);
     },
   );
 
@@ -590,9 +593,9 @@ void main() {
       await tester.tap(find.text('Back to Login'));
       await tester.pumpAndSettle();
       await tester.ensureVisible(
-        find.text('New to SaveTrack? Create an account'),
+        find.text('New to bebe planner? Create an account'),
       );
-      await tester.tap(find.text('New to SaveTrack? Create an account'));
+      await tester.tap(find.text('New to bebe planner? Create an account'));
       await tester.pumpAndSettle();
       expect(find.text('Your name'), findsOneWidget);
       expect(find.text('Create account'), findsOneWidget);

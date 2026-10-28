@@ -6,7 +6,7 @@
     <!-- User-selected, precisely timed planner reminders. No USE_EXACT_ALARM. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <application
-        android:label="SaveTrack"
+        android:label="bebe planner"
         android:name="${applicationName}"
         android:fullBackupContent="@xml/widget_backup_rules"
         android:dataExtractionRules="@xml/widget_data_extraction_rules"
