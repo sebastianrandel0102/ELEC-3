@@ -1,0 +1,2335 @@
+﻿{
+    "date":  "2026-10-29",
+    "basis":  "Static source inventory and review; no live account or app execution",
+    "fileCount":  214,
+    "files":  [
+                  {
+                      "path":  "ios/Runner/SceneDelegate.swift",
+                      "lines":  7,
+                      "sha256":  "EDCE811C671CA0A6CCB14753E14E16DEB0D89A0ADF4F1B685E362D87D8F4C366",
+                      "declarations":  [
+                                           "SceneDelegate"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "ios/Runner/Runner-Bridging-Header.h",
+                      "lines":  2,
+                      "sha256":  "EFE657D8B27F7F8595A0D416BFFB33FE7D93BD2869D81F7353B556C439D7A1A7",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "ios/Runner/AppDelegate.swift",
+                      "lines":  19,
+                      "sha256":  "AC5929C85533A1CAFEEA4BDDF478589429351C329917B793B3795D09248996F9",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "functions/test/shared.test.js",
+                      "lines":  226,
+                      "sha256":  "8623CC447DD0D7978A08BDFA0E7CC7F4853D81C9ADC9627D597C77C568316A3A",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "functions/test/goal_covers.test.js",
+                      "lines":  69,
+                      "sha256":  "DB6F5A2257CEB3C1097535E170AB805ADCDEE0A517A805D4DF0A5135FAB0BBD3",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "functions/shared.js",
+                      "lines":  228,
+                      "sha256":  "53795FC26A56DCDFD985EF8BF53FAFEB08F578BB1F8ADF426CCAE9F80DCACA64",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "functions/index.js",
+                      "lines":  30,
+                      "sha256":  "C349AD1EFBEC39DBDD9F27F3AADD6949EF1AA4A391BEE68E060D82ED7BE65FFC",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "functions/goal_covers.js",
+                      "lines":  66,
+                      "sha256":  "B94E94BB9D53917C5798C048E3D7F02FB5306E7913F35B4AF20AB659AC50A51E",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "web/index.html",
+                      "lines":  48,
+                      "sha256":  "24F0617E8E5DF3E3CD0FFD4A443462AEFBE3151FFEBCCF6B3C1728DFE359F1FC",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml-v31/st_widget_today_info.xml",
+                      "lines":  1,
+                      "sha256":  "F3D3E4C5812B2F9EC45D9B2B62694E82C2AF51280ECDF011C3C3C51F9FD761F1",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml-v31/st_widget_quick_save_info.xml",
+                      "lines":  1,
+                      "sha256":  "BC22AEC5C0C60C9ACB13A3DDE5BE7D6051F49B73414E1DCC30C495E54C1FE34A",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml-v31/st_widget_planner_info.xml",
+                      "lines":  1,
+                      "sha256":  "387DE3F68C4033856A2C24E48CAA48B1DC5EAB85DBCC26BBA75828346052B314",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml-v31/st_widget_goal_info.xml",
+                      "lines":  1,
+                      "sha256":  "4202DA959FDCE707FB37EDBFB76891C81AED49C50854E5B8858DD4AB4D42CA44",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml/widget_data_extraction_rules.xml",
+                      "lines":  1,
+                      "sha256":  "0573A8EB26E1872DD9C7595BAAA5D850F7F137DDE5D36579A2C2D63B06F2231A",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml/widget_backup_rules.xml",
+                      "lines":  1,
+                      "sha256":  "9621305C54BAF8D44A2547A435B391463FB211A3C6749406A0E825EAECF4F286",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml/st_widget_today_info.xml",
+                      "lines":  1,
+                      "sha256":  "95D29660BA4BE2488C02FAD022B930D4DF5CE61C2496CA9111177CA7D7DF2B1A",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml/st_widget_quick_save_info.xml",
+                      "lines":  1,
+                      "sha256":  "E9D96EA131A33992FEA7E803C295955F2A1D0FF01C17CCD81C9087EE5DD218CD",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml/st_widget_planner_info.xml",
+                      "lines":  1,
+                      "sha256":  "C58C941D6510086F86ABB80B80110D2F95F00C2BD73E600128BD87DDA3CE6705",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/xml/st_widget_goal_info.xml",
+                      "lines":  1,
+                      "sha256":  "3715FF639B321886CDF5CDF0F5E34F0AB208EF3F7839A66437E167E7CAB9BE7C",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values-v31/widget_atelier.xml",
+                      "lines":  5,
+                      "sha256":  "AAD2FB8ACB6EAC823A3EDCB68D0DA17481F0D702BA3260116BB5FB5ADFAF1DD1",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values-v31/styles.xml",
+                      "lines":  9,
+                      "sha256":  "9ACF20EF187DDEF4F891DE2DC7DEC84988F128E9653637E979E50909C352DBDB",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values-night-v31/styles.xml",
+                      "lines":  9,
+                      "sha256":  "FE1A9C9202D8E095CDCC2E25B5BD9C67B8D5D82C557FF94C92E9C3445196284D",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values-night/widget_system.xml",
+                      "lines":  9,
+                      "sha256":  "322BBECF22E6BC141BDDC98C0B85E7E28CC9E990977002C15C46789C8644A99D",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values-night/styles.xml",
+                      "lines":  19,
+                      "sha256":  "EA763597DC1A84C8034251CAEE98D7753E0FBF57340FFC94677427DE4B537516",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values/widget_system.xml",
+                      "lines":  9,
+                      "sha256":  "21DCB8C21FE90B73F03BB18A7249BB33054E2E8CD3480BBF7F00BD40FFEA503C",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values/widget_strings.xml",
+                      "lines":  12,
+                      "sha256":  "95311A629E05B187D32ADFBC2A236A7D7217977F4A92B0BE88BA9D069F4FB4FB",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values/widget_atelier.xml",
+                      "lines":  43,
+                      "sha256":  "F42EC2D92062520A4AC05B2DEA9077E5F71FF74966FE76A48E0259E7977C60B0",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values/styles.xml",
+                      "lines":  19,
+                      "sha256":  "CCA15A99B59380A548BF6A890F7CA5380EE509B1F9BBB2F5F9EC3589FA25C2F7",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/values/branding_colors.xml",
+                      "lines":  5,
+                      "sha256":  "7FB37478AA2E32CA3EC4483C3E80B4C31EF3231A2304714285CEEAE911111523",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/raw/keep.xml",
+                      "lines":  4,
+                      "sha256":  "2BBE255E794897721C606EEB6783EBAACD416DB16ED2412B7F469F65DDD2C254",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/mipmap-anydpi-v33/ic_launcher.xml",
+                      "lines":  7,
+                      "sha256":  "39A1260BD4804ACF53CE29DA15351338287B17C6F9F0BA861D2757C81CB1D560",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml",
+                      "lines":  6,
+                      "sha256":  "0C3DFAD5310DC2D325479D6EAC829A6EF251DB9C6468D529EC10D4CFA0126476",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_wide.xml",
+                      "lines":  24,
+                      "sha256":  "2D29182E83BDC78D090BDBE0E24C7671FEFF066A1244E69EAC15C2173C5D149F",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_today_tasks.xml",
+                      "lines":  29,
+                      "sha256":  "81B7529C1F1E2C65D957BBC0E347D1528980A2184C068890261EE4B294271DA6",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_today_stacked.xml",
+                      "lines":  16,
+                      "sha256":  "7EBB903237787967F280143A0A7D35E00905C5E0F2149E19AFAAB69164F9D272",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_today_header.xml",
+                      "lines":  14,
+                      "sha256":  "3E67AA9AF776999C0AD177785253F3F0DF6A3B973FED3CE2B67E172E6647CFFB",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_today_goal.xml",
+                      "lines":  30,
+                      "sha256":  "499412DEEF5BF975E1ED3C5C1A4F8197F3EEDF1E2DD525C7D88D54A84762AA86",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_today_footer.xml",
+                      "lines":  10,
+                      "sha256":  "AD4E3D58E16A7F22176D085B5E4FB1124856BB6AF36D704155E367E91AEB1181",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_today_compact.xml",
+                      "lines":  26,
+                      "sha256":  "DF8213DEE183DC87A3FF04917CD7624C5B550F73B9C513D0EFCE2660CD93CB1D",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_today.xml",
+                      "lines":  16,
+                      "sha256":  "0AE38581F8F29DFB0DA64CACEC45EE9F40C5EB28BB7462FA40AACC39E715654A",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_text.xml",
+                      "lines":  1,
+                      "sha256":  "CCE0FA0A3D779CD7C0438B58B524BA89FFA325412BC9D4631EA4DC9BB8C926C8",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_task.xml",
+                      "lines":  7,
+                      "sha256":  "C6C032EECA9181BF414FF98D05545CECBB700944F2C40FA28052AB47DC017C47",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_section.xml",
+                      "lines":  1,
+                      "sha256":  "8DAAA59C46CFEEE2E38F7F0CFC2EBF17B1A2E34D86CD34ED137356B2FEA8AACA",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_quick_row.xml",
+                      "lines":  2,
+                      "sha256":  "31936997FEE2C2D1D07D5D5131AB80C040ADC7771946816DA6287CB284BDBD3F",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_quick_entry.xml",
+                      "lines":  7,
+                      "sha256":  "C20B8F9213B96D9E0F568C54B8ADBC760C6A9B12F246A36CAF36B05918F53F35",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_progress_light.xml",
+                      "lines":  7,
+                      "sha256":  "E8FAB4F8D1CBB555FD8600D56E10097E4FC1DCF69F1EACAB41A9BBA963FB8BC5",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_progress.xml",
+                      "lines":  1,
+                      "sha256":  "48FEAD08C12B96A55BA5734D0A75FBF7844E8602DE0A37FE8A25AB1ED18C0714",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_mini_metrics_pair.xml",
+                      "lines":  10,
+                      "sha256":  "4A5FB8663F5A34D73A781FA098880672D2843E23893347211C782663339F3326",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_mini_metrics.xml",
+                      "lines":  5,
+                      "sha256":  "BDF9A0DC7A00064B57637788437C662B542F8FF46B3210D8ADC10A8C8FF41B35",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_metric.xml",
+                      "lines":  1,
+                      "sha256":  "78EFD427E7BB0A7A8D279671D63E508A668D66CD711F6553AE84E94F28EA6469",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_empty.xml",
+                      "lines":  11,
+                      "sha256":  "4BB97B73F88D14A96CB8255EB2B23DD9DCD64E408709396647FEE881A601504A",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_compact.xml",
+                      "lines":  9,
+                      "sha256":  "A49F368156605BFD0B84C570138C07B863A261D2957D5B6A36C4E07793FA3EF5",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_button.xml",
+                      "lines":  1,
+                      "sha256":  "CDCDB96F61852E73115EF165C4DA7160F774812C3324E240700E1A38E7D7B44A",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_amount.xml",
+                      "lines":  1,
+                      "sha256":  "A70518AA354946D83F61F64C2360DEE5F1A3658E959B8ABB619D4566DC732370",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget_actions.xml",
+                      "lines":  1,
+                      "sha256":  "E4DE5E2407F7AEDEDE64CBFD22E792495095D3F09401B1B46A13EEBCBC9F40AC",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/layout/st_widget.xml",
+                      "lines":  13,
+                      "sha256":  "595F56F6C1B232EF20DB1B6E088110531EA2FD4772D044AB05F22A7A2AEF4EE3",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable-v21/launch_background.xml",
+                      "lines":  7,
+                      "sha256":  "98BDE96636DCF8FD358FC121D56A66DE4359B38703937FBFBE574289EAAAE396",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_white.xml",
+                      "lines":  2,
+                      "sha256":  "A858121A5ADD140C8104907068FF3CD561DBE4EE0CE67A3B2B69D2F8B87FC171",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_today_panel_dark.xml",
+                      "lines":  2,
+                      "sha256":  "44CCA57BCC18441B2ED69C4D385EAED3E722F47266AC5B4FDA386E13B648C65D",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_today_panel.xml",
+                      "lines":  2,
+                      "sha256":  "25C0201CEE743C4F91062FBDFD153FBAE5856C641C0933F9ACB5FC9E43AA14AC",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_task_marker.xml",
+                      "lines":  2,
+                      "sha256":  "08DE0416200CBE98E46012F1BC30C79F436AD59D526D4D9747D2932C41611207",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_system_surface.xml",
+                      "lines":  2,
+                      "sha256":  "91533B3C4236F13899F499196327CC4D80DBAFBB8D5328386281C432D4A93C21",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_system_secondary.xml",
+                      "lines":  2,
+                      "sha256":  "054C3B0E07532AA058387B689C48FC814B328A49508F434372169AF82DE4AE34",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_system_action.xml",
+                      "lines":  2,
+                      "sha256":  "4373C5083E2369B75BC64CDE4912C93236CE5BAC9F5A61DD9D3495079D2ED2E4",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_system.xml",
+                      "lines":  2,
+                      "sha256":  "5EF21E7C212B36D6063D3A0E993A11BCE4E2728417245733600390037647137D",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_section_bg.xml",
+                      "lines":  2,
+                      "sha256":  "649D653368D3635B19C4BE5DDEB64C5971BE1C43A7CAE69250E8F308CF4FE41F",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_secondary_light.xml",
+                      "lines":  2,
+                      "sha256":  "649D653368D3635B19C4BE5DDEB64C5971BE1C43A7CAE69250E8F308CF4FE41F",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_secondary_dark.xml",
+                      "lines":  2,
+                      "sha256":  "99A18DECBF0F8EBD1FD3F2F53FB9766D2A701AE97A748F875BE6B14B74C131D4",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_progress_track_light.xml",
+                      "lines":  2,
+                      "sha256":  "2510EE094D34B7F8963612497CE63A17D8F4A5631E143DDCDD9E68CCF07C1F8C",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_progress_track.xml",
+                      "lines":  2,
+                      "sha256":  "20A55E559D66DDB3CEA5702B299859A409EA1064C61F6A0D3487B2F90A6781ED",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_mint.xml",
+                      "lines":  2,
+                      "sha256":  "82A1DC7EBFCECB03770EF4FFC1ED9F46341DD33405EEBC245C274021C2D7C80C",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_emerald.xml",
+                      "lines":  2,
+                      "sha256":  "8555356B12400CBAC5B433184F4E397E82DA024923F5675F57C9CE4B64984081",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_complete_marker.xml",
+                      "lines":  2,
+                      "sha256":  "37CD52CF0ECDE2F813490D99D0CCA8FEBEFE40CE81099B8A1887F8D2F5B0CA2E",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_button_secondary_light.xml",
+                      "lines":  2,
+                      "sha256":  "C01D49750C4AB1F170E95A8453ECB207C0D16475BD2FBEDA99D6261FF638467C",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_button_secondary_dark.xml",
+                      "lines":  2,
+                      "sha256":  "04AEC076BE2CCE8F1AE6966C80BD52F3F304600103AF0CE439877623275C8DB4",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_button_light.xml",
+                      "lines":  2,
+                      "sha256":  "5440C17E9627FCFEC51937358429C5C3469DB70DB3DAFAC458DB548138914E72",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/st_widget_button_bg.xml",
+                      "lines":  2,
+                      "sha256":  "A20CDA502F27E29368BE9FC35E63435501F6292E1D94FA0B2B50BCF9A2076664",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/savetrack_splash.xml",
+                      "lines":  22,
+                      "sha256":  "C39202ABE3D903B829D0F59534D9ECDA6A7EDEDD789F415E6ED55C5D94061633",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/launch_background.xml",
+                      "lines":  7,
+                      "sha256":  "98BDE96636DCF8FD358FC121D56A66DE4359B38703937FBFBE574289EAAAE396",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/ic_stat_reminder.xml",
+                      "lines":  7,
+                      "sha256":  "BAE49EC618C465F4C562A5E11A311B7B339DE1EF62BC9036336903259CF55FF6",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/ic_launcher_monochrome.xml",
+                      "lines":  15,
+                      "sha256":  "EBF0123E0732DE579518FE2E91D4244991EF0F5BF5BF893FAA109603D55721C5",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/ic_launcher_foreground.xml",
+                      "lines":  22,
+                      "sha256":  "8DBB9EA166C3A0E8C1B07A7660E3FA7632492EAD2546B13142E54F99AFAF7E39",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/res/drawable/ic_launcher_background.xml",
+                      "lines":  14,
+                      "sha256":  "1101B7A0D88AA06523BD8633AC6FA0240053D3D8AD33C3827085E3A28239C68D",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetVisualTokens.kt",
+                      "lines":  103,
+                      "sha256":  "CBDACC7C19C1D8915C3E47E6122E02C715B64F00D6A2116E158F9998EEEEAB42",
+                      "declarations":  [
+                                           "WidgetTypography",
+                                           "WidgetVisualTokens"
+                                       ],
+                      "uiReferences":  4
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetStore.kt",
+                      "lines":  179,
+                      "sha256":  "7A7C9DB5BA5F535FADECF43E98E732FE4C1B7AE14D85AB590B77DC336EC48CC2",
+                      "declarations":  [
+                                           "WidgetStore"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+                      "lines":  577,
+                      "sha256":  "40D134917B49FE3EA5610FD0D5E2A9961588C5AC364F0210F8187918BA72EF08",
+                      "declarations":  [
+                                           "WidgetRenderer"
+                                       ],
+                      "uiReferences":  24
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetProviders.kt",
+                      "lines":  35,
+                      "sha256":  "AC934D494F0AB39128BC40C451BFAF8FA3867BEC3A268E6483FD50C2E7A54E52",
+                      "declarations":  [
+                                           "SaveTrackWidgetProvider",
+                                           "SaveTrackGoalWidget",
+                                           "SaveTrackPlannerWidget",
+                                           "SaveTrackQuickSaveWidget",
+                                           "SaveTrackTodayWidget",
+                                           "WidgetCalendarReceiver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetLayoutResolver.kt",
+                      "lines":  42,
+                      "sha256":  "5AC9C5AD5EBEF7FC74BDC744B9E75048FC98B622AC5897F861A38F422DE0D9C7",
+                      "declarations":  [
+                                           "class",
+                                           "class",
+                                           "WidgetLayoutResolver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetConfigurationActivity.kt",
+                      "lines":  53,
+                      "sha256":  "EB86CCDA4C00506C6A411F229C20E409D3A1F31978203FD44F939BECCA4AC9A8",
+                      "declarations":  [
+                                           "WidgetConfigurationActivity"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetBridge.kt",
+                      "lines":  89,
+                      "sha256":  "22994DEDEB72B5772FB6F4652346197A3D7B7473D3406031000FC6573098EBA7",
+                      "declarations":  [
+                                           "WidgetBridge"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+                      "lines":  117,
+                      "sha256":  "B1E47AF5D5493AEDB233FC0B25E2C1E81C47582B0C300D00382E5B377E153A9D",
+                      "declarations":  [
+                                           "QuickSaveRenderer"
+                                       ],
+                      "uiReferences":  5
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveJobService.kt",
+                      "lines":  112,
+                      "sha256":  "1EDA8B3E94EE9CAFD2A644E91592993615BB7C4045153AD16F3D9A32A60E39C8",
+                      "declarations":  [
+                                           "QuickSaveJobService"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveInput.kt",
+                      "lines":  23,
+                      "sha256":  "6E96A372F71521741BB9B0DB130C7E537514A61EE37948C102A865C194D690BA",
+                      "declarations":  [
+                                           "QuickSaveInput"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveActions.kt",
+                      "lines":  131,
+                      "sha256":  "477E514F34971007BA095394336FF8A3C7A61638EBD5C3DA5B8431DBC9FEBA6A",
+                      "declarations":  [
+                                           "QuickSaveStore",
+                                           "QuickSaveActionReceiver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/MainActivity.kt",
+                      "lines":  44,
+                      "sha256":  "24B301704F6F08115DC3C96CED0CC9B20B7737C6AF11FAC5B6143D0DE885B977",
+                      "declarations":  [
+                                           "MainActivity"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/agent/AgentVoiceBridge.kt",
+                      "lines":  346,
+                      "sha256":  "D804D71CE887DE2FEC278E24D55885FDA864D96058FE7502BF4DFB6F4B0CCB60",
+                      "declarations":  [
+                                           "AgentVoiceBridge"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/kotlin/com/example/myproject/agent/AgentRecognitionFailure.kt",
+                      "lines":  36,
+                      "sha256":  "44BB16B5529AB8AD7AD9A0DB3345C59F2588A3FBE4A9994D39A6A9B1E1689742",
+                      "declarations":  [
+                                           "AgentRecognitionFailure"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "android/app/src/main/AndroidManifest.xml",
+                      "lines":  107,
+                      "sha256":  "121C69B352DBEE1B4B08F8375D3F3F67ED5E751F3D01E863D9E3A603136E2755",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/smart_task_recommendation_service.dart",
+                      "lines":  443,
+                      "sha256":  "481F95E615C180FBA739F7D8B7E2C99B4916294ED186204D330AC170DFBE271E",
+                      "declarations":  [
+                                           "PlannerTask",
+                                           "RecommendationDay",
+                                           "RecommendationCategory",
+                                           "TaskSchedule",
+                                           "TaskRecommendation",
+                                           "SmartTaskPlan",
+                                           "SmartTaskRecommendationService"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/smart_suggestions.dart",
+                      "lines":  608,
+                      "sha256":  "24FF2163B40E412732D8A6014C69C51213FAC046B9C9A85C046A13C4A646A015",
+                      "declarations":  [
+                                           "SmartSuggestions",
+                                           "_SmartSuggestionsState",
+                                           "SmartPlannerSummary",
+                                           "SmartSuggestionCard",
+                                           "_HeroChip",
+                                           "RecommendedTaskTile",
+                                           "SmartSuggestionsEmptyState"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/shared_savings_store.dart",
+                      "lines":  472,
+                      "sha256":  "C528C3EE1C133F8D1F0241B8649B402B9B00A8093E9E46F24424CC428DC115AC",
+                      "declarations":  [
+                                           "SharedSavingsStore"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/shared_savings_screens.dart",
+                      "lines":  2228,
+                      "sha256":  "E5994CE1B187A23C0BBF3A5EB3BB729A63B6E07AFBD882E0AF5FC3A229E35F92",
+                      "declarations":  [
+                                           "SharedGoalGuard",
+                                           "_SharedGoalGuardState",
+                                           "SharedNotice",
+                                           "MemberAvatar",
+                                           "SharedPage",
+                                           "_SharedPageState",
+                                           "SharedGoalsPanel",
+                                           "_SharedGoalsPanelState",
+                                           "SharedGoalCard",
+                                           "SharedMemberSummary",
+                                           "SharedGoalFormScreen",
+                                           "_SharedGoalFormScreenState",
+                                           "SharedGoalDetailsScreen",
+                                           "_SharedGoalDetailsScreenState",
+                                           "SharedGoalHero",
+                                           "OwnContribution",
+                                           "_OwnContributionState",
+                                           "SharedContributionScreen",
+                                           "_SharedContributionScreenState",
+                                           "SharedActionDialog",
+                                           "_SharedActionDialogState",
+                                           "SharedMembersScreen",
+                                           "_SharedMembersScreenState",
+                                           "SharedInvitesScreen",
+                                           "_SharedInvitesScreenState",
+                                           "SharedInvitationScreen",
+                                           "_SharedInvitationScreenState",
+                                           "SharedActivityTile",
+                                           "RecentSharedActivity",
+                                           "_RecentSharedActivityState",
+                                           "SharedHistoryScreen",
+                                           "_SharedHistoryScreenState"
+                                       ],
+                      "uiReferences":  18
+                  },
+                  {
+                      "path":  "lib/shared_savings_repository.dart",
+                      "lines":  243,
+                      "sha256":  "C0A448C4E29DB02F9BBB64D731865FED32A6AD6F4CC9A8C141D78B2C7FFF2EAE",
+                      "declarations":  [
+                                           "SharedSavingsFailure",
+                                           "SharedSavingsRepository",
+                                           "SharedSavingsController",
+                                           "SharedSavingsScope",
+                                           "SharedSavingsHost",
+                                           "_SharedSavingsHostState"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/shared_savings_models.dart",
+                      "lines":  96,
+                      "sha256":  "AFAE584C423DC1E0DFC481B301BA9BADBF1C495F04468CD8AE711E4818C1A811",
+                      "declarations":  [
+                                           "SharedSavingsGoal",
+                                           "SharedGoalMember",
+                                           "SharedSavingsTransaction",
+                                           "SharedGoalInvitation"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/shared_savings.dart",
+                      "lines":  3,
+                      "sha256":  "D5DC4114CE9F51E89C033868D7274ACDEAFB3737591C4984D25D2C067ED379DC",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/savings_decrease.dart",
+                      "lines":  145,
+                      "sha256":  "812E9E59462B573237CF0AABAB831B18885C77F43DEE7986CD9C9FA182636D76",
+                      "declarations":  [
+                                           "SavingsDecreaseFailure"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/reminder_widgets.dart",
+                      "lines":  973,
+                      "sha256":  "1113DD05F6664AD8795701B717D65A32A28B87EDF9B1042801D6705217BC6D68",
+                      "declarations":  [
+                                           "ReminderScope",
+                                           "ReminderHost",
+                                           "_ReminderHostState",
+                                           "ReminderButton",
+                                           "ReminderEditor",
+                                           "_ReminderEditorState",
+                                           "SmartRemindersScreen"
+                                       ],
+                      "uiReferences":  6
+                  },
+                  {
+                      "path":  "lib/reminder_scheduler.dart",
+                      "lines":  253,
+                      "sha256":  "35F3B9209ACE656510F87B95F1F83CD111D855B69E750BE47572CB6C042A3670",
+                      "declarations":  [
+                                           "NotificationCapability",
+                                           "NotificationScheduler",
+                                           "NativeNotificationScheduler"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/reminder_repository.dart",
+                      "lines":  194,
+                      "sha256":  "6B86DB448C2F8746E062E2360DB0CBE92E1369B55BF77E5ECFF73E0DD6459AB4",
+                      "declarations":  [
+                                           "ReminderSnapshot",
+                                           "ReminderRepository",
+                                           "FirestoreReminderRepository"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/reminder_models.dart",
+                      "lines":  341,
+                      "sha256":  "39D7100D3AD279E84D779DA401472A26EA8A9D34AF6DBDF7BDAFC39BDA2088B3",
+                      "declarations":  [
+                                           "ReminderTargetType",
+                                           "ReminderFrequency",
+                                           "ReminderFailure",
+                                           "ReminderTarget",
+                                           "ReminderConfiguration",
+                                           "ReminderPayload",
+                                           "ReminderTimeCalculator",
+                                           "ReminderDelivery",
+                                           "ReminderStatus"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/reminder_coordinator.dart",
+                      "lines":  495,
+                      "sha256":  "3C4F66FB318654FCC9D26B09153D262F7980787B9B9A9C1114753FB807318744",
+                      "declarations":  [
+                                           "ReminderDeviceStore",
+                                           "PreferenceReminderDeviceStore",
+                                           "ReminderCoordinator"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/reminder_agenda.dart",
+                      "lines":  165,
+                      "sha256":  "CE4609C748B6BDC61D9E23DC83DAC5394DC850308220CDF557410034DA6E3305",
+                      "declarations":  [
+                                           "ReminderAgendaEntry",
+                                           "ReminderAgendaCard"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/profile_photo_widgets.dart",
+                      "lines":  697,
+                      "sha256":  "6010D89C2DA3D4A01867E1D8243DE8E0097162413DC13361C2A82A0FAD20C60B",
+                      "declarations":  [
+                                           "ProfileAvatar",
+                                           "_ProfileAvatarState",
+                                           "ProfilePhotoAction",
+                                           "ProfilePhotoEditor",
+                                           "_ProfilePhotoEditorState",
+                                           "ProfilePhotoPreview",
+                                           "_ProfilePhotoPreviewState",
+                                           "_ProfilePhotoUploadDialog",
+                                           "_ProfilePhotoUploadDialogState"
+                                       ],
+                      "uiReferences":  5
+                  },
+                  {
+                      "path":  "lib/profile_photo_service.dart",
+                      "lines":  541,
+                      "sha256":  "3823640797C98AD2BBE936C0A066D5C42220DF023552BC9344748F15A7821B8B",
+                      "declarations":  [
+                                           "ProfilePhotoRecord",
+                                           "ProfilePhotoBackend",
+                                           "FirebaseProfilePhotoBackend",
+                                           "FirestoreProfilePhotoBackend",
+                                           "ProfilePhotoService"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/profile_photo_processing.dart",
+                      "lines":  208,
+                      "sha256":  "EF63F7F1676372918D73C5604E57CB7019B696BDFBAA869FCEFB32AF4CB54373",
+                      "declarations":  [
+                                           "ProfilePhotoFailure",
+                                           "PreparedProfilePhoto",
+                                           "ProfilePhotoCrop"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/profile_photo_picker.dart",
+                      "lines":  60,
+                      "sha256":  "597E13FFAE23371F6FAA4E6A33A7C8B86374D3B221AC6933C4D268632CD6EA16",
+                      "declarations":  [
+                                           "ProfilePhotoPicker",
+                                           "GalleryProfilePhotoPicker"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/precision_flows.dart",
+                      "lines":  406,
+                      "sha256":  "B96033C9136E0D06153B2AB182202BC8637DBB2816B4611103FF895F2499325B",
+                      "declarations":  [
+                                           "PersonalGoalOverview",
+                                           "RecentPersonalTransactions",
+                                           "_RecentPersonalTransactionsState",
+                                           "PersonalTransactionTile"
+                                       ],
+                      "uiReferences":  3
+                  },
+                  {
+                      "path":  "lib/precision_components.dart",
+                      "lines":  555,
+                      "sha256":  "9489199BED1A869ABADFA2EFA28938F1173A9777B02DFAB962E374D445B8AB67",
+                      "declarations":  [
+                                           "AuroraGreeting",
+                                           "AuroraHeaderSurfaceNotification",
+                                           "AuroraPage",
+                                           "_AuroraPageState",
+                                           "AuroraLargeTitle",
+                                           "AuroraGroupedSection",
+                                           "AuroraIdentity",
+                                           "AuroraQuickAction",
+                                           "AuroraModeSelector",
+                                           "AuroraAssistChooser",
+                                           "AuroraSkeleton",
+                                           "AuroraSyncStatus"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/platform_pickers.dart",
+                      "lines":  134,
+                      "sha256":  "782A1CBD2EFD5747C4D150EFA007124BADA2E09AF7CA6CE9AC26727F0B262C6C",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  3
+                  },
+                  {
+                      "path":  "lib/password_service.dart",
+                      "lines":  220,
+                      "sha256":  "0149F1F5353F82AA08A571D07879ECE04EBF56F54D4832FCD37A14904618FF6A",
+                      "declarations":  [
+                                           "PasswordFailure",
+                                           "PasswordChangeSession"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/password_recovery_service.dart",
+                      "lines":  35,
+                      "sha256":  "74B0C2283D62CE664C23AC5118EA2704D893E3B6CE8CFB1C7A234280D38501A1",
+                      "declarations":  [
+                                           "PasswordRecoveryFailure"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/password_recovery_dialog.dart",
+                      "lines":  230,
+                      "sha256":  "CFB713B92FDF115A7062722F723836D2390375356D646E2B7528089D3C6BEF81",
+                      "declarations":  [
+                                           "PasswordRecoveryDialog",
+                                           "_PasswordRecoveryDialogState"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/password_dialog.dart",
+                      "lines":  327,
+                      "sha256":  "5079562B82956B2D5FB4AD90BD8C75F225CDA4096EC362D2AE0B04F3C01253B2",
+                      "declarations":  [
+                                           "PasswordDialog",
+                                           "_PasswordDialogState"
+                                       ],
+                      "uiReferences":  2
+                  },
+                  {
+                      "path":  "lib/main.dart",
+                      "lines":  4310,
+                      "sha256":  "81393C2D94849F2480ED8C2272E645EF5A4EEFC6CBE20F2D728A2930E65DA9F3",
+                      "declarations":  [
+                                           "SaveTrackApp",
+                                           "_SaveTrackAppState",
+                                           "SetupScreen",
+                                           "AuthGate",
+                                           "SessionLoading",
+                                           "AuthScreen",
+                                           "_AuthScreenState",
+                                           "HomeShell",
+                                           "_HomeShellState",
+                                           "SaveTrackNavigation",
+                                           "DashboardScreen",
+                                           "SavingsOverview",
+                                           "DashboardLayout",
+                                           "GoalsScreen",
+                                           "PersonalGoalsScreen",
+                                           "_PersonalGoalsScreenState",
+                                           "GoalsPreview",
+                                           "GoalCard",
+                                           "PersonalGoalDetailsScreen",
+                                           "_PersonalGoalDetailsScreenState",
+                                           "PlannerScreen",
+                                           "_PlannerScreenState",
+                                           "PlannerDateHeader",
+                                           "DailyCompletion",
+                                           "TasksList",
+                                           "_TasksListState",
+                                           "TaskTile",
+                                           "ReportsScreen",
+                                           "_ReportsScreenState",
+                                           "ReportsLayout",
+                                           "ReportTaskMetric",
+                                           "ProfileScreen",
+                                           "_ProfileScreenState",
+                                           "ProfileContent",
+                                           "SummaryTile",
+                                           "ReportMetric",
+                                           "SectionHeader",
+                                           "BrandMark",
+                                           "BrandDot",
+                                           "LoadingPanel",
+                                           "ErrorPanel",
+                                           "EmptyPanel",
+                                           "_ReminderItemScreen"
+                                       ],
+                      "uiReferences":  37
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_visuals.dart",
+                      "lines":  75,
+                      "sha256":  "F0C0AD546725ACFD4BD7692D6D7B3370A7782CC455F5A8113F0C400687C2E066",
+                      "declarations":  [
+                                           "WidgetPreviewSize",
+                                           "WidgetAtelierPalette"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_settings_screen.dart",
+                      "lines":  742,
+                      "sha256":  "F22A6AD6692197B739D6E49561FF301F76EBC7A80DE85FFE315914BB46B63D3E",
+                      "declarations":  [
+                                           "HomeWidgetsSettingsScreen",
+                                           "_HomeWidgetsSettingsScreenState",
+                                           "WidgetConfigurationScreen",
+                                           "_WidgetConfigurationScreenState",
+                                           "_StudioHeading",
+                                           "_StudioOption"
+                                       ],
+                      "uiReferences":  5
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_preview.dart",
+                      "lines":  450,
+                      "sha256":  "5D7C34EBEA76DF00EE9AB161B1657408D801FEA51FCDB127AABED16D518FCE3F",
+                      "declarations":  [
+                                           "WidgetPreviewCard"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_native_preview.dart",
+                      "lines":  81,
+                      "sha256":  "6480143AAA75041CF7AC9299361AC7CFAEB25A42D40797A5A8EDF6C7CD797F3F",
+                      "declarations":  [
+                                           "NativeWidgetPreview",
+                                           "_NativeWidgetPreviewState"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_models.dart",
+                      "lines":  339,
+                      "sha256":  "55F6C56E23D42B44FC6E3534D71CB6C8BC3506A7B2945A465DBFCA3F2CF66BE5",
+                      "declarations":  [
+                                           "HomeWidgetType",
+                                           "WidgetPrivacy",
+                                           "WidgetTheme",
+                                           "WidgetGoalRef",
+                                           "HomeWidgetConfig",
+                                           "HomeWidgetInstance",
+                                           "WidgetGoalFacts",
+                                           "WidgetPlannerFacts",
+                                           "HomeWidgetSnapshot",
+                                           "WidgetLaunchAction",
+                                           "WidgetLaunch"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_host.dart",
+                      "lines":  190,
+                      "sha256":  "CB55C9D7E7471DB84B60E5F5431ADF75B53FEE88D2FB5D066E15924179005DFD",
+                      "declarations":  [
+                                           "HomeWidgetScope",
+                                           "HomeWidgetHost",
+                                           "_HomeWidgetHostState",
+                                           "WidgetAccountGuard"
+                                       ],
+                      "uiReferences":  2
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_data_source.dart",
+                      "lines":  194,
+                      "sha256":  "A4F01D624ABF128C93748AA94146586D31789D40A85F6D207A4CD06999A4A52D",
+                      "declarations":  [
+                                           "WidgetDataSource",
+                                           "FirestoreWidgetDataSource"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_controller.dart",
+                      "lines":  294,
+                      "sha256":  "536A297F4F77B4576DE2230D81D5DAA72E3A77701A3A18299E2B1B49E0434897",
+                      "declarations":  [
+                                           "HomeWidgetController"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_bridge.dart",
+                      "lines":  94,
+                      "sha256":  "37FAD77A91CEE4C3E6FE922A999B1BE6DD5FCE6DEF6A7F95581FAF6954989C73",
+                      "declarations":  [
+                                           "HomeWidgetBridge"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/home_widgets/widget_background.dart",
+                      "lines":  149,
+                      "sha256":  "33BE1B60FCDB214207903EC3B356DAEEA881463A48D9C82608C62FC0F0990500",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/home_atelier.dart",
+                      "lines":  2064,
+                      "sha256":  "88EC8494D37688AD608933AB1FE9195FD0F0F07071D45B5B3111ED2E61C13C5B",
+                      "declarations":  [
+                                           "FlowTaskGroupEntry",
+                                           "FlowHomeLayout",
+                                           "_FlowHomeLayoutState",
+                                           "AtelierSectionHeader",
+                                           "HomeAtelier",
+                                           "_HomeAtelierState",
+                                           "_KeepHomeSection",
+                                           "_KeepHomeSectionState",
+                                           "TransactionDateGroup",
+                                           "TransactionFilters",
+                                           "_TransactionFiltersState",
+                                           "GoalGallery",
+                                           "AtelierGoalTile",
+                                           "GoalSort",
+                                           "GoalFilter",
+                                           "GoalBrowser",
+                                           "_GoalBrowserState",
+                                           "UpcomingReminder",
+                                           "WeeklyPlanner",
+                                           "_WeeklyPlannerState",
+                                           "UpcomingTimeline",
+                                           "ReminderTimeline",
+                                           "PulsePeriod",
+                                           "PulseEntry",
+                                           "PulseTotals",
+                                           "SavingsPulse",
+                                           "_SavingsPulseState",
+                                           "PulseContent"
+                                       ],
+                      "uiReferences":  7
+                  },
+                  {
+                      "path":  "lib/goal_cover_widgets.dart",
+                      "lines":  984,
+                      "sha256":  "82BB2A6471525BF5430287939F569BD158656106EBE584F9F42D967F6C9C4A7F",
+                      "declarations":  [
+                                           "GoalCoverImage",
+                                           "_GoalCoverImageState",
+                                           "_RemoveCoverProgress",
+                                           "_RemoveCoverProgressState",
+                                           "GoalCoverFormSection",
+                                           "_GoalCoverFormSectionState",
+                                           "GoalCoverPreview",
+                                           "_GoalCoverPreviewState",
+                                           "GoalCoverRouteGuard",
+                                           "_GoalCoverRouteGuardState",
+                                           "GoalCoverSession",
+                                           "_GoalCoverSessionState"
+                                       ],
+                      "uiReferences":  4
+                  },
+                  {
+                      "path":  "lib/goal_cover_service.dart",
+                      "lines":  470,
+                      "sha256":  "13EDB2E600D646B5B8C291FCFD4CFFED4BD7A4B0F77810CFA17DEA5E6EEBFB08",
+                      "declarations":  [
+                                           "GoalCoverTarget",
+                                           "GoalCoverRecord",
+                                           "GoalCoverBackend",
+                                           "FirebaseGoalCoverBackend",
+                                           "FirestoreGoalCoverBackend",
+                                           "GoalCoverService"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/goal_cover_processing.dart",
+                      "lines":  226,
+                      "sha256":  "3FF15899F37931CFCACDFBEAC47F37A2DF626BBB7D01F5B012E13DBABED9DF16",
+                      "declarations":  [
+                                           "GoalCoverFailure",
+                                           "GoalCoverCrop"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/goal_cover_picker.dart",
+                      "lines":  72,
+                      "sha256":  "F7C999680034B80AA6F342C728871DF9EA98B01B9D6790E190A4A325F8A90B8D",
+                      "declarations":  [
+                                           "RecoveredGoalCover",
+                                           "GalleryGoalCoverPicker"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/goal_cover_cache.dart",
+                      "lines":  147,
+                      "sha256":  "CCCE469E1C40D201E5D922988F643EF8DCF89AD1DAB4D68AB18AC2677EDEB26C",
+                      "declarations":  [
+                                           "GoalCoverCache"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/firebase_options.dart",
+                      "lines":  89,
+                      "sha256":  "B507B0CC18AB630E10D646A9DC1DF2F07F2861B72D19DAA1DA2070304522FD09",
+                      "declarations":  [
+                                           "DefaultFirebaseOptions"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/figma_flow_components.dart",
+                      "lines":  985,
+                      "sha256":  "83E4212F9B361A97310964B42A943EA05E82BA3C0CEF58F1880CEAFBE296AD81",
+                      "declarations":  [
+                                           "FlowAccent",
+                                           "FlowCategoryDecoration",
+                                           "FlowContentSheet",
+                                           "FlowWeekSelector",
+                                           "FlowDateHeading",
+                                           "FlowTimelineEntry",
+                                           "FlowWorkspaceIntro",
+                                           "FlowSectionHeader",
+                                           "FlowActionCard",
+                                           "FlowTaskCard",
+                                           "FlowTimelineHeader",
+                                           "FlowPlannerSummary",
+                                           "FlowFinancialMetric",
+                                           "FlowTimelineSkeleton",
+                                           "FlowSavingsArt",
+                                           "_FlowSavingsPainter"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/design_system.dart",
+                      "lines":  1952,
+                      "sha256":  "5C923BA5273D0F9DB9CA3437787542F9DD14F13A7829732EC2DBC73AD20951AC",
+                      "declarations":  [
+                                           "AuroraEmblem",
+                                           "TonalPanel",
+                                           "AuroraMetricCard",
+                                           "AuroraChartSurface",
+                                           "AuroraLoadingSurface",
+                                           "AmountText",
+                                           "AuroraNotice",
+                                           "AuroraTabs",
+                                           "PageSurface",
+                                           "MintHero",
+                                           "MintIcon",
+                                           "StatusPill",
+                                           "MintProgress",
+                                           "GradientButton",
+                                           "_GradientButtonState",
+                                           "ScreenIntro",
+                                           "EnterOnce",
+                                           "SaveActionLabel",
+                                           "UnsavedChangesGuard",
+                                           "UnsavedChangesGuardState",
+                                           "FormControllerScope",
+                                           "_FormControllerScopeState",
+                                           "StateSurface",
+                                           "AdaptiveCards",
+                                           "AdaptiveCardList",
+                                           "FormHeading",
+                                           "FieldCaption",
+                                           "DetailLine",
+                                           "ProgressRing",
+                                           "_RingPainter",
+                                           "AuthComposition"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/decrease_savings_dialog.dart",
+                      "lines":  229,
+                      "sha256":  "E7F44CC12EEC5E3112232E76875334D31B47CD76E02BD2F7B80598DFEF0B4B26",
+                      "declarations":  [
+                                           "DecreaseSavingsDialog",
+                                           "_DecreaseSavingsDialogState"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/currency_widgets.dart",
+                      "lines":  477,
+                      "sha256":  "EFA8C69E3F3340F396AC0E5E6D73CB02F82A9BB6A88374A000889E402CB83F42",
+                      "declarations":  [
+                                           "CurrencyScope",
+                                           "CurrencyHost",
+                                           "_CurrencyHostState",
+                                           "ExchangeRateStatus",
+                                           "CurrencyContextLabel",
+                                           "CurrencyPicker",
+                                           "_CurrencyPickerState",
+                                           "GoalCurrencyField",
+                                           "TransactionConversionDetails"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/currency_transactions.dart",
+                      "lines":  221,
+                      "sha256":  "E32F8408530239C58B712C3F31750CFA99C4BE0B8BB91F5061841FC4E9DB30BC",
+                      "declarations":  [
+                                           "LockedMoneyEntry"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/currency_settings_screen.dart",
+                      "lines":  413,
+                      "sha256":  "2ADBBB978F6B3FEE3FAE865F0D52609ED2B81F244E9865E3216B560DAEA96889",
+                      "declarations":  [
+                                           "CurrencySettingsScreen",
+                                           "_CurrencySettingsScreenState",
+                                           "ConversionPreview",
+                                           "CurrencyConverter",
+                                           "_CurrencyConverterState"
+                                       ],
+                      "uiReferences":  3
+                  },
+                  {
+                      "path":  "lib/currency_service.dart",
+                      "lines":  375,
+                      "sha256":  "3D0340E4AB46BBBC98FD9E255112282ACD29D1413DF6702528CEA8404D37683E",
+                      "declarations":  [
+                                           "CurrencyAvailability",
+                                           "ExchangeRateSnapshot",
+                                           "CurrencyConversionService",
+                                           "DeviceRateCache",
+                                           "ExchangeRateProvider",
+                                           "CurrencyController"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/currency_savings_dialog.dart",
+                      "lines":  306,
+                      "sha256":  "A9DBF546F75783C3CFE9BDA324BC2D38D63288B1AF0406FA2FE7C52F3C3771AF",
+                      "declarations":  [
+                                           "CurrencySavingsDialog",
+                                           "_CurrencySavingsDialogState"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/currency_money.dart",
+                      "lines":  161,
+                      "sha256":  "12A0BE3EEF0B010E046B5B7C736FA4F8EF9113828DD9F2798C9566A5B11C76FF",
+                      "declarations":  [
+                                           "CurrencyInfo",
+                                           "CurrencyFailure",
+                                           "ExactDecimal"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/currency_catalog_data.dart",
+                      "lines":  527,
+                      "sha256":  "41A44FA8D113E9F8104203AB40630DCA49DA8E8723675DF3E47C8C7CFF669A1B",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/branding/savetrack_logo_painter.dart",
+                      "lines":  154,
+                      "sha256":  "C217022EEA80304B3D765A876FA34455600B831640E4767E3510FA0BAD750676",
+                      "declarations":  [
+                                           "SaveTrackLogoPainter"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/branding/savetrack_logo.dart",
+                      "lines":  56,
+                      "sha256":  "DC5A57EF98B5B8657844076CABFE3D8396894886DA19FC4303E070A50D52C92F",
+                      "declarations":  [
+                                           "SaveTrackLogo"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/auth_service.dart",
+                      "lines":  328,
+                      "sha256":  "314BC396FD4C41F92F6B69DA09409EDAAD2C3D4452D51CBA081D586105D5DA2B",
+                      "declarations":  [
+                                           "GoogleSignInFailure",
+                                           "AuthService"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/atelier_preferences.dart",
+                      "lines":  388,
+                      "sha256":  "A9E3F6D0982CF3393D38CC17438A8B13A79CC7F7C80D61636C1CC90B23B48F40",
+                      "declarations":  [
+                                           "GoalPresentation",
+                                           "PulsePresentation",
+                                           "ReminderPresentation",
+                                           "HomeSection",
+                                           "AtelierPreferences",
+                                           "AtelierScope",
+                                           "AtelierHost",
+                                           "_AtelierHostState",
+                                           "CustomizeHomeScreen"
+                                       ],
+                      "uiReferences":  3
+                  },
+                  {
+                      "path":  "lib/app_record_repository.dart",
+                      "lines":  106,
+                      "sha256":  "1A5B58F09AF2DEF844CCF2DED1DD5BADA791E6032334B86C5EE719B86FD5221C",
+                      "declarations":  [
+                                           "AppRecordRepository"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/firestore_ai_context_source.dart",
+                      "lines":  300,
+                      "sha256":  "48A5ED7D89099C2357D932DEB000A896037064F07421CFAFE3C7E9D36B48A818",
+                      "declarations":  [
+                                           "FirestoreAiContextSource"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/firebase_ai_gateway.dart",
+                      "lines":  139,
+                      "sha256":  "05D26946E9A19386E4C0D3DC62FC365DD4F85153778E8FF9DD0A3FB6C9CEDE05",
+                      "declarations":  [
+                                           "FirebaseAiGateway"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_widgets.dart",
+                      "lines":  752,
+                      "sha256":  "400F8F00EC1E7F41210AF07C620BC666D57239FA8F7625D80F77C70573E9B0C1",
+                      "declarations":  [
+                                           "AiEmblem",
+                                           "AiDashboardCard",
+                                           "AiModeSelector",
+                                           "AiWelcomeHero",
+                                           "AiPromptCard",
+                                           "AiFactCard",
+                                           "AiReviewChoice",
+                                           "_AiContextReviewSheet",
+                                           "_AiReviewSummary",
+                                           "_AiReviewNotice"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_theme.dart",
+                      "lines":  24,
+                      "sha256":  "BC308DB24C5F6649668C812CFBBA43C9E2E1AF5E4212E7759B96872A4E3E6065",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_setup_sheet.dart",
+                      "lines":  249,
+                      "sha256":  "F3D70DD68BA51D725C74A270839627DF7117F027C65B3BAA9A9B6A5A524D652C",
+                      "declarations":  [
+                                           "AiSetupSheet",
+                                           "_AiSetupSheetState"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_settings_sheet.dart",
+                      "lines":  257,
+                      "sha256":  "9D8764EA94AD88E55644CF3B103FFF525DBB04F9366B8483A08C5D3ED827E56F",
+                      "declarations":  [
+                                           "_AiSettingsSheet",
+                                           "_AiSettingsSheetState"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_response.dart",
+                      "lines":  384,
+                      "sha256":  "141A7F55A533A2C9BA22C2DD4B07274B271D306FFC90ADF8576A6A6D55348A2B",
+                      "declarations":  [
+                                           "AiResponsePart",
+                                           "AiCodeBlock",
+                                           "AiMarkdownResponse",
+                                           "AiInsightCard",
+                                           "AiComparisonCard"
+                                       ],
+                      "uiReferences":  1
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_math.dart",
+                      "lines":  154,
+                      "sha256":  "360770396A12C59FAB66C554FD4E8E4DF21A9B1DC60A6CDB74BF7CC5B3F41F8A",
+                      "declarations":  [
+                                           "AiMathInlineSyntax",
+                                           "AiPendingMathSyntax",
+                                           "AiMathBlockSyntax",
+                                           "AiMathBuilder",
+                                           "AiPendingMathBuilder"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_gateway.dart",
+                      "lines":  21,
+                      "sha256":  "552EEC1428DB74E9D7FB89B7918B84E6E23246402C2274EF3EC7BBAA3E6A278F",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_facts.dart",
+                      "lines":  160,
+                      "sha256":  "DBB0E6E931F3ED161AF76933D480B161BC0D8CE5FF34771F96DCB598A7FAF627",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_domain.dart",
+                      "lines":  284,
+                      "sha256":  "8E4054381EE07B3C1174F18281359D06FFFD7C8069CFBF11BACFA3C2EDAFB6F6",
+                      "declarations":  [
+                                           "AiMode",
+                                           "AiRole",
+                                           "AiMessageStatus",
+                                           "AiStatus",
+                                           "AiErrorKind",
+                                           "AiFailure",
+                                           "AiMessage",
+                                           "AiContextField",
+                                           "AiContextValue",
+                                           "AiSafeSummary",
+                                           "AiLocalFacts",
+                                           "AiApprovedContext",
+                                           "AiRequest"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_conversation_widgets.dart",
+                      "lines":  443,
+                      "sha256":  "42B197E7AE3911BF227913001FE56F27C4651A8E52C9991D26E3A8DED23BD538",
+                      "declarations":  [
+                                           "AiComposer",
+                                           "AiMessageEntrance",
+                                           "AiConversationMessage",
+                                           "AiThinkingIndicator",
+                                           "_AiThinkingIndicatorState",
+                                           "AiFollowUpSuggestions",
+                                           "AiErrorNotice"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_controller.dart",
+                      "lines":  412,
+                      "sha256":  "FFA56E9AC2BDBFFE54BBD964C709335E60BBDC145A813F16A2B564721F613039",
+                      "declarations":  [
+                                           "AiSession",
+                                           "AiCoachController"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_coach_screen.dart",
+                      "lines":  932,
+                      "sha256":  "8A96EF7B2D7B964429BD3469805C61ED0C699761C5E6B7B147BAC72C8E6752DB",
+                      "declarations":  [
+                                           "_ContextStep",
+                                           "AiCoachScreen",
+                                           "_AiCoachScreenState",
+                                           "_NeverChanges"
+                                       ],
+                      "uiReferences":  4
+                  },
+                  {
+                      "path":  "lib/ai_coach/ai_app_check.dart",
+                      "lines":  217,
+                      "sha256":  "A541518384323E2A54DBA937B71B87300BCBBDCC98885C5EC018315D87F0FDAB",
+                      "declarations":  [
+                                           "AiProtectionProvider"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/presentation/agent_widgets.dart",
+                      "lines":  307,
+                      "sha256":  "63F8140E6DC414B6C3E8B862F5595A660177758AAE2206292A7E5BA3CD3B35A6",
+                      "declarations":  [
+                                           "AgentEmblem",
+                                           "AgentSurface",
+                                           "AgentHero",
+                                           "AgentSectionHeader",
+                                           "AgentQuickActionCard",
+                                           "AgentStatusChip",
+                                           "AgentEmptyState",
+                                           "AgentProcessingIndicator",
+                                           "AgentModeCard"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/presentation/agent_theme.dart",
+                      "lines":  56,
+                      "sha256":  "F00323B0C2E43D36F21AB1D0F690FF1A155A66207CD8A81BEF9196A8046C2617",
+                      "declarations":  [
+                                           "AgentAtelierScope"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/presentation/agent_orb_artwork.dart",
+                      "lines":  80,
+                      "sha256":  "B42E2240C52E12CFDCE81CCBC1DDB5B1952DA7F9DC75E6BE4ECA2356D81E735A",
+                      "declarations":  [
+                                           "AgentOrbArtwork",
+                                           "_OrbPainter"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/presentation/agent_history_screen.dart",
+                      "lines":  190,
+                      "sha256":  "16BA3E01B4D0D5E859264D90CC0BA7327DB0E6265F1A52CB0F45DE0EFB6BD8C5",
+                      "declarations":  [
+                                           "AgentMissionActivityTile",
+                                           "AgentHistoryScreen",
+                                           "_AgentHistoryScreenState"
+                                       ],
+                      "uiReferences":  2
+                  },
+                  {
+                      "path":  "lib/agent_studio/presentation/agent_action_preview.dart",
+                      "lines":  372,
+                      "sha256":  "30529DF3FAF6EE99D9C7F61F97E858825CABB2B16C7396F1C9D4C951D2F46863",
+                      "declarations":  [
+                                           "AgentActionPreview",
+                                           "_Projection",
+                                           "_ProjectionPainter"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/voice_locale_repository.dart",
+                      "lines":  47,
+                      "sha256":  "2389CECE15D9895F0797222CF4B899A1ACC64E3FBFDD9A260EE19263170E8339",
+                      "declarations":  [
+                                           "VoiceLocaleRepository"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/title_resolver.dart",
+                      "lines":  528,
+                      "sha256":  "3545A2D5B99DB5E61E89DB3A14B25FA7F67A907859F2678C1C8954262B9C158D",
+                      "declarations":  [
+                                           "SlotOrigin",
+                                           "ResolvedTitle",
+                                           "UniversalTitleResolver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/semantic_text.dart",
+                      "lines":  139,
+                      "sha256":  "08BDFB588FB738CC033B87E53AE196322484F53972D0EDC791D786ECF0971C69",
+                      "declarations":  [
+                                           "SemanticSpan",
+                                           "SemanticObject",
+                                           "SemanticToken",
+                                           "SemanticText"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/multilingual_evaluator.dart",
+                      "lines":  154,
+                      "sha256":  "0A77442EEA4C69C22510F0B145F3C60ACD5919DD4B7DA55DD9EA8050B85E8791",
+                      "declarations":  [
+                                           "MultilingualEvaluator"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/money_expression_parser.dart",
+                      "lines":  293,
+                      "sha256":  "651D94F9DA00870FC5341229F975C14A54F9D2A4B9A4A0586372287223E913A8",
+                      "declarations":  [
+                                           "MoneyCandidate",
+                                           "MoneyExpression",
+                                           "MoneyExpressionParser"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/interpretation_preview.dart",
+                      "lines":  133,
+                      "sha256":  "46C1BBAD1FBE5146EF678D279735F54649F6F5498FF03DD7340871D6EF096CD6",
+                      "declarations":  [
+                                           "AgentInterpretationPreview"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/financial_role_resolver.dart",
+                      "lines":  82,
+                      "sha256":  "EFDA0F921E18775173D343B87DD8957429FB20CCBC98467A3B5338F65EDB90E9",
+                      "declarations":  [
+                                           "FinancialRoles",
+                                           "FinancialRoleResolver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/draft_field_resolver.dart",
+                      "lines":  74,
+                      "sha256":  "389DCA5F4211462B0FEAB481021594EC8E26781C8206B1B30CC46CD1A2EFCB71",
+                      "declarations":  [
+                                           "DraftFieldResolver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/domain_slot_resolvers.dart",
+                      "lines":  82,
+                      "sha256":  "DBE0E80E8AC548E99BEC0C725AD07736191284DE1518FE766723100089D99C74",
+                      "declarations":  [
+                                           "TaskListResolver",
+                                           "ContributionPeriodResolver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/date_expression_parser.dart",
+                      "lines":  230,
+                      "sha256":  "87215A63E5CF3EEDD4D824A3C67A1BFD5862AA5E85D23D6604B1E5B1FA3D22EB",
+                      "declarations":  [
+                                           "DateExpression",
+                                           "DateExpressionParser"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/agent_language.dart",
+                      "lines":  193,
+                      "sha256":  "7B0E0E91D00762686BA0B3BDCC099413518CB170748691703238DA26F63CE165",
+                      "declarations":  [
+                                           "MultilingualNormalizer",
+                                           "AgentLanguageDetector",
+                                           "AgentStrings"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/intelligence/agent_interpretation.dart",
+                      "lines":  212,
+                      "sha256":  "80FA4A88CBE995FF41BC3D892C5C18B15BF6F997D003C5364D8FB55ED5E63DD4",
+                      "declarations":  [
+                                           "AgentIntent",
+                                           "TitleBinding",
+                                           "UnderstandingStatus",
+                                           "AgentDomain",
+                                           "Uncertainty",
+                                           "SlotEvidence",
+                                           "AgentInterpretation",
+                                           "GoalReferenceResolver"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/autopilot/execution_ledger.dart",
+                      "lines":  153,
+                      "sha256":  "FF385B819265EFB1DBBEACA84D6DB1084AB4074FCA248C946B5D87757AEC40F3",
+                      "declarations":  [
+                                           "AgentOperationStatus",
+                                           "AgentExecutionRecord",
+                                           "PreferenceAgentExecutionLedger"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/autopilot/auto_execution_policy.dart",
+                      "lines":  264,
+                      "sha256":  "0FD883299F37964650B2596F9D4C27488CDF389D58DC071C83BED27744DFD883",
+                      "declarations":  [
+                                           "AgentActionRisk",
+                                           "AgentAutoDecision",
+                                           "AgentRequestOrigin",
+                                           "AgentPolicyDecision",
+                                           "AgentExecutionContext",
+                                           "AgentActionRiskClassifier",
+                                           "AgentAutoExecutionPolicyEngine"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+                      "lines":  441,
+                      "sha256":  "4C31BA9551AB34699030CD74C7C243A26EA13E2FC9721A4676378F897241DC59",
+                      "declarations":  [
+                                           "AgentAutopilotSettingsScreen"
+                                       ],
+                      "uiReferences":  5
+                  },
+                  {
+                      "path":  "lib/agent_studio/autopilot/autopilot_settings.dart",
+                      "lines":  111,
+                      "sha256":  "84C82F236535217581C2E6E424CB2B35FE6454DB3295886F467D2947DB0EAD4F",
+                      "declarations":  [
+                                           "AgentExecutionMode",
+                                           "AgentVoiceReviewMode",
+                                           "AgentAutopilotSettings"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/autopilot/autopilot_activity_screen.dart",
+                      "lines":  175,
+                      "sha256":  "F71FE8F9FE322ECA05D9154A098C46F488E1A4E245788E080622C34C32D53B69",
+                      "declarations":  [
+                                           "AgentAutopilotActivityScreen",
+                                           "_ActivityState"
+                                       ],
+                      "uiReferences":  2
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_voice.dart",
+                      "lines":  455,
+                      "sha256":  "4242B1C00B95DEF4149E45EB94C0E8F21485E7551A1477CA131F8EF817857CD0",
+                      "declarations":  [
+                                           "AgentVoiceState",
+                                           "AndroidAgentVoice",
+                                           "AgentVoiceController"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_store.dart",
+                      "lines":  104,
+                      "sha256":  "556212DA77418E25EDF3E160147F62B679CE7928B795C560D09181872C4FCF70",
+                      "declarations":  [
+                                           "PreferenceAgentStore"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_step_editor.dart",
+                      "lines":  512,
+                      "sha256":  "30AE00251BB8D96D1E26DB6BCAF7A94695D4D74A9AF792F82552809434555FCC",
+                      "declarations":  [
+                                           "_StepEditor",
+                                           "_StepEditorState"
+                                       ],
+                      "uiReferences":  2
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_settings_screen.dart",
+                      "lines":  507,
+                      "sha256":  "600926B78A5B034F672FE8A416B15AFE764F18C3D3828F22A89A9CAD2F8798C6",
+                      "declarations":  [
+                                           "AgentSettingsScreen",
+                                           "_MemoryScreen"
+                                       ],
+                      "uiReferences":  10
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_screen.dart",
+                      "lines":  2499,
+                      "sha256":  "6DB85E0278564CF7F6ACD5F3755CFD578CA3555DE64016799B8FDA811E2A37CA",
+                      "declarations":  [
+                                           "AgentStudioScreen",
+                                           "_AgentStudioScreenState",
+                                           "AgentVoiceOrb"
+                                       ],
+                      "uiReferences":  15
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_planner.dart",
+                      "lines":  1410,
+                      "sha256":  "4BE2FFD4F1D913CABFD27A88139EE5B3595180E58E407149F4CF64C2AAB06FAB",
+                      "declarations":  [
+                                           "LocalAgentPlan",
+                                           "LocalAgentPlanner"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_language_settings.dart",
+                      "lines":  195,
+                      "sha256":  "6BD069E2E23A79763EE90AF64D353CE60CB5B27A65E07C0978BE3D9DA6C3F2D9",
+                      "declarations":  [
+                                           "AgentLanguageSettingsScreen"
+                                       ],
+                      "uiReferences":  2
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_engine.dart",
+                      "lines":  1161,
+                      "sha256":  "AD46D447F6D6D5982759BE795F5F36EC3FC03508453D992BEC0298E16CF2838F",
+                      "declarations":  [
+                                           "AgentApproval",
+                                           "AgentEngine"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_domain.dart",
+                      "lines":  829,
+                      "sha256":  "41432F837918868A76B194E897B86B5A0153B1E51F1CB0FB785874DD9F66601F",
+                      "declarations":  [
+                                           "AgentActionType",
+                                           "MissionStatus",
+                                           "StepStatus",
+                                           "AgentPermission",
+                                           "AgentLanguage",
+                                           "AgentFailure",
+                                           "AgentAction",
+                                           "AgentStep",
+                                           "AgentMission",
+                                           "AgentSettings",
+                                           "AgentMessage",
+                                           "AgentRecord",
+                                           "AgentExecutionResult"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_backend.dart",
+                      "lines":  527,
+                      "sha256":  "1F3526D6E94E82F02A5F780EEDB2E9E551354E42DA853D07025503972522E8CD",
+                      "declarations":  [
+                                           "FirestoreAgentBackend"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "lib/agent_studio/agent_ai_gateway.dart",
+                      "lines":  121,
+                      "sha256":  "46977C3A7826A0D93540CC43BE525C6B07626DBB60A4DC1FB0F9804485E4CFDD",
+                      "declarations":  [
+                                           "AgentSafeRequest",
+                                           "AgentAiAdvice",
+                                           "FirebaseAgentAiGateway"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "macos/Runner/MainFlutterWindow.swift",
+                      "lines":  16,
+                      "sha256":  "8178AD756F958F986F794A8BB06E321A6630CEAAF8F235B3B4AE3936E415DC7C",
+                      "declarations":  [
+                                           "MainFlutterWindow"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "macos/Runner/AppDelegate.swift",
+                      "lines":  14,
+                      "sha256":  "5B9CBDCB563AD8578A99B7C283958490E4AF537322E9092FE1EFBB3C29AB3E1B",
+                      "declarations":  [
+                                           "AppDelegate"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/win32_window.h",
+                      "lines":  103,
+                      "sha256":  "D154CF89BA85F820631A9B5BEDACBE64FC5815E428FE6BC5DA579CE649F69841",
+                      "declarations":  [
+                                           "Win32Window"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/win32_window.cpp",
+                      "lines":  289,
+                      "sha256":  "4E4F4DCF8E86EA6E097562CB3476039E693449BD8045367538AFEE579C017511",
+                      "declarations":  [
+                                           "WindowClassRegistrar"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/utils.h",
+                      "lines":  20,
+                      "sha256":  "832E246B6758253F89016FB0374B30791242E97AD950D27FC678B3D9FEACFDC4",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/utils.cpp",
+                      "lines":  70,
+                      "sha256":  "A128B67B9F3C2579E2ECEF5B0DDE2C33F222A097CDFE5DA2A3067C73D1485B39",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/resource.h",
+                      "lines":  17,
+                      "sha256":  "D0E8BF7835468B4B6B1F8F0747F2E8F25C19841F2DF2AC60AAA584DDAE3AA7C6",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/main.cpp",
+                      "lines":  44,
+                      "sha256":  "C42F375F11E5460148B7ADAD94FC27D310A777FDA322814BBE4DACB04290ABEA",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/flutter_window.h",
+                      "lines":  34,
+                      "sha256":  "0252B804F5DA380C7709CBE1DAFF2B8D18DAF6C49D7E6DD43E5AF3C99C19F56C",
+                      "declarations":  [
+                                           "FlutterWindow"
+                                       ],
+                      "uiReferences":  0
+                  },
+                  {
+                      "path":  "windows/runner/flutter_window.cpp",
+                      "lines":  72,
+                      "sha256":  "D615EEDC06AE37321E59C2C00C7687D1887DCD97904EB7225FAFD8DCB5B83DA6",
+                      "declarations":  [
+
+                                       ],
+                      "uiReferences":  0
+                  }
+              ]
+}

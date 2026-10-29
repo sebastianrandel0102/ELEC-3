@@ -1,0 +1,7357 @@
+{
+  "application": "SaveTrack",
+  "visualStyle": "User reference: white canvas, thin black outlines, square corners, regular Arial text, crossed image and icon placeholders; no decorative phone frame or artifact captions.",
+  "generated": "2026-10-29",
+  "basis": "Static source audit and existing local Flutter golden references. Wireframes are schematic, not live application screenshots.",
+  "format": "Individual 2x PNG images. One surface/state per file; full-scroll compositions where needed. Fictional sample records.",
+  "screens": [
+    {
+      "id": "001",
+      "group": "01-access",
+      "slug": "sign-in",
+      "title": "Welcome back",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S003"
+      ],
+      "items": [
+        {
+          "type": "brand",
+          "title": "SaveTrack",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Continue building your goals, one day at a time.",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Email address",
+          "detail": "alex@example.com"
+        },
+        {
+          "type": "field",
+          "title": "Password",
+          "detail": "••••••••"
+        },
+        {
+          "type": "row",
+          "title": "Forgot password?",
+          "detail": "",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Sign in",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "text",
+          "title": "OR",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Continue with Google",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "row",
+          "title": "New to SaveTrack? Create an account",
+          "detail": "",
+          "end": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "002",
+      "group": "01-access",
+      "slug": "create-account",
+      "title": "Create your account",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S004"
+      ],
+      "items": [
+        {
+          "type": "brand",
+          "title": "SaveTrack",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Start building a future you look forward to.",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Your name",
+          "detail": "Alex"
+        },
+        {
+          "type": "field",
+          "title": "Email address",
+          "detail": "alex@example.com"
+        },
+        {
+          "type": "field",
+          "title": "Password",
+          "detail": "••••••••"
+        },
+        {
+          "type": "button",
+          "title": "Create account",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "row",
+          "title": "Already have an account? Sign in",
+          "detail": "",
+          "end": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "003",
+      "group": "01-access",
+      "slug": "google-sign-in",
+      "title": "Google sign-in handoff",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S005"
+      ],
+      "items": [
+        {
+          "type": "brand",
+          "title": "SaveTrack",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Email address",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Password",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Sign in",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "loading",
+          "title": "Signing in with Google",
+          "detail": ""
+        },
+        {
+          "type": "notice",
+          "title": "The account chooser is provided by Google / Android.",
+          "detail": ""
+        }
+      ],
+      "kind": "state"
+    },
+    {
+      "id": "004",
+      "group": "01-access",
+      "slug": "forgot-password",
+      "title": "Forgot Password",
+      "source": "lib/password_recovery_dialog.dart",
+      "coverage": [
+        "S006"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Enter your email address to receive a password reset link.",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Email Address",
+          "detail": "alex@example.com"
+        },
+        {
+          "type": "button",
+          "title": "Send Reset Link",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Back to Login",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Welcome back"
+    },
+    {
+      "id": "005",
+      "group": "01-access",
+      "slug": "reset-link-sent",
+      "title": "Check your email",
+      "source": "lib/password_recovery_dialog.dart",
+      "coverage": [
+        "S007"
+      ],
+      "items": [
+        {
+          "type": "status",
+          "title": "Reset link requested",
+          "detail": "Check your inbox and spam folder."
+        },
+        {
+          "type": "text",
+          "title": "Use the link in your email to reset your password.",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Email Address",
+          "detail": "alex@example.com"
+        },
+        {
+          "type": "button",
+          "title": "Resend Link",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Back to Login",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Welcome back"
+    },
+    {
+      "id": "006",
+      "group": "01-access",
+      "slug": "verify-password",
+      "title": "Change Password",
+      "source": "lib/password_dialog.dart",
+      "coverage": [
+        "S008"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Verify your identity before changing your password.",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Current Password",
+          "detail": "••••••••"
+        },
+        {
+          "type": "button",
+          "title": "Verify with linked Google",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "field",
+          "title": "New Password",
+          "detail": "••••••••"
+        },
+        {
+          "type": "field",
+          "title": "Confirm New Password",
+          "detail": "••••••••"
+        },
+        {
+          "type": "button",
+          "title": "Save New Password",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Profile",
+      "note": "Google verification is shown for a linked Google account."
+    },
+    {
+      "id": "007",
+      "group": "01-access",
+      "slug": "new-password",
+      "title": "Set New Password",
+      "source": "lib/password_dialog.dart",
+      "coverage": [
+        "S009"
+      ],
+      "items": [
+        {
+          "type": "notice",
+          "title": "Identity verified",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "New Password",
+          "detail": "••••••••"
+        },
+        {
+          "type": "field",
+          "title": "Confirm New Password",
+          "detail": "••••••••"
+        },
+        {
+          "type": "button",
+          "title": "Save New Password",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Profile"
+    },
+    {
+      "id": "008",
+      "group": "01-access",
+      "slug": "password-updated",
+      "title": "Password updated",
+      "source": "lib/password_dialog.dart",
+      "coverage": [
+        "S009"
+      ],
+      "items": [
+        {
+          "type": "status",
+          "title": "Password saved",
+          "detail": "Your account password has been updated."
+        },
+        {
+          "type": "button",
+          "title": "Done",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Profile"
+    },
+    {
+      "id": "009",
+      "group": "01-access",
+      "slug": "setup-required",
+      "title": "SaveTrack setup",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S001"
+      ],
+      "items": [
+        {
+          "type": "brand",
+          "title": "SaveTrack",
+          "detail": ""
+        },
+        {
+          "type": "status",
+          "title": "Firebase setup required",
+          "detail": "SaveTrack could not initialize its connection."
+        },
+        {
+          "type": "notice",
+          "title": "Configuration message and connection details appear here.",
+          "detail": ""
+        }
+      ],
+      "kind": "state"
+    },
+    {
+      "id": "010",
+      "group": "01-access",
+      "slug": "session-loading",
+      "title": "Opening SaveTrack",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S002"
+      ],
+      "items": [
+        {
+          "type": "brand",
+          "title": "SaveTrack",
+          "detail": ""
+        },
+        {
+          "type": "loading",
+          "title": "Loading your account",
+          "detail": ""
+        },
+        {
+          "type": "skeleton",
+          "title": "",
+          "detail": ""
+        }
+      ],
+      "kind": "state"
+    },
+    {
+      "id": "011",
+      "group": "02-home",
+      "slug": "today",
+      "title": "Today",
+      "source": "lib/home_atelier.dart",
+      "coverage": [
+        "S010",
+        "S012",
+        "S013"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Thursday, October 29",
+          "detail": ""
+        },
+        {
+          "type": "hero",
+          "title": "Your savings",
+          "detail": "PHP 17,000.00",
+          "sub": "Good morning. · 2 personal goals"
+        },
+        {
+          "type": "progress",
+          "title": "2 personal goals · PHP 50,000 target",
+          "detail": "",
+          "value": 34
+        },
+        {
+          "type": "quick",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Add savings",
+            "New goal",
+            "Add task",
+            "Reminders"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Goal Gallery",
+          "detail": ""
+        },
+        {
+          "type": "grid",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Laptop|PHP 12,000 / 30,000|40% saved",
+            "Emergency fund|PHP 5,000 / 20,000|25% saved"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Savings Pulse",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "7 days",
+            "30 days",
+            "This month"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "chart",
+          "title": "Daily contributions",
+          "detail": "Oct 23 – Oct 29"
+        },
+        {
+          "type": "section",
+          "title": "Up Next",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Save for Laptop",
+          "detail": "Today · 6:00 PM",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "Daily Planner",
+          "detail": ""
+        },
+        {
+          "type": "task",
+          "title": "Review monthly budget",
+          "detail": "High priority",
+          "time": "09:30",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Compare laptop prices",
+          "detail": "Normal priority",
+          "time": "13:15",
+          "done": false
+        },
+        {
+          "type": "section",
+          "title": "Assist · optional Home section",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Agent Studio Pro",
+          "detail": "Turn an idea into a plan you can review.",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "AI Coach Lite",
+          "detail": "Understand your progress. Ask anything.",
+          "end": "›"
+        }
+      ],
+      "kind": "screen",
+      "nav": "Today",
+      "note": "Full scroll composition. The Assist section is hidden by default and can be enabled."
+    },
+    {
+      "id": "012",
+      "group": "02-home",
+      "slug": "assist-chooser",
+      "title": "Assist",
+      "source": "lib/precision_components.dart",
+      "coverage": [
+        "S011"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "SaveTrack AI",
+          "detail": "Questions and read-only coaching",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Agent Studio Pro",
+          "detail": "Plans, missions and approved actions",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Today"
+    },
+    {
+      "id": "013",
+      "group": "02-home",
+      "slug": "quick-save-goal",
+      "title": "Choose a savings goal",
+      "source": "lib/home_atelier.dart",
+      "coverage": [
+        "S014"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "Laptop",
+          "detail": "PHP 12,000 / PHP 30,000",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Emergency fund",
+          "detail": "PHP 5,000 / PHP 20,000",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Today"
+    },
+    {
+      "id": "014",
+      "group": "02-home",
+      "slug": "customize-home",
+      "title": "Customize Home",
+      "source": "lib/atelier_preferences.dart",
+      "coverage": [
+        "S015"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Home Atelier",
+          "detail": "A space that feels like you.",
+          "sub": ""
+        },
+        {
+          "type": "field",
+          "title": "Goal presentation",
+          "detail": "Gallery  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Savings Pulse",
+          "detail": "Mini chart  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Upcoming reminders",
+          "detail": "Timeline  ▾"
+        },
+        {
+          "type": "section",
+          "title": "Your Home sections",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Savings Overview always stays at the top.",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Goal Gallery",
+          "detail": "↑  ↓  Change order",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Savings Pulse",
+          "detail": "↑  ↓  Change order",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Upcoming reminders",
+          "detail": "↑  ↓  Change order",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Daily Planner",
+          "detail": "↑  ↓  Change order",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "AI & Agent",
+          "detail": "↑  ↓  Change order",
+          "on": false
+        },
+        {
+          "type": "button",
+          "title": "Clear featured goal",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Restore Default Layout",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "015",
+      "group": "02-home",
+      "slug": "appearance",
+      "title": "Appearance",
+      "source": "lib/atelier_preferences.dart",
+      "coverage": [
+        "S016"
+      ],
+      "items": [
+        {
+          "type": "choice",
+          "title": "System",
+          "detail": "",
+          "selected": true
+        },
+        {
+          "type": "choice",
+          "title": "Light",
+          "detail": "",
+          "selected": false
+        },
+        {
+          "type": "choice",
+          "title": "Dark",
+          "detail": "",
+          "selected": false
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Profile"
+    },
+    {
+      "id": "016",
+      "group": "03-personal-goals",
+      "slug": "goals-gallery",
+      "title": "Goals",
+      "source": "lib/home_atelier.dart",
+      "coverage": [
+        "S017",
+        "S018",
+        "S019"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Personal",
+            "Shared"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "field",
+          "title": "Search goals",
+          "detail": "Search by goal name"
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "All",
+            "Active",
+            "Completed",
+            "Overdue"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "field",
+          "title": "Sort goals",
+          "detail": "Newest first  ▾"
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Gallery",
+            "Grid",
+            "List"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "image",
+          "title": "Optional goal cover",
+          "detail": "",
+          "h": 100
+        },
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 12,000.00",
+          "sub": "of PHP 30,000.00"
+        },
+        {
+          "type": "progress",
+          "title": "40% saved · Due Dec 30",
+          "detail": "",
+          "value": 40
+        },
+        {
+          "type": "button",
+          "title": "+ New goal",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen",
+      "nav": "Goals"
+    },
+    {
+      "id": "017",
+      "group": "03-personal-goals",
+      "slug": "goals-grid",
+      "title": "Goals",
+      "source": "lib/home_atelier.dart",
+      "coverage": [
+        "S019"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Personal",
+            "Shared"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "field",
+          "title": "Search goals",
+          "detail": "Search by goal name"
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "All",
+            "Active",
+            "Completed",
+            "Overdue"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "field",
+          "title": "Sort goals",
+          "detail": "Newest first  ▾"
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Gallery",
+            "Grid",
+            "List"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "grid",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Laptop|PHP 12,000 / 30,000|40% saved",
+            "Emergency fund|PHP 5,000 / 20,000|25% saved"
+          ]
+        },
+        {
+          "type": "button",
+          "title": "+ New goal",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen",
+      "nav": "Goals"
+    },
+    {
+      "id": "018",
+      "group": "03-personal-goals",
+      "slug": "goals-list",
+      "title": "Goals",
+      "source": "lib/home_atelier.dart",
+      "coverage": [
+        "S019"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Personal",
+            "Shared"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "field",
+          "title": "Search goals",
+          "detail": "Search by goal name"
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "All",
+            "Active",
+            "Completed",
+            "Overdue"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "field",
+          "title": "Sort goals",
+          "detail": "Newest first  ▾"
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Gallery",
+            "Grid",
+            "List"
+          ],
+          "selected": 2
+        },
+        {
+          "type": "row",
+          "title": "Laptop",
+          "detail": "PHP 12,000 / 30,000 · 40%",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Emergency fund",
+          "detail": "PHP 5,000 / 20,000 · 25%",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "+ New goal",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen",
+      "nav": "Goals"
+    },
+    {
+      "id": "019",
+      "group": "03-personal-goals",
+      "slug": "goal-type",
+      "title": "Create a goal",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S020"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "Personal goal",
+          "detail": "Save toward your own milestone",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Shared goal",
+          "detail": "Save Together with people you trust",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Goals"
+    },
+    {
+      "id": "020",
+      "group": "03-personal-goals",
+      "slug": "create-goal",
+      "title": "Create a goal",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S021"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Add / change goal cover",
+          "detail": "",
+          "h": 110
+        },
+        {
+          "type": "section",
+          "title": "Your milestone",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Goal name",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Target amount (PHP)",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Currency",
+          "detail": "PHP · Philippine Peso  ▾"
+        },
+        {
+          "type": "section",
+          "title": "A little personal detail",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Note (optional)",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Target date",
+          "detail": "Dec 30, 2026"
+        },
+        {
+          "type": "button",
+          "title": "Create goal",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Goals"
+    },
+    {
+      "id": "021",
+      "group": "03-personal-goals",
+      "slug": "edit-goal",
+      "title": "Edit goal",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S022"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Add / change goal cover",
+          "detail": "",
+          "h": 110
+        },
+        {
+          "type": "section",
+          "title": "Your milestone",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Goal name",
+          "detail": "Laptop"
+        },
+        {
+          "type": "field",
+          "title": "Target amount (PHP)",
+          "detail": "30,000.00"
+        },
+        {
+          "type": "notice",
+          "title": "Stored denomination: PHP · fixed after creation",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "A little personal detail",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Note (optional)",
+          "detail": "For school and projects"
+        },
+        {
+          "type": "field",
+          "title": "Target date",
+          "detail": "Dec 30, 2026"
+        },
+        {
+          "type": "button",
+          "title": "Save changes",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Goals"
+    },
+    {
+      "id": "022",
+      "group": "03-personal-goals",
+      "slug": "goal-details",
+      "title": "Laptop",
+      "source": "lib/precision_flows.dart",
+      "coverage": [
+        "S023"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Goal cover photo",
+          "detail": "",
+          "h": 140
+        },
+        {
+          "type": "hero",
+          "title": "Current balance",
+          "detail": "PHP 12,000.00",
+          "sub": "Goal currency · PHP"
+        },
+        {
+          "type": "progress",
+          "title": "40% of your target",
+          "detail": "",
+          "value": 40
+        },
+        {
+          "type": "button",
+          "title": "Add savings",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Decrease Savings",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "Your milestone",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Target",
+          "detail": "PHP 30,000.00",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Remaining",
+          "detail": "PHP 18,000.00",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Target date",
+          "detail": "Dec 30, 2026",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Suggested pace",
+          "detail": "Daily and weekly amounts",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Notes",
+          "detail": "For school and projects",
+          "end": ""
+        },
+        {
+          "type": "section",
+          "title": "Recent activity",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Savings added",
+          "detail": "Oct 29 · Weekly contribution",
+          "end": "+500"
+        },
+        {
+          "type": "row",
+          "title": "Savings decreased",
+          "detail": "Oct 27 · Adjustment",
+          "end": "−200"
+        },
+        {
+          "type": "button",
+          "title": "View all activity",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Manage Reminder",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen",
+      "actions": "•••"
+    },
+    {
+      "id": "023",
+      "group": "03-personal-goals",
+      "slug": "add-savings",
+      "title": "Add savings",
+      "source": "lib/currency_savings_dialog.dart",
+      "coverage": [
+        "S024"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 12,000.00",
+          "sub": "Current balance"
+        },
+        {
+          "type": "field",
+          "title": "Input Currency",
+          "detail": "PHP  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Amount (PHP)",
+          "detail": "500.00"
+        },
+        {
+          "type": "field",
+          "title": "Note (optional)",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Add savings",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Laptop"
+    },
+    {
+      "id": "024",
+      "group": "03-personal-goals",
+      "slug": "decrease-savings",
+      "title": "Decrease Savings",
+      "source": "lib/currency_savings_dialog.dart",
+      "coverage": [
+        "S026"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 12,000.00",
+          "sub": "Current balance"
+        },
+        {
+          "type": "field",
+          "title": "Input Currency",
+          "detail": "PHP  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Amount to decrease (PHP)",
+          "detail": "200.00"
+        },
+        {
+          "type": "field",
+          "title": "Reason (optional)",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Confirm Decrease",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Laptop"
+    },
+    {
+      "id": "025",
+      "group": "03-personal-goals",
+      "slug": "conversion-review",
+      "title": "Review conversion",
+      "source": "lib/currency_savings_dialog.dart",
+      "coverage": [
+        "S025"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "Goal currency · PHP",
+          "sub": ""
+        },
+        {
+          "type": "field",
+          "title": "Input Currency",
+          "detail": "USD"
+        },
+        {
+          "type": "field",
+          "title": "Amount",
+          "detail": "10.00"
+        },
+        {
+          "type": "section",
+          "title": "Conversion preview",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "You entered",
+          "detail": "USD 10.00",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Goal receives",
+          "detail": "PHP [converted amount]",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Exchange rate",
+          "detail": "Daily rate and timestamp",
+          "end": ""
+        },
+        {
+          "type": "notice",
+          "title": "Review the locked rate and converted amount before confirming.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Add savings",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Laptop"
+    },
+    {
+      "id": "026",
+      "group": "03-personal-goals",
+      "slug": "transaction-history",
+      "title": "Laptop history",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S027"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "All",
+            "Added",
+            "Withdrawn"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "section",
+          "title": "October 29",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Savings added",
+          "detail": "Weekly contribution · PHP",
+          "end": "+500"
+        },
+        {
+          "type": "section",
+          "title": "October 27",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Savings decreased",
+          "detail": "Adjustment · PHP",
+          "end": "−200"
+        },
+        {
+          "type": "section",
+          "title": "October 24",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Savings added",
+          "detail": "PHP",
+          "end": "+1,000"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Laptop"
+    },
+    {
+      "id": "027",
+      "group": "03-personal-goals",
+      "slug": "transaction-detail",
+      "title": "Savings added",
+      "source": "lib/precision_flows.dart",
+      "coverage": [
+        "S028"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Recorded amount",
+          "detail": "PHP 500.00",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "Oct 29, 2026 · 9:00 AM",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Weekly contribution",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "Conversion details · when applicable",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Original input",
+          "detail": "Original currency and amount",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Recorded rate",
+          "detail": "Rate and conversion timestamp",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Done",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Savings history"
+    },
+    {
+      "id": "028",
+      "group": "03-personal-goals",
+      "slug": "goal-actions",
+      "title": "Goal actions",
+      "source": "lib/precision_flows.dart",
+      "coverage": [
+        "S023"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "Edit goal",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Manage goal photo",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Manage Reminder",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Save Together",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Delete goal",
+          "detail": "",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Laptop"
+    },
+    {
+      "id": "029",
+      "group": "03-personal-goals",
+      "slug": "delete-goal",
+      "title": "Delete goal?",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S029"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Delete this goal and its savings history?",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Delete",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Laptop"
+    },
+    {
+      "id": "030",
+      "group": "03-personal-goals",
+      "slug": "cover-actions",
+      "title": "Goal photo",
+      "source": "lib/goal_cover_widgets.dart",
+      "coverage": [
+        "S030"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "Change Goal Photo",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Remove Goal Photo",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Laptop"
+    },
+    {
+      "id": "031",
+      "group": "03-personal-goals",
+      "slug": "cover-crop",
+      "title": "Crop goal cover",
+      "source": "lib/goal_cover_widgets.dart",
+      "coverage": [
+        "S031"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Landscape crop area · drag to position",
+          "detail": "",
+          "h": 260
+        },
+        {
+          "type": "slider",
+          "title": "Zoom",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Use photo",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Goal photo"
+    },
+    {
+      "id": "032",
+      "group": "03-personal-goals",
+      "slug": "cover-viewer",
+      "title": "Goal cover",
+      "source": "lib/goal_cover_widgets.dart",
+      "coverage": [
+        "S032"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Full goal cover preview",
+          "detail": "",
+          "h": 380
+        },
+        {
+          "type": "button",
+          "title": "Close",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Laptop"
+    },
+    {
+      "id": "033",
+      "group": "03-personal-goals",
+      "slug": "cover-upload-recovery",
+      "title": "Goal cover upload",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S032"
+      ],
+      "items": [
+        {
+          "type": "status",
+          "title": "Goal saved",
+          "detail": "Its cover could not be confirmed."
+        },
+        {
+          "type": "notice",
+          "title": "Upload error / retry message",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Retry",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Done without photo",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Create a goal"
+    },
+    {
+      "id": "034",
+      "group": "04-shared-goals",
+      "slug": "shared-goals",
+      "title": "Goals",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S033"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Personal",
+            "Shared"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "hero",
+          "title": "Save Together",
+          "detail": "A shared goal. Real progress.",
+          "sub": ""
+        },
+        {
+          "type": "button",
+          "title": "Create shared goal",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Enter invitation",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "Your shared goals",
+          "detail": ""
+        },
+        {
+          "type": "image",
+          "title": "Optional shared goal cover",
+          "detail": "",
+          "h": 100
+        },
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "PHP 15,000.00",
+          "sub": "of PHP 50,000.00"
+        },
+        {
+          "type": "progress",
+          "title": "30% saved · 3 members",
+          "detail": "",
+          "value": 30
+        },
+        {
+          "type": "row",
+          "title": "Alex · Sam · Jordan",
+          "detail": "Owner and member roles",
+          "end": "›"
+        }
+      ],
+      "kind": "screen",
+      "nav": "Goals"
+    },
+    {
+      "id": "035",
+      "group": "04-shared-goals",
+      "slug": "create-shared-goal",
+      "title": "Create shared goal",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S034"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Save Together",
+          "detail": "Build something together.",
+          "sub": ""
+        },
+        {
+          "type": "image",
+          "title": "Goal cover",
+          "detail": "",
+          "h": 110
+        },
+        {
+          "type": "field",
+          "title": "Goal name",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Target amount (PHP)",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Initial recorded savings (PHP)",
+          "detail": "0.00"
+        },
+        {
+          "type": "field",
+          "title": "Description (optional)",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Goal icon",
+          "detail": "Travel  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Target date",
+          "detail": "Choose date"
+        },
+        {
+          "type": "button",
+          "title": "Create shared goal",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "036",
+      "group": "04-shared-goals",
+      "slug": "shared-settings",
+      "title": "Goal settings",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S035"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Save Together",
+          "detail": "Refine your shared goal.",
+          "sub": ""
+        },
+        {
+          "type": "image",
+          "title": "Goal cover",
+          "detail": "",
+          "h": 110
+        },
+        {
+          "type": "field",
+          "title": "Goal name",
+          "detail": "Group trip"
+        },
+        {
+          "type": "field",
+          "title": "Target amount (PHP)",
+          "detail": "50,000.00"
+        },
+        {
+          "type": "field",
+          "title": "Description (optional)",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Goal icon",
+          "detail": "Travel  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Target date",
+          "detail": "Choose date"
+        },
+        {
+          "type": "button",
+          "title": "Save changes",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "037",
+      "group": "04-shared-goals",
+      "slug": "shared-details",
+      "title": "Save Together",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S036"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Shared goal cover",
+          "detail": "",
+          "h": 125
+        },
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "PHP 15,000.00",
+          "sub": "of PHP 50,000.00"
+        },
+        {
+          "type": "progress",
+          "title": "30% saved",
+          "detail": "",
+          "value": 30
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Remaining|PHP 35,000",
+            "Members|3"
+          ]
+        },
+        {
+          "type": "row",
+          "title": "Your contribution",
+          "detail": "PHP 5,000.00",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Members",
+          "detail": "Alex · Sam · Jordan",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Add contribution",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "All activity",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Invite members",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "row",
+          "title": "Settings",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Decrease savings",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Archive goal",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Manage Reminder",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "Recent activity",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Sam added PHP 500",
+          "detail": "Oct 29 · Contribution",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Alex created the goal",
+          "detail": "Oct 20",
+          "end": "›"
+        }
+      ],
+      "kind": "screen",
+      "note": "Owner view. Non-owner members see Leave goal instead of owner management controls."
+    },
+    {
+      "id": "038",
+      "group": "04-shared-goals",
+      "slug": "shared-contribution",
+      "title": "Add contribution",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S037"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "PHP 15,000.00",
+          "sub": "Current shared savings"
+        },
+        {
+          "type": "field",
+          "title": "Input Currency",
+          "detail": "PHP  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Amount (PHP)",
+          "detail": "500.00"
+        },
+        {
+          "type": "field",
+          "title": "Note (optional)",
+          "detail": ""
+        },
+        {
+          "type": "notice",
+          "title": "Review amount and conversion, if applicable, before confirming.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Confirm contribution",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "039",
+      "group": "04-shared-goals",
+      "slug": "shared-decrease",
+      "title": "Decrease shared savings",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S038"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "PHP 15,000.00",
+          "sub": "Current shared savings"
+        },
+        {
+          "type": "field",
+          "title": "Input Currency",
+          "detail": "PHP  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Amount (PHP)",
+          "detail": "200.00"
+        },
+        {
+          "type": "field",
+          "title": "Reason (optional)",
+          "detail": ""
+        },
+        {
+          "type": "notice",
+          "title": "Review amount and conversion, if applicable, before confirming.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Confirm decrease",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "040",
+      "group": "04-shared-goals",
+      "slug": "members",
+      "title": "Goal members",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S039"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "3 members. One goal.",
+          "sub": ""
+        },
+        {
+          "type": "notice",
+          "title": "Members can see shared savings and attributed activity.",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Alex · You",
+          "detail": "Owner · PHP 5,000 contributed",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Sam",
+          "detail": "Member · PHP 6,000 contributed",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Remove member",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "row",
+          "title": "Jordan",
+          "detail": "Member · PHP 4,000 contributed",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Remove member",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "041",
+      "group": "04-shared-goals",
+      "slug": "invitations",
+      "title": "Invite members",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S040"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "Better together.",
+          "sub": "3 participants"
+        },
+        {
+          "type": "button",
+          "title": "Create invitation",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "section",
+          "title": "New invitation",
+          "detail": ""
+        },
+        {
+          "type": "hero",
+          "title": "Invitation code",
+          "detail": "[SINGLE-USE CODE]",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "Expires on [date and time]",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Copy invitation code",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "Invitations",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Active invitation",
+          "detail": "Single use · Expires [date]",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Revoke",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "042",
+      "group": "04-shared-goals",
+      "slug": "join-code",
+      "title": "Join Save Together",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S041"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "A goal worth sharing.",
+          "detail": "Join your circle.",
+          "sub": ""
+        },
+        {
+          "type": "field",
+          "title": "Invitation code",
+          "detail": "Enter code"
+        },
+        {
+          "type": "button",
+          "title": "Check invitation",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "043",
+      "group": "04-shared-goals",
+      "slug": "join-preview",
+      "title": "Join Save Together",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S041"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "You're invited to save together!",
+          "detail": "Group trip",
+          "sub": "Invited by Alex"
+        },
+        {
+          "type": "row",
+          "title": "Target",
+          "detail": "PHP 50,000",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Expires",
+          "detail": "Invitation expiry date and time",
+          "end": ""
+        },
+        {
+          "type": "notice",
+          "title": "Joining makes your future contributions and shared notes visible to goal members.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Join goal",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Decline",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "044",
+      "group": "04-shared-goals",
+      "slug": "shared-history",
+      "title": "Shared activity",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S042"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "Shared history",
+          "sub": ""
+        },
+        {
+          "type": "row",
+          "title": "Sam added savings",
+          "detail": "Oct 29 · PHP 500",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Alex decreased savings",
+          "detail": "Oct 27 · PHP 200",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Jordan joined the goal",
+          "detail": "Oct 25",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Alex created the goal",
+          "detail": "Oct 20",
+          "end": "›"
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "045",
+      "group": "04-shared-goals",
+      "slug": "archive",
+      "title": "Archive shared goal?",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S043"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Members retain access to the history. New contributions and invitations will stop.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Archive",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Save Together"
+    },
+    {
+      "id": "046",
+      "group": "04-shared-goals",
+      "slug": "leave",
+      "title": "Leave shared goal?",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S044"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Your access ends. Your recorded contributions remain in the history.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Leave",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Save Together"
+    },
+    {
+      "id": "047",
+      "group": "04-shared-goals",
+      "slug": "remove-member",
+      "title": "Remove Sam?",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S045"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "This revokes access. Contributions remain recorded and the group balance stays unchanged.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Remove",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Save Together"
+    },
+    {
+      "id": "048",
+      "group": "04-shared-goals",
+      "slug": "revoke-invitation",
+      "title": "Revoke invitation?",
+      "source": "lib/shared_savings_screens.dart",
+      "coverage": [
+        "S046"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "This code will no longer grant access.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Revoke",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Save Together"
+    },
+    {
+      "id": "049",
+      "group": "05-planner",
+      "slug": "daily-planner",
+      "title": "Planner",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S047"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Daily",
+            "Weekly"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "hero",
+          "title": "29 · Thu",
+          "detail": "October 2026",
+          "sub": ""
+        },
+        {
+          "type": "week",
+          "title": "",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "Time         Your Tasks",
+          "detail": ""
+        },
+        {
+          "type": "task",
+          "title": "Review monthly budget",
+          "detail": "High priority · Up next",
+          "time": "09:30",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Compare laptop prices",
+          "detail": "Normal priority",
+          "time": "13:15",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Read one chapter",
+          "detail": "Low priority",
+          "time": "17:00",
+          "done": true
+        },
+        {
+          "type": "button",
+          "title": "+ Add task",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen",
+      "nav": "Planner"
+    },
+    {
+      "id": "050",
+      "group": "05-planner",
+      "slug": "weekly-planner",
+      "title": "Planner",
+      "source": "lib/home_atelier.dart",
+      "coverage": [
+        "S048"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Daily",
+            "Weekly"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "week",
+          "title": "",
+          "detail": ""
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "This week|8 tasks",
+            "Completed|3 / 8"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Monday · October 26",
+          "detail": ""
+        },
+        {
+          "type": "task",
+          "title": "Review expenses",
+          "detail": "Normal priority",
+          "time": "09:00",
+          "done": true
+        },
+        {
+          "type": "section",
+          "title": "Thursday · October 29",
+          "detail": ""
+        },
+        {
+          "type": "task",
+          "title": "Review monthly budget",
+          "detail": "High priority",
+          "time": "09:30",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Compare laptop prices",
+          "detail": "Normal priority",
+          "time": "13:15",
+          "done": false
+        },
+        {
+          "type": "section",
+          "title": "Friday · October 30",
+          "detail": ""
+        },
+        {
+          "type": "task",
+          "title": "Plan next week",
+          "detail": "Normal priority",
+          "time": "16:00",
+          "done": false
+        },
+        {
+          "type": "button",
+          "title": "+ Add task",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "screen",
+      "nav": "Planner"
+    },
+    {
+      "id": "051",
+      "group": "05-planner",
+      "slug": "add-task",
+      "title": "Add a task",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S049"
+      ],
+      "items": [
+        {
+          "type": "section",
+          "title": "The plan",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Task",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Time (optional)",
+          "detail": "e.g. 9:30 AM"
+        },
+        {
+          "type": "section",
+          "title": "When & how important",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Date",
+          "detail": "Oct 29, 2026"
+        },
+        {
+          "type": "field",
+          "title": "Priority",
+          "detail": "Normal  ▾"
+        },
+        {
+          "type": "button",
+          "title": "Set Task Reminder",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "text",
+          "title": "Reminder time is separate from the task schedule.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Add task",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Planner"
+    },
+    {
+      "id": "052",
+      "group": "05-planner",
+      "slug": "edit-task",
+      "title": "Edit task",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S050"
+      ],
+      "items": [
+        {
+          "type": "section",
+          "title": "The plan",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Task",
+          "detail": "Review monthly budget"
+        },
+        {
+          "type": "field",
+          "title": "Time (optional)",
+          "detail": "9:30 AM"
+        },
+        {
+          "type": "section",
+          "title": "When & how important",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Date",
+          "detail": "Oct 29, 2026"
+        },
+        {
+          "type": "field",
+          "title": "Priority",
+          "detail": "Normal  ▾"
+        },
+        {
+          "type": "button",
+          "title": "Set Task Reminder",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "text",
+          "title": "Reminder time is separate from the task schedule.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Save changes",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Planner"
+    },
+    {
+      "id": "053",
+      "group": "05-planner",
+      "slug": "delete-task",
+      "title": "Delete task?",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S051"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Delete this task?",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Delete",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Planner"
+    },
+    {
+      "id": "054",
+      "group": "05-planner",
+      "slug": "smart-suggestions",
+      "title": "Smart Suggestions",
+      "source": "lib/smart_suggestions.dart",
+      "coverage": [
+        "S052"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Up next",
+          "detail": "Review monthly budget",
+          "sub": "9:30 AM · High priority"
+        },
+        {
+          "type": "button",
+          "title": "Mark complete",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "section",
+          "title": "Recommended next",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Compare laptop prices",
+          "detail": "Scheduled today · 1:15 PM",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Read one chapter",
+          "detail": "Flexible / lower priority",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "Why this suggestion?",
+          "detail": ""
+        },
+        {
+          "type": "notice",
+          "title": "Ranking considers your schedule, priority and completion state.",
+          "detail": ""
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Planner"
+    },
+    {
+      "id": "055",
+      "group": "05-planner",
+      "slug": "date-picker",
+      "title": "Select date",
+      "source": "lib/platform_pickers.dart",
+      "coverage": [
+        "S053"
+      ],
+      "items": [
+        {
+          "type": "calendar",
+          "title": "October 2026",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "OK",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Planner"
+    },
+    {
+      "id": "056",
+      "group": "05-planner",
+      "slug": "time-picker",
+      "title": "Select time",
+      "source": "lib/platform_pickers.dart",
+      "coverage": [
+        "S053"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Time",
+          "detail": "09 : 30",
+          "sub": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "AM",
+            "PM"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "button",
+          "title": "OK",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Add a task"
+    },
+    {
+      "id": "057",
+      "group": "06-reminders",
+      "slug": "reminder-agenda",
+      "title": "Smart Reminders",
+      "source": "lib/reminder_widgets.dart",
+      "coverage": [
+        "S054",
+        "S057"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Your reminders",
+          "detail": "Your upcoming agenda",
+          "sub": ""
+        },
+        {
+          "type": "section",
+          "title": "This phone",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Notifications",
+          "detail": "Allowed",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Precise timing",
+          "detail": "Allowed / approximate",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Notification settings",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Precise timing",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Refresh phone status",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "Today",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Review monthly budget",
+          "detail": "9:15 AM · Task reminder",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Laptop",
+          "detail": "6:00 PM · Savings reminder",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "Upcoming",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Group trip",
+          "detail": "Saturday · 10:00 AM",
+          "end": "›"
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "058",
+      "group": "06-reminders",
+      "slug": "savings-reminder",
+      "title": "Savings Reminder",
+      "source": "lib/reminder_widgets.dart",
+      "coverage": [
+        "S055"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Laptop",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Enable Reminder",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "field",
+          "title": "Frequency",
+          "detail": "Weekly  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Weekday",
+          "detail": "Saturday  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Reminder time",
+          "detail": "6:00 PM"
+        },
+        {
+          "type": "toggle",
+          "title": "Show item name in notification",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "text",
+          "title": "Other frequencies: once, daily or relative to goal deadline.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Save Reminder",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Laptop"
+    },
+    {
+      "id": "059",
+      "group": "06-reminders",
+      "slug": "task-reminder",
+      "title": "Task Reminder",
+      "source": "lib/reminder_widgets.dart",
+      "coverage": [
+        "S056"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Review monthly budget",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Enable Reminder",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "field",
+          "title": "Frequency",
+          "detail": "Before task start  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Before scheduled task start",
+          "detail": "15 minutes  ▾"
+        },
+        {
+          "type": "notice",
+          "title": "Scheduled task start: Oct 29 · 9:30 AM",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Show item name in notification",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "button",
+          "title": "Save Reminder",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Planner"
+    },
+    {
+      "id": "060",
+      "group": "06-reminders",
+      "slug": "notification-permission",
+      "title": "Allow phone reminders",
+      "source": "lib/reminder_widgets.dart",
+      "coverage": [
+        "S057"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "SaveTrack needs notification permission to show the reminders you choose, even while the app is closed.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Continue",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Not now",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Smart Reminders"
+    },
+    {
+      "id": "061",
+      "group": "06-reminders",
+      "slug": "precise-timing",
+      "title": "Allow precise reminders",
+      "source": "lib/reminder_widgets.dart",
+      "coverage": [
+        "S057"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Allow SaveTrack in Android Alarms & reminders settings for precise timing.",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Otherwise reminders use approximate timing.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Open settings",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Smart Reminders"
+    },
+    {
+      "id": "062",
+      "group": "07-reports",
+      "slug": "reports",
+      "title": "Reports",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S058",
+        "S059",
+        "S060",
+        "S061"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Overview",
+          "detail": "Your savings and planning",
+          "sub": ""
+        },
+        {
+          "type": "section",
+          "title": "Savings progress",
+          "detail": ""
+        },
+        {
+          "type": "hero",
+          "title": "Savings balance",
+          "detail": "PHP 17,000.00",
+          "sub": "Across 2 personal goals · Target PHP 50,000"
+        },
+        {
+          "type": "progress",
+          "title": "Overall progress",
+          "detail": "",
+          "value": 34
+        },
+        {
+          "type": "section",
+          "title": "Savings activity",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "7 days",
+            "30 days",
+            "This month"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Contributions|PHP 2,000",
+            "Withdrawals|PHP 200",
+            "Net change|PHP 1,800"
+          ]
+        },
+        {
+          "type": "chart",
+          "title": "Daily contributions",
+          "detail": "Oct 23 – Oct 29"
+        },
+        {
+          "type": "section",
+          "title": "Shared savings",
+          "detail": ""
+        },
+        {
+          "type": "hero",
+          "title": "Group trip",
+          "detail": "PHP 15,000.00",
+          "sub": "Your contribution: PHP 5,000"
+        },
+        {
+          "type": "progress",
+          "title": "30% of PHP 50,000",
+          "detail": "",
+          "value": 30
+        },
+        {
+          "type": "section",
+          "title": "Planning rhythm",
+          "detail": ""
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Today|1 / 3 completed",
+            "This week|3 / 8 completed"
+          ]
+        }
+      ],
+      "kind": "screen",
+      "nav": "Reports"
+    },
+    {
+      "id": "063",
+      "group": "07-reports",
+      "slug": "savings-pulse",
+      "title": "Savings Pulse",
+      "source": "lib/home_atelier.dart",
+      "coverage": [
+        "S059"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "7 days",
+            "30 days",
+            "This month"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "chart",
+          "title": "Daily contributions",
+          "detail": "Oct 23 – Oct 29"
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Contributions|PHP 2,000",
+            "Withdrawals|PHP 200",
+            "Net change|PHP 1,800"
+          ]
+        },
+        {
+          "type": "field",
+          "title": "Presentation",
+          "detail": "Mini chart / Metrics / Compact"
+        }
+      ],
+      "kind": "detail",
+      "note": "Expanded wireframe of the embedded Savings Pulse component, not a separate route."
+    },
+    {
+      "id": "064",
+      "group": "08-profile-settings",
+      "slug": "profile",
+      "title": "Profile",
+      "source": "lib/main.dart",
+      "coverage": [
+        "S062",
+        "S106"
+      ],
+      "items": [
+        {
+          "type": "identity",
+          "title": "Alex",
+          "detail": "alex@example.com"
+        },
+        {
+          "type": "section",
+          "title": "Make it yours",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Appearance",
+          "detail": "System",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Customize Home",
+          "detail": "Views, sections and your featured goal",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "Everyday preferences",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Currency Settings",
+          "detail": "Display currency · PHP",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Smart Reminders",
+          "detail": "Agenda and phone notification settings",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Home Screen Widgets",
+          "detail": "Savings and daily plans, at a glance",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "AI & Assist",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "SaveTrack AI",
+          "detail": "Questions, guidance and read-only coaching",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Agent Studio Pro",
+          "detail": "Plans, missions and execution settings",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "Account security",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Change Password",
+          "detail": "Keep your account secure",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Sign out",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "text",
+          "title": "SaveTrack · Beautiful progress. Effortless control.",
+          "detail": ""
+        }
+      ],
+      "kind": "screen",
+      "nav": "Profile"
+    },
+    {
+      "id": "065",
+      "group": "08-profile-settings",
+      "slug": "photo-actions",
+      "title": "Profile Picture",
+      "source": "lib/profile_photo_widgets.dart",
+      "coverage": [
+        "S063"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Choose a photo to personalize your SaveTrack account.",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Choose from Gallery",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "View Profile Picture",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Remove Profile Picture",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Profile"
+    },
+    {
+      "id": "066",
+      "group": "08-profile-settings",
+      "slug": "photo-crop",
+      "title": "Edit profile photo",
+      "source": "lib/profile_photo_widgets.dart",
+      "coverage": [
+        "S064"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Square image with circular crop guide",
+          "detail": "",
+          "h": 290
+        },
+        {
+          "type": "slider",
+          "title": "Zoom",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Use photo",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Profile"
+    },
+    {
+      "id": "067",
+      "group": "08-profile-settings",
+      "slug": "photo-upload",
+      "title": "Uploading profile photo",
+      "source": "lib/profile_photo_widgets.dart",
+      "coverage": [
+        "S064"
+      ],
+      "items": [
+        {
+          "type": "identity",
+          "title": "Photo preview",
+          "detail": ""
+        },
+        {
+          "type": "loading",
+          "title": "Uploading photo",
+          "detail": ""
+        },
+        {
+          "type": "notice",
+          "title": "Upload status or retry message appears here.",
+          "detail": ""
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Profile"
+    },
+    {
+      "id": "068",
+      "group": "08-profile-settings",
+      "slug": "photo-viewer",
+      "title": "Profile photo",
+      "source": "lib/profile_photo_widgets.dart",
+      "coverage": [
+        "S065"
+      ],
+      "items": [
+        {
+          "type": "image",
+          "title": "Full profile photo preview",
+          "detail": "",
+          "h": 350
+        },
+        {
+          "type": "button",
+          "title": "Close",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Profile"
+    },
+    {
+      "id": "069",
+      "group": "08-profile-settings",
+      "slug": "remove-photo",
+      "title": "Remove profile photo?",
+      "source": "lib/profile_photo_widgets.dart",
+      "coverage": [
+        "S063"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Remove your custom profile photo?",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Remove",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Profile"
+    },
+    {
+      "id": "070",
+      "group": "08-profile-settings",
+      "slug": "currency-settings",
+      "title": "Currency Settings",
+      "source": "lib/currency_settings_screen.dart",
+      "coverage": [
+        "S066",
+        "S068"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Choose Your Currency",
+          "detail": "PHP · Philippine Peso",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "Display preferences do not change stored goal amounts.",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "PHP",
+            "USD",
+            "EUR",
+            "JPY"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "section",
+          "title": "Exchange rates",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Daily public rates",
+          "detail": "Last updated [timestamp]",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Refresh rates",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "Currency converter",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Amount",
+          "detail": "100.00"
+        },
+        {
+          "type": "field",
+          "title": "From",
+          "detail": "PHP  ▾"
+        },
+        {
+          "type": "field",
+          "title": "To",
+          "detail": "USD  ▾"
+        },
+        {
+          "type": "hero",
+          "title": "Estimated conversion",
+          "detail": "[Converted amount]",
+          "sub": ""
+        },
+        {
+          "type": "section",
+          "title": "All active fiat currencies",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "PHP · Philippine Peso",
+          "detail": "Philippines",
+          "end": "✓"
+        },
+        {
+          "type": "row",
+          "title": "USD · US Dollar",
+          "detail": "United States",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "EUR · Euro",
+          "detail": "Countries and regions",
+          "end": "›"
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "071",
+      "group": "08-profile-settings",
+      "slug": "currency-picker",
+      "title": "Choose currency",
+      "source": "lib/currency_widgets.dart",
+      "coverage": [
+        "S067"
+      ],
+      "items": [
+        {
+          "type": "field",
+          "title": "Search currencies",
+          "detail": "Code or currency name"
+        },
+        {
+          "type": "row",
+          "title": "PHP · Philippine Peso",
+          "detail": "₱",
+          "end": "✓"
+        },
+        {
+          "type": "row",
+          "title": "USD · US Dollar",
+          "detail": "$",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "EUR · Euro",
+          "detail": "€",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "JPY · Japanese Yen",
+          "detail": "¥",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "GBP · British Pound",
+          "detail": "£",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Currency Settings"
+    },
+    {
+      "id": "072",
+      "group": "09-ai-coach",
+      "slug": "ai-welcome",
+      "title": "SaveTrack AI",
+      "source": "lib/ai_coach/ai_coach_screen.dart",
+      "coverage": [
+        "S069"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Ask Anything",
+            "SaveTrack Coach"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "hero",
+          "title": "Ask anything. Plan smarter.",
+          "detail": "A little clarity goes a long way.",
+          "sub": ""
+        },
+        {
+          "type": "grid",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Save consistently|Small habits, lasting change.",
+            "Plan my week|Make room for what matters.",
+            "Make sense of money|The 50/30/20 rule, simply.",
+            "Code|Make a Flutter concept click."
+          ]
+        },
+        {
+          "type": "composer",
+          "title": "Ask anything…",
+          "detail": ""
+        }
+      ],
+      "kind": "screen",
+      "actions": "Settings · •••"
+    },
+    {
+      "id": "073",
+      "group": "09-ai-coach",
+      "slug": "ask-anything",
+      "title": "SaveTrack AI",
+      "source": "lib/ai_coach/ai_coach_screen.dart",
+      "coverage": [
+        "S070"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Ask Anything",
+            "SaveTrack Coach"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "bubble",
+          "title": "How can I build a consistent savings habit?",
+          "detail": "",
+          "user": true
+        },
+        {
+          "type": "bubble",
+          "title": "Start with an amount you can repeat, choose a regular day, and review your progress.",
+          "detail": "",
+          "user": false
+        },
+        {
+          "type": "row",
+          "title": "Copy response",
+          "detail": "",
+          "end": ""
+        },
+        {
+          "type": "composer",
+          "title": "Ask a follow-up…",
+          "detail": ""
+        }
+      ],
+      "kind": "screen",
+      "actions": "Settings · •••",
+      "note": "Illustrative conversation text."
+    },
+    {
+      "id": "074",
+      "group": "09-ai-coach",
+      "slug": "coach-conversation",
+      "title": "SaveTrack AI",
+      "source": "lib/ai_coach/ai_coach_screen.dart",
+      "coverage": [
+        "S071",
+        "S074"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Ask Anything",
+            "SaveTrack Coach"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "button",
+          "title": "Choose goal context",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "bubble",
+          "title": "How is my laptop goal progressing?",
+          "detail": "",
+          "user": true
+        },
+        {
+          "type": "section",
+          "title": "Verified by SaveTrack · on this device",
+          "detail": ""
+        },
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 12,000.00",
+          "sub": "Saved toward your goal"
+        },
+        {
+          "type": "progress",
+          "title": "40% · Target PHP 30,000",
+          "detail": "",
+          "value": 40
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Remaining|PHP 18,000",
+            "Target date|Dec 30"
+          ]
+        },
+        {
+          "type": "notice",
+          "title": "Exact values stay local. AI guidance is separate.",
+          "detail": ""
+        },
+        {
+          "type": "bubble",
+          "title": "We can discuss a manageable plan based on the summary you approved.",
+          "detail": "",
+          "user": false
+        },
+        {
+          "type": "composer",
+          "title": "Ask your coach…",
+          "detail": ""
+        }
+      ],
+      "kind": "screen",
+      "actions": "Settings · •••"
+    },
+    {
+      "id": "075",
+      "group": "09-ai-coach",
+      "slug": "context-selection",
+      "title": "Choose a goal",
+      "source": "lib/ai_coach/ai_coach_screen.dart",
+      "coverage": [
+        "S072"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "Laptop",
+          "detail": "Personal goal · PHP",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Emergency fund",
+          "detail": "Personal goal · PHP",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Group trip",
+          "detail": "Shared · Local facts only",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "SaveTrack AI"
+    },
+    {
+      "id": "076",
+      "group": "09-ai-coach",
+      "slug": "context-review",
+      "title": "Review AI Context",
+      "source": "lib/ai_coach/ai_widgets.dart",
+      "coverage": [
+        "S073"
+      ],
+      "items": [
+        {
+          "type": "section",
+          "title": "What AI will see",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Goal category",
+          "detail": "Generic category / approved summary",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Progress",
+          "detail": "Progress band",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Time horizon",
+          "detail": "Deadline range",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "View exact data",
+          "detail": "Calculated on this device",
+          "end": "›"
+        },
+        {
+          "type": "notice",
+          "title": "Approval lasts 10 minutes. Revoke it anytime.",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "About Google processing",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Review the provider notice before sharing your summary.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Approve this summary",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "General advice instead",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "SaveTrack AI"
+    },
+    {
+      "id": "077",
+      "group": "09-ai-coach",
+      "slug": "ai-settings",
+      "title": "Make this space yours",
+      "source": "lib/ai_coach/ai_settings_sheet.dart",
+      "coverage": [
+        "S075"
+      ],
+      "items": [
+        {
+          "type": "section",
+          "title": "Conversation mode",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Ask Anything",
+            "SaveTrack Coach"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "section",
+          "title": "Appearance",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Light",
+            "Dark",
+            "Follow system"
+          ],
+          "selected": 2
+        },
+        {
+          "type": "section",
+          "title": "Your conversations",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Here for this visit",
+          "detail": "Chats are cleared when you leave or sign out.",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Use your own words",
+          "detail": "English, Filipino or Taglish.",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "AI privacy",
+          "detail": "Review Google processing and your notice preference.",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "SaveTrack AI"
+    },
+    {
+      "id": "078",
+      "group": "09-ai-coach",
+      "slug": "provider-privacy",
+      "title": "Before your first question",
+      "source": "lib/ai_coach/ai_coach_screen.dart",
+      "coverage": [
+        "S076"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Google processes questions and answers. Unpaid API content may be used to improve products and reviewed by people.",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Do not include personal, confidential or sensitive information.",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Do not show again",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "button",
+          "title": "I understand",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "SaveTrack AI"
+    },
+    {
+      "id": "079",
+      "group": "09-ai-coach",
+      "slug": "ai-connection",
+      "title": "Connect SaveTrack AI",
+      "source": "lib/ai_coach/ai_setup_sheet.dart",
+      "coverage": [
+        "S077"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Firebase must verify this app before it can ask Gemini a question.",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "Register this app in App Check",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Follow the setup instructions for this platform.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Open Firebase App Check",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "Enable Gemini in Firebase AI Logic",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Open Firebase AI Logic",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Check connection",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Close",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "sheet",
+      "parent": "SaveTrack AI"
+    },
+    {
+      "id": "080",
+      "group": "09-ai-coach",
+      "slug": "clear-chat",
+      "title": "Clear this chat?",
+      "source": "lib/ai_coach/ai_coach_screen.dart",
+      "coverage": [
+        "S078"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "This mode's conversation and approved context will be removed from this device.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Clear chat",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Keep chat",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "SaveTrack AI"
+    },
+    {
+      "id": "081",
+      "group": "09-ai-coach",
+      "slug": "ai-menu",
+      "title": "Conversation actions",
+      "source": "lib/ai_coach/ai_coach_screen.dart",
+      "coverage": [
+        "S078"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "AI settings",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "New Chat",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Clear Chat",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "View verified facts",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Revoke context & clear Coach",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "AI privacy",
+          "detail": "",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "SaveTrack AI"
+    },
+    {
+      "id": "082",
+      "group": "10-agent-studio",
+      "slug": "agent-home",
+      "title": "Agent Studio Pro",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S079"
+      ],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Ask First",
+            "Automatic Actions"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "hero",
+          "title": "Agent Studio Pro",
+          "detail": "A little intention.\nA clear next step.",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "Plan your savings, organize your day, and turn ideas into action.",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "Make room for progress",
+          "detail": ""
+        },
+        {
+          "type": "grid",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Plan a goal|Give your savings direction",
+            "Organize tasks|Find your next clear step",
+            "Draft a reminder|Keep important things close",
+            "Build a mission|One connected plan",
+            "Prepare savings|Your next contribution",
+            "What if…|Explore a savings pace"
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Start with a thought",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Help me plan tomorrow",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Compare two savings plans",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "Recent activity",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Laptop plan",
+          "detail": "Draft · 3 steps",
+          "end": "›"
+        },
+        {
+          "type": "composer",
+          "title": "What would you like to accomplish?",
+          "detail": ""
+        }
+      ],
+      "kind": "screen",
+      "actions": "History · Settings"
+    },
+    {
+      "id": "083",
+      "group": "10-agent-studio",
+      "slug": "agent-conversation",
+      "title": "Agent Studio Pro",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S080"
+      ],
+      "items": [
+        {
+          "type": "bubble",
+          "title": "Create a laptop goal for PHP 30,000 and a task to compare prices.",
+          "detail": "",
+          "user": true
+        },
+        {
+          "type": "bubble",
+          "title": "I drafted a goal and a Planner task. Review the details before approval.",
+          "detail": "",
+          "user": false
+        },
+        {
+          "type": "hero",
+          "title": "Laptop plan",
+          "detail": "Draft · 2 steps",
+          "sub": ""
+        },
+        {
+          "type": "row",
+          "title": "1. Savings goal",
+          "detail": "Laptop · PHP 30,000",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "2. Planner task",
+          "detail": "Compare laptop prices",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Review mission",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "composer",
+          "title": "Add a detail or correction…",
+          "detail": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "084",
+      "group": "10-agent-studio",
+      "slug": "voice-listening",
+      "title": "Speak naturally",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S081"
+      ],
+      "items": [
+        {
+          "type": "orb",
+          "title": "Microphone active · Listening",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Turn-based voice · Review each transcript before sending",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Stop listening",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Stop audio",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Switch to text",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "detail",
+      "note": "Voice panel within Agent Studio."
+    },
+    {
+      "id": "085",
+      "group": "10-agent-studio",
+      "slug": "transcript-review",
+      "title": "Review your transcript",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S082"
+      ],
+      "items": [
+        {
+          "type": "orb",
+          "title": "Ready to review",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Transcript",
+          "detail": "Create a laptop savings goal for PHP 30,000."
+        },
+        {
+          "type": "notice",
+          "title": "Edit any misheard names, amounts or dates before sending.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Send",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Speak a turn",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Switch to text",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "detail",
+      "note": "Transcript-review state within Agent Studio."
+    },
+    {
+      "id": "086",
+      "group": "10-agent-studio",
+      "slug": "interpretation",
+      "title": "Review these details",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S083"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Understood request",
+          "detail": "Create a savings goal",
+          "sub": ""
+        },
+        {
+          "type": "field",
+          "title": "Goal name",
+          "detail": "Laptop"
+        },
+        {
+          "type": "field",
+          "title": "Target amount",
+          "detail": "PHP 30,000"
+        },
+        {
+          "type": "field",
+          "title": "Deadline",
+          "detail": "Choose a date / clarify"
+        },
+        {
+          "type": "notice",
+          "title": "A few details first: confirm the intended deadline.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Save draft details",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Agent Studio Pro"
+    },
+    {
+      "id": "087",
+      "group": "10-agent-studio",
+      "slug": "mission-builder",
+      "title": "Mission builder",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S084"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop plan",
+          "detail": "Draft · 3 steps · Version 1",
+          "sub": ""
+        },
+        {
+          "type": "progress",
+          "title": "0 / 3 steps completed",
+          "detail": "",
+          "value": 0
+        },
+        {
+          "type": "row",
+          "title": "1. Create savings goal",
+          "detail": "Laptop · PHP 30,000 · Edit details",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "2. Create Planner task",
+          "detail": "Compare laptop prices · Edit details",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "3. Create savings reminder",
+          "detail": "Linked to step 1 · Weekly · Edit details",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Review mission",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Add step",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Save draft",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Cancel mission",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "toggle",
+          "title": "Optional Gemini planning guidance",
+          "detail": "",
+          "on": false
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "088",
+      "group": "10-agent-studio",
+      "slug": "action-picker",
+      "title": "Add step",
+      "source": "lib/agent_studio/agent_step_editor.dart",
+      "coverage": [
+        "S085"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "Savings goal",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Planner task",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Reminder",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Prepare contribution",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Savings scenario",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Equal goal allocation",
+          "detail": "",
+          "end": "›"
+        }
+      ],
+      "kind": "sheet",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "089",
+      "group": "10-agent-studio",
+      "slug": "step-goal",
+      "title": "Savings goal",
+      "source": "lib/agent_studio/agent_step_editor.dart",
+      "coverage": [
+        "S086"
+      ],
+      "items": [
+        {
+          "type": "field",
+          "title": "Goal name",
+          "detail": "Laptop"
+        },
+        {
+          "type": "field",
+          "title": "Currency",
+          "detail": "PHP"
+        },
+        {
+          "type": "field",
+          "title": "Target amount",
+          "detail": "30,000"
+        },
+        {
+          "type": "field",
+          "title": "Goal deadline",
+          "detail": "Dec 30, 2026"
+        },
+        {
+          "type": "button",
+          "title": "Save draft details",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "090",
+      "group": "10-agent-studio",
+      "slug": "step-task",
+      "title": "Planner task",
+      "source": "lib/agent_studio/agent_step_editor.dart",
+      "coverage": [
+        "S086"
+      ],
+      "items": [
+        {
+          "type": "field",
+          "title": "Task title",
+          "detail": "Compare laptop prices"
+        },
+        {
+          "type": "field",
+          "title": "Planner date",
+          "detail": "Oct 30, 2026"
+        },
+        {
+          "type": "field",
+          "title": "Start time (optional)",
+          "detail": "13:00"
+        },
+        {
+          "type": "field",
+          "title": "Priority",
+          "detail": "Normal  ▾"
+        },
+        {
+          "type": "button",
+          "title": "Save draft details",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "091",
+      "group": "10-agent-studio",
+      "slug": "step-reminder",
+      "title": "Reminder",
+      "source": "lib/agent_studio/agent_step_editor.dart",
+      "coverage": [
+        "S086"
+      ],
+      "items": [
+        {
+          "type": "field",
+          "title": "Reminder title (optional)",
+          "detail": "Weekly saving"
+        },
+        {
+          "type": "field",
+          "title": "Link to a step",
+          "detail": "1. Create Laptop goal  ▾"
+        },
+        {
+          "type": "button",
+          "title": "Load my personal goals",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "field",
+          "title": "Recurrence",
+          "detail": "Weekly  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Weekday",
+          "detail": "Saturday  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Time",
+          "detail": "18:00"
+        },
+        {
+          "type": "button",
+          "title": "Save draft details",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "092",
+      "group": "10-agent-studio",
+      "slug": "step-contribution",
+      "title": "Prepare contribution",
+      "source": "lib/agent_studio/agent_step_editor.dart",
+      "coverage": [
+        "S086"
+      ],
+      "items": [
+        {
+          "type": "button",
+          "title": "Load my personal goals",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "field",
+          "title": "Existing personal goal",
+          "detail": "Laptop  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Currency",
+          "detail": "PHP"
+        },
+        {
+          "type": "field",
+          "title": "Prepared contribution amount",
+          "detail": "500.00"
+        },
+        {
+          "type": "notice",
+          "title": "Opens the existing Add Savings form. Confirm the transaction separately there.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Save draft details",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "093",
+      "group": "10-agent-studio",
+      "slug": "step-scenario",
+      "title": "Savings scenario",
+      "source": "lib/agent_studio/agent_step_editor.dart",
+      "coverage": [
+        "S086"
+      ],
+      "items": [
+        {
+          "type": "field",
+          "title": "Scenario title (optional)",
+          "detail": "Laptop plan"
+        },
+        {
+          "type": "field",
+          "title": "Currency",
+          "detail": "PHP"
+        },
+        {
+          "type": "field",
+          "title": "Target amount",
+          "detail": "30,000"
+        },
+        {
+          "type": "field",
+          "title": "Already saved",
+          "detail": "12,000"
+        },
+        {
+          "type": "field",
+          "title": "Contribution per period",
+          "detail": "500"
+        },
+        {
+          "type": "field",
+          "title": "Contribution frequency",
+          "detail": "Weekly  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Scenario deadline",
+          "detail": "Optional"
+        },
+        {
+          "type": "slider",
+          "title": "Explore your savings pace",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Save draft details",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "094",
+      "group": "10-agent-studio",
+      "slug": "step-allocation",
+      "title": "Equal goal allocation",
+      "source": "lib/agent_studio/agent_step_editor.dart",
+      "coverage": [
+        "S086"
+      ],
+      "items": [
+        {
+          "type": "field",
+          "title": "Currency",
+          "detail": "PHP"
+        },
+        {
+          "type": "field",
+          "title": "Budget to allocate",
+          "detail": "1,000"
+        },
+        {
+          "type": "notice",
+          "title": "Equal allocation across unfinished personal goals in this currency. No transfers occur.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Save draft details",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "095",
+      "group": "10-agent-studio",
+      "slug": "mission-approval",
+      "title": "Confirm mission",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S087"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Review the proposed actions before continuing.",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Create Laptop goal",
+          "detail": "PHP 30,000 · Dec 30",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Create Planner task",
+          "detail": "Compare laptop prices",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Create savings reminder",
+          "detail": "Saturday · 6:00 PM",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Confirm",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Mission builder"
+    },
+    {
+      "id": "096",
+      "group": "10-agent-studio",
+      "slug": "mission-executing",
+      "title": "Mission builder",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S088"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop plan",
+          "detail": "Executing · 3 steps",
+          "sub": ""
+        },
+        {
+          "type": "progress",
+          "title": "1 / 3 steps completed",
+          "detail": "",
+          "value": 33
+        },
+        {
+          "type": "row",
+          "title": "Create savings goal",
+          "detail": "Completed",
+          "end": "✓"
+        },
+        {
+          "type": "row",
+          "title": "Create Planner task",
+          "detail": "Executing…",
+          "end": "…"
+        },
+        {
+          "type": "row",
+          "title": "Create reminder",
+          "detail": "Waiting",
+          "end": "○"
+        },
+        {
+          "type": "loading",
+          "title": "Waiting for verified results",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Stop Remaining Actions",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "state"
+    },
+    {
+      "id": "097",
+      "group": "10-agent-studio",
+      "slug": "mission-partial",
+      "title": "Mission builder",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S088"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop plan",
+          "detail": "Partially completed",
+          "sub": ""
+        },
+        {
+          "type": "progress",
+          "title": "2 / 3 steps completed",
+          "detail": "",
+          "value": 67
+        },
+        {
+          "type": "row",
+          "title": "Create savings goal",
+          "detail": "Completed",
+          "end": "✓"
+        },
+        {
+          "type": "row",
+          "title": "Create Planner task",
+          "detail": "Completed",
+          "end": "✓"
+        },
+        {
+          "type": "row",
+          "title": "Create reminder",
+          "detail": "Failed · Review permission",
+          "end": "!"
+        },
+        {
+          "type": "notice",
+          "title": "Completed steps remain recorded. Review unfinished steps before retrying.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Review & retry unfinished steps",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "View goals",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "View Planner",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "state"
+    },
+    {
+      "id": "098",
+      "group": "10-agent-studio",
+      "slug": "what-if-result",
+      "title": "What-If scenario",
+      "source": "lib/agent_studio/presentation/agent_action_preview.dart",
+      "coverage": [
+        "S089"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop plan",
+          "detail": "Savings projection",
+          "sub": ""
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Target|PHP 30,000",
+            "Saved|PHP 12,000"
+          ]
+        },
+        {
+          "type": "field",
+          "title": "Weekly contribution",
+          "detail": "PHP 500"
+        },
+        {
+          "type": "slider",
+          "title": "Adjust contribution",
+          "detail": ""
+        },
+        {
+          "type": "hero",
+          "title": "Estimated time",
+          "detail": "36 weeks",
+          "sub": ""
+        },
+        {
+          "type": "notice",
+          "title": "Local estimate. This does not create deposits.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Edit details",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "detail",
+      "note": "Action preview embedded in an Agent mission."
+    },
+    {
+      "id": "099",
+      "group": "10-agent-studio",
+      "slug": "allocation-preview",
+      "title": "Equal goal allocation",
+      "source": "lib/agent_studio/presentation/agent_action_preview.dart",
+      "coverage": [
+        "S090"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Budget",
+          "detail": "PHP 1,000.00",
+          "sub": ""
+        },
+        {
+          "type": "row",
+          "title": "Laptop",
+          "detail": "PHP 500.00",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Emergency fund",
+          "detail": "PHP 500.00",
+          "end": ""
+        },
+        {
+          "type": "notice",
+          "title": "Illustrative equal allocation. No transfers occur.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Edit details",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "detail",
+      "note": "Action preview embedded in an Agent mission."
+    },
+    {
+      "id": "100",
+      "group": "10-agent-studio",
+      "slug": "mission-history",
+      "title": "Mission history",
+      "source": "lib/agent_studio/presentation/agent_history_screen.dart",
+      "coverage": [
+        "S091"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Your progress",
+          "detail": "Small steps.\nMeaningful progress.",
+          "sub": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "All",
+            "Completed",
+            "Drafts",
+            "Failed"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "row",
+          "title": "Laptop plan",
+          "detail": "Draft · 3 steps",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Tomorrow's tasks",
+          "detail": "Completed · 2 steps",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Savings reminder",
+          "detail": "Failed · 1 step",
+          "end": "›"
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "101",
+      "group": "11-agent-settings",
+      "slug": "agent-settings",
+      "title": "Agent settings",
+      "source": "lib/agent_studio/agent_settings_screen.dart",
+      "coverage": [
+        "S092"
+      ],
+      "items": [
+        {
+          "type": "section",
+          "title": "Appearance",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Appearance",
+          "detail": "Follow system  ▾"
+        },
+        {
+          "type": "row",
+          "title": "Agent Execution & Autopilot",
+          "detail": "Ask First",
+          "end": "›"
+        },
+        {
+          "type": "toggle",
+          "title": "Execute approved actions",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Create personal goals",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Create Planner tasks",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Create reminders",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Prepare contributions",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "toggle",
+          "title": "Private context access",
+          "detail": "Read personal goals locally for selection and allocation.",
+          "on": false
+        },
+        {
+          "type": "row",
+          "title": "Language & voice",
+          "detail": "Independent language preferences",
+          "end": "›"
+        },
+        {
+          "type": "section",
+          "title": "Voice",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Spoken replies",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Require on-device recognition",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "row",
+          "title": "Recognition locale override",
+          "detail": "Device default",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Installed TTS voice",
+          "detail": "Device default",
+          "end": "›"
+        },
+        {
+          "type": "slider",
+          "title": "Speech speed",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Preview voice",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "section",
+          "title": "History & memory",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Local mission history",
+          "detail": "",
+          "on": true
+        },
+        {
+          "type": "row",
+          "title": "Clear mission history",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "toggle",
+          "title": "Use approved preference memory",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "row",
+          "title": "Memory center",
+          "detail": "",
+          "end": "›"
+        },
+        {
+          "type": "field",
+          "title": "Local reply language",
+          "detail": "Automatic  ▾"
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "102",
+      "group": "11-agent-settings",
+      "slug": "language-voice",
+      "title": "Language & voice",
+      "source": "lib/agent_studio/agent_language_settings.dart",
+      "coverage": [
+        "S093"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Speak naturally.",
+          "detail": "Keep your intention.",
+          "sub": ""
+        },
+        {
+          "type": "field",
+          "title": "Agent interface language",
+          "detail": "Automatic  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Written response language",
+          "detail": "English  ▾"
+        },
+        {
+          "type": "field",
+          "title": "Speech recognition preference",
+          "detail": "Automatic  ▾"
+        },
+        {
+          "type": "text",
+          "title": "English · Filipino · Taglish",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Spoken-response language",
+          "detail": "Device TTS default  ▾"
+        },
+        {
+          "type": "notice",
+          "title": "Available recognition and TTS languages depend on the device.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Refresh device capabilities",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "103",
+      "group": "11-agent-settings",
+      "slug": "voice-settings",
+      "title": "Voice & audio",
+      "source": "lib/agent_studio/agent_settings_screen.dart",
+      "coverage": [
+        "S094"
+      ],
+      "items": [
+        {
+          "type": "toggle",
+          "title": "Spoken replies",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Require on-device recognition",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "row",
+          "title": "Recognition locale override",
+          "detail": "Device default",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Installed TTS voice",
+          "detail": "Device default",
+          "end": "›"
+        },
+        {
+          "type": "slider",
+          "title": "Speech speed · 1.0×",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Preview voice",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "notice",
+          "title": "Voice controls are part of Agent settings.",
+          "detail": ""
+        }
+      ],
+      "kind": "detail",
+      "note": "Expanded view of controls within Agent settings, not a separate route."
+    },
+    {
+      "id": "104",
+      "group": "11-agent-settings",
+      "slug": "voice-recovery",
+      "title": "Voice needs attention",
+      "source": "lib/agent_studio/agent_screen.dart",
+      "coverage": [
+        "S095"
+      ],
+      "items": [
+        {
+          "type": "orb",
+          "title": "Voice unavailable",
+          "detail": ""
+        },
+        {
+          "type": "notice",
+          "title": "On-device recognition is required. A downloaded language model must be available.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Voice settings",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Use Android speech dialog",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Switch to text",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "button",
+          "title": "Dismiss",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "state"
+    },
+    {
+      "id": "105",
+      "group": "11-agent-settings",
+      "slug": "autopilot",
+      "title": "Agent Autopilot",
+      "source": "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+      "coverage": [
+        "S096"
+      ],
+      "items": [
+        {
+          "type": "section",
+          "title": "Current execution mode",
+          "detail": ""
+        },
+        {
+          "type": "hero",
+          "title": "Ask First",
+          "detail": "Choose permissions and limits",
+          "sub": ""
+        },
+        {
+          "type": "section",
+          "title": "Execution mode",
+          "detail": ""
+        },
+        {
+          "type": "choice",
+          "title": "Ask Before Every Action",
+          "detail": "Review each action",
+          "selected": true
+        },
+        {
+          "type": "choice",
+          "title": "Smart Auto-Execute",
+          "detail": "Run eligible low-risk actions",
+          "selected": ""
+        },
+        {
+          "type": "choice",
+          "title": "Custom Auto-Execute",
+          "detail": "Choose your automatic permissions",
+          "selected": false
+        },
+        {
+          "type": "choice",
+          "title": "Paused",
+          "detail": "Pause automatic changes",
+          "selected": false
+        },
+        {
+          "type": "section",
+          "title": "Automatic action permissions",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Automatically Create Personal Goals",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Automatically Create Tasks",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Automatically Create Reminders",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Automatically Execute Eligible Missions",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Automatically Run What-If Simulations",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Automatically Prepare Savings Contributions",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "notice",
+          "title": "Financial transactions and destructive changes still require confirmation.",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "Voice automation",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Allow Automatic Actions from Voice Commands",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "field",
+          "title": "Spoken transcript review",
+          "detail": "Always review  ▾"
+        },
+        {
+          "type": "row",
+          "title": "View Automatic Actions",
+          "detail": "Results and recovery status",
+          "end": "›"
+        },
+        {
+          "type": "button",
+          "title": "Reset Autopilot Settings",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "106",
+      "group": "11-agent-settings",
+      "slug": "autopilot-confirm",
+      "title": "Enable automatic actions?",
+      "source": "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+      "coverage": [
+        "S096"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Eligible actions may execute using the permissions and limits you choose.",
+          "detail": ""
+        },
+        {
+          "type": "notice",
+          "title": "Financial and destructive actions retain their confirmation flows.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Enable Auto-Execute",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Keep Ask First",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Agent Autopilot"
+    },
+    {
+      "id": "107",
+      "group": "11-agent-settings",
+      "slug": "automatic-actions",
+      "title": "Autopilot Activity",
+      "source": "lib/agent_studio/autopilot/autopilot_activity_screen.dart",
+      "coverage": [
+        "S097"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "A clear view of every action",
+          "detail": "Automatic actions and verified results",
+          "sub": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "All",
+            "Goals",
+            "Tasks",
+            "Reminders",
+            "Needs attention"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "row",
+          "title": "Create Planner task",
+          "detail": "COMPLETED · Today 9:10 AM",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Undo task creation",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "row",
+          "title": "Create savings goal",
+          "detail": "COMPLETED · Today 9:00 AM",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Create reminder",
+          "detail": "PENDING · Today 9:20 AM",
+          "end": ""
+        },
+        {
+          "type": "button",
+          "title": "Check server result",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "notice",
+          "title": "Pending or interrupted operations are never replayed automatically.",
+          "detail": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "108",
+      "group": "11-agent-settings",
+      "slug": "memory-center",
+      "title": "Memory center",
+      "source": "lib/agent_studio/agent_settings_screen.dart",
+      "coverage": [
+        "S098"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Save only the preferences you want Agent Studio to remember. These are local suggestions; dates and reminder times still require review.",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Contribution frequency",
+          "detail": "Weekly",
+          "end": "×"
+        },
+        {
+          "type": "row",
+          "title": "Preferred reminder day",
+          "detail": "Saturday",
+          "end": "×"
+        },
+        {
+          "type": "row",
+          "title": "Study time",
+          "detail": "Not saved",
+          "end": "×"
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "109",
+      "group": "11-agent-settings",
+      "slug": "memory-approval",
+      "title": "Save this preference?",
+      "source": "lib/agent_studio/agent_settings_screen.dart",
+      "coverage": [
+        "S098"
+      ],
+      "items": [
+        {
+          "type": "row",
+          "title": "Remember: weekly",
+          "detail": "",
+          "end": ""
+        },
+        {
+          "type": "row",
+          "title": "Remember: monthly",
+          "detail": "",
+          "end": ""
+        }
+      ],
+      "kind": "dialog",
+      "parent": "Memory center"
+    },
+    {
+      "id": "110",
+      "group": "12-widget-studio",
+      "slug": "widget-gallery",
+      "title": "Home Screen Widgets",
+      "source": "lib/home_widgets/widget_settings_screen.dart",
+      "coverage": [
+        "S099"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Your progress, closer.",
+          "detail": "Savings and daily plans",
+          "sub": ""
+        },
+        {
+          "type": "section",
+          "title": "Savings Goal",
+          "detail": ""
+        },
+        {
+          "type": "image",
+          "title": "Savings Goal widget preview",
+          "detail": "",
+          "h": 105
+        },
+        {
+          "type": "button",
+          "title": "Add Savings Goal",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "section",
+          "title": "Today's Planner",
+          "detail": ""
+        },
+        {
+          "type": "image",
+          "title": "Planner widget preview",
+          "detail": "",
+          "h": 105
+        },
+        {
+          "type": "button",
+          "title": "Add Today's Planner",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "section",
+          "title": "Quick Save",
+          "detail": ""
+        },
+        {
+          "type": "image",
+          "title": "Quick Save widget preview",
+          "detail": "",
+          "h": 105
+        },
+        {
+          "type": "button",
+          "title": "Add Quick Save",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "section",
+          "title": "Today Overview",
+          "detail": ""
+        },
+        {
+          "type": "image",
+          "title": "Today Overview widget preview",
+          "detail": "",
+          "h": 105
+        },
+        {
+          "type": "button",
+          "title": "Add Today Overview",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "section",
+          "title": "On your Android home screen",
+          "detail": ""
+        },
+        {
+          "type": "text",
+          "title": "Long-press → Widgets → SaveTrack → choose settings → resize.",
+          "detail": ""
+        },
+        {
+          "type": "section",
+          "title": "Your widgets",
+          "detail": ""
+        },
+        {
+          "type": "row",
+          "title": "Savings Goal",
+          "detail": "Configured · Progress Only",
+          "end": "›"
+        },
+        {
+          "type": "row",
+          "title": "Quick Save",
+          "detail": "Configured · Full Details",
+          "end": "›"
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "111",
+      "group": "12-widget-studio",
+      "slug": "configure-savings-goal",
+      "title": "Customize Your Widget",
+      "source": "lib/home_widgets/widget_settings_screen.dart",
+      "coverage": [
+        "S100"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Savings Goal",
+          "detail": "Make it yours.",
+          "sub": ""
+        },
+        {
+          "type": "image",
+          "title": "Savings Goal live preview",
+          "detail": "",
+          "h": 145
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Compact",
+            "Medium",
+            "Expanded"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "section",
+          "title": "Selected content",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Choose Goal",
+          "detail": "Laptop · PHP  ▾"
+        },
+        {
+          "type": "section",
+          "title": "Appearance",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Light",
+            "Dark",
+            "System"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "toggle",
+          "title": "White canvas",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "section",
+          "title": "Privacy",
+          "detail": ""
+        },
+        {
+          "type": "choice",
+          "title": "Full Details",
+          "detail": "Goal names and exact amounts",
+          "selected": false
+        },
+        {
+          "type": "choice",
+          "title": "Progress Only",
+          "detail": "Progress and counts; names stay private",
+          "selected": true
+        },
+        {
+          "type": "choice",
+          "title": "Hidden",
+          "detail": "A private shortcut to SaveTrack",
+          "selected": false
+        },
+        {
+          "type": "section",
+          "title": "Additional options",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Show goal cover",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "button",
+          "title": "Save Widget",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "text",
+          "title": "Resize the widget from your Android home screen.",
+          "detail": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "112",
+      "group": "12-widget-studio",
+      "slug": "configure-today-s-planner",
+      "title": "Customize Your Widget",
+      "source": "lib/home_widgets/widget_settings_screen.dart",
+      "coverage": [
+        "S100"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Today's Planner",
+          "detail": "Make it yours.",
+          "sub": ""
+        },
+        {
+          "type": "image",
+          "title": "Today's Planner live preview",
+          "detail": "",
+          "h": 145
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Compact",
+            "Medium",
+            "Expanded"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "section",
+          "title": "Appearance",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Light",
+            "Dark",
+            "System"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "toggle",
+          "title": "White canvas",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "section",
+          "title": "Privacy",
+          "detail": ""
+        },
+        {
+          "type": "choice",
+          "title": "Full Details",
+          "detail": "Goal names and exact amounts",
+          "selected": false
+        },
+        {
+          "type": "choice",
+          "title": "Progress Only",
+          "detail": "Progress and counts; names stay private",
+          "selected": true
+        },
+        {
+          "type": "choice",
+          "title": "Hidden",
+          "detail": "A private shortcut to SaveTrack",
+          "selected": false
+        },
+        {
+          "type": "section",
+          "title": "Additional options",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Show task titles",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "button",
+          "title": "Save Widget",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "text",
+          "title": "Resize the widget from your Android home screen.",
+          "detail": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "113",
+      "group": "12-widget-studio",
+      "slug": "configure-quick-save",
+      "title": "Customize Your Widget",
+      "source": "lib/home_widgets/widget_settings_screen.dart",
+      "coverage": [
+        "S100"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Quick Save",
+          "detail": "Make it yours.",
+          "sub": ""
+        },
+        {
+          "type": "image",
+          "title": "Quick Save live preview",
+          "detail": "",
+          "h": 145
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Compact",
+            "Medium",
+            "Expanded"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "section",
+          "title": "Selected content",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Choose Goal",
+          "detail": "Laptop · PHP  ▾"
+        },
+        {
+          "type": "section",
+          "title": "Appearance",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Light",
+            "Dark",
+            "System"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "toggle",
+          "title": "White canvas",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "section",
+          "title": "Privacy",
+          "detail": ""
+        },
+        {
+          "type": "choice",
+          "title": "Full Details",
+          "detail": "Goal names and exact amounts",
+          "selected": true
+        },
+        {
+          "type": "choice",
+          "title": "Progress Only",
+          "detail": "Progress and counts; names stay private",
+          "selected": false
+        },
+        {
+          "type": "choice",
+          "title": "Hidden",
+          "detail": "A private shortcut to SaveTrack",
+          "selected": false
+        },
+        {
+          "type": "section",
+          "title": "Additional options",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Show goal cover",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "field",
+          "title": "Shortcut 1 (optional)",
+          "detail": "100"
+        },
+        {
+          "type": "field",
+          "title": "Shortcut 2 (optional)",
+          "detail": "500"
+        },
+        {
+          "type": "field",
+          "title": "Shortcut 3 (optional)",
+          "detail": "1,000"
+        },
+        {
+          "type": "button",
+          "title": "Save Widget",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "text",
+          "title": "Resize the widget from your Android home screen.",
+          "detail": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "114",
+      "group": "12-widget-studio",
+      "slug": "configure-today-overview",
+      "title": "Customize Your Widget",
+      "source": "lib/home_widgets/widget_settings_screen.dart",
+      "coverage": [
+        "S100"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Today Overview",
+          "detail": "Make it yours.",
+          "sub": ""
+        },
+        {
+          "type": "image",
+          "title": "Today Overview live preview",
+          "detail": "",
+          "h": 145
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Compact",
+            "Medium",
+            "Expanded"
+          ],
+          "selected": 1
+        },
+        {
+          "type": "section",
+          "title": "Selected content",
+          "detail": ""
+        },
+        {
+          "type": "field",
+          "title": "Choose Goal",
+          "detail": "Laptop · PHP  ▾"
+        },
+        {
+          "type": "section",
+          "title": "Appearance",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Light",
+            "Dark",
+            "System"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "toggle",
+          "title": "White canvas",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "section",
+          "title": "Privacy",
+          "detail": ""
+        },
+        {
+          "type": "choice",
+          "title": "Full Details",
+          "detail": "Goal names and exact amounts",
+          "selected": false
+        },
+        {
+          "type": "choice",
+          "title": "Progress Only",
+          "detail": "Progress and counts; names stay private",
+          "selected": true
+        },
+        {
+          "type": "choice",
+          "title": "Hidden",
+          "detail": "A private shortcut to SaveTrack",
+          "selected": false
+        },
+        {
+          "type": "section",
+          "title": "Additional options",
+          "detail": ""
+        },
+        {
+          "type": "toggle",
+          "title": "Show task titles",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "toggle",
+          "title": "Show goal cover",
+          "detail": "",
+          "on": false
+        },
+        {
+          "type": "button",
+          "title": "Save Widget",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Cancel",
+          "detail": "",
+          "secondary": true
+        },
+        {
+          "type": "text",
+          "title": "Resize the widget from your Android home screen.",
+          "detail": ""
+        }
+      ],
+      "kind": "screen"
+    },
+    {
+      "id": "115",
+      "group": "13-android-widgets",
+      "slug": "savings-goal-compact",
+      "title": "Savings Goal · Compact",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S101"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 12,000",
+          "sub": ""
+        },
+        {
+          "type": "progress",
+          "title": "40% saved",
+          "detail": "",
+          "value": 40
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact",
+      "note": "Illustrative full-details layout; launcher dimensions determine the exact content."
+    },
+    {
+      "id": "116",
+      "group": "13-android-widgets",
+      "slug": "planner-compact",
+      "title": "Today's Planner · Compact",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S102"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Thursday, October 29",
+          "detail": ""
+        },
+        {
+          "type": "task",
+          "title": "Review monthly budget",
+          "detail": "",
+          "time": "09:30",
+          "done": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact",
+      "note": "Full Details with task titles enabled."
+    },
+    {
+      "id": "117",
+      "group": "13-android-widgets",
+      "slug": "quick-save-compact",
+      "title": "Quick Save · Compact",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+      "coverage": [
+        "S103"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 500",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "More shows the next keys",
+          "detail": ""
+        },
+        {
+          "type": "keypad",
+          "title": "",
+          "detail": "",
+          "compact": true
+        },
+        {
+          "type": "buttonrow",
+          "title": "",
+          "detail": "",
+          "items": [
+            "More",
+            "Back",
+            "Review"
+          ]
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact",
+      "note": "Representative supported size. Narrow widgets page through number keys."
+    },
+    {
+      "id": "118",
+      "group": "13-android-widgets",
+      "slug": "today-overview-compact",
+      "title": "Today Overview · Compact",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S104"
+      ],
+      "items": [
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Laptop|40%",
+            "Tasks|2 left"
+          ]
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact",
+      "note": "Overview uses the selected goal and today's task summary."
+    },
+    {
+      "id": "119",
+      "group": "13-android-widgets",
+      "slug": "savings-goal-medium",
+      "title": "Savings Goal · Medium",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S101"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 12,000",
+          "sub": "of PHP 30,000"
+        },
+        {
+          "type": "progress",
+          "title": "40% saved",
+          "detail": "",
+          "value": 40
+        },
+        {
+          "type": "text",
+          "title": "Due Dec 30, 2026",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Add Savings",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Open Goal",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium",
+      "note": "Illustrative full-details layout; launcher dimensions determine the exact content."
+    },
+    {
+      "id": "120",
+      "group": "13-android-widgets",
+      "slug": "planner-medium",
+      "title": "Today's Planner · Medium",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S102"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Thursday, October 29",
+          "detail": ""
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Complete|1 / 3",
+            "Remaining|2"
+          ]
+        },
+        {
+          "type": "task",
+          "title": "Review monthly budget",
+          "detail": "High priority",
+          "time": "09:30",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Compare laptop prices",
+          "detail": "Normal priority",
+          "time": "13:15",
+          "done": false
+        },
+        {
+          "type": "button",
+          "title": "Open Planner",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium",
+      "note": "Full Details with task titles enabled."
+    },
+    {
+      "id": "121",
+      "group": "13-android-widgets",
+      "slug": "quick-save-medium",
+      "title": "Quick Save · Medium",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+      "coverage": [
+        "S103"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 500",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "Enter amount, then Review",
+          "detail": ""
+        },
+        {
+          "type": "keypad",
+          "title": "",
+          "detail": "",
+          "compact": false
+        },
+        {
+          "type": "buttonrow",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Back",
+            "Cancel",
+            "Review"
+          ]
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium",
+      "note": "Representative supported size. Narrow widgets page through number keys."
+    },
+    {
+      "id": "122",
+      "group": "13-android-widgets",
+      "slug": "today-overview-medium",
+      "title": "Today Overview · Medium",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S104"
+      ],
+      "items": [
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Laptop|40%",
+            "Tasks|2 left"
+          ]
+        },
+        {
+          "type": "hero",
+          "title": "Savings",
+          "detail": "PHP 12,000",
+          "sub": "of PHP 30,000"
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium",
+      "note": "Overview uses the selected goal and today's task summary."
+    },
+    {
+      "id": "123",
+      "group": "13-android-widgets",
+      "slug": "savings-goal-expanded",
+      "title": "Savings Goal · Expanded",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S101"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 12,000",
+          "sub": "of PHP 30,000"
+        },
+        {
+          "type": "progress",
+          "title": "40% saved",
+          "detail": "",
+          "value": 40
+        },
+        {
+          "type": "text",
+          "title": "Due Dec 30, 2026",
+          "detail": ""
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Saved|PHP 12,000",
+            "Remaining|PHP 18,000"
+          ]
+        },
+        {
+          "type": "button",
+          "title": "Add Savings",
+          "detail": "",
+          "secondary": false
+        },
+        {
+          "type": "button",
+          "title": "Open Goal",
+          "detail": "",
+          "secondary": true
+        }
+      ],
+      "kind": "widget",
+      "size": "Expanded",
+      "note": "Illustrative full-details layout; launcher dimensions determine the exact content."
+    },
+    {
+      "id": "124",
+      "group": "13-android-widgets",
+      "slug": "planner-expanded",
+      "title": "Today's Planner · Expanded",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S102"
+      ],
+      "items": [
+        {
+          "type": "text",
+          "title": "Thursday, October 29",
+          "detail": ""
+        },
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Complete|1 / 3",
+            "Remaining|2"
+          ]
+        },
+        {
+          "type": "task",
+          "title": "Review monthly budget",
+          "detail": "High priority",
+          "time": "09:30",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Compare laptop prices",
+          "detail": "Normal priority",
+          "time": "13:15",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Read one chapter",
+          "detail": "Completed",
+          "time": "17:00",
+          "done": true
+        },
+        {
+          "type": "button",
+          "title": "Open Planner",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Expanded",
+      "note": "Full Details with task titles enabled."
+    },
+    {
+      "id": "125",
+      "group": "13-android-widgets",
+      "slug": "quick-save-expanded",
+      "title": "Quick Save · Expanded",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+      "coverage": [
+        "S103"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 500",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "Enter amount, then Review",
+          "detail": ""
+        },
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "100",
+            "500",
+            "1,000"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "keypad",
+          "title": "",
+          "detail": "",
+          "compact": false
+        },
+        {
+          "type": "buttonrow",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Back",
+            "Cancel",
+            "Review"
+          ]
+        }
+      ],
+      "kind": "widget",
+      "size": "Expanded",
+      "note": "Representative supported size. Narrow widgets page through number keys."
+    },
+    {
+      "id": "126",
+      "group": "13-android-widgets",
+      "slug": "today-overview-expanded",
+      "title": "Today Overview · Expanded",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S104"
+      ],
+      "items": [
+        {
+          "type": "stats",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Laptop|40%",
+            "Tasks|2 left"
+          ]
+        },
+        {
+          "type": "hero",
+          "title": "Savings",
+          "detail": "PHP 12,000",
+          "sub": "of PHP 30,000"
+        },
+        {
+          "type": "task",
+          "title": "Review monthly budget",
+          "detail": "Normal priority",
+          "time": "09:30",
+          "done": false
+        },
+        {
+          "type": "task",
+          "title": "Compare laptop prices",
+          "detail": "Normal priority",
+          "time": "13:15",
+          "done": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Expanded",
+      "note": "Overview uses the selected goal and today's task summary."
+    },
+    {
+      "id": "127",
+      "group": "13-android-widgets",
+      "slug": "quick-review",
+      "title": "Quick Save · Review amount",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+      "coverage": [
+        "S103"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 500",
+          "sub": ""
+        },
+        {
+          "type": "text",
+          "title": "Review amount. Confirm to save.",
+          "detail": ""
+        },
+        {
+          "type": "buttonrow",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Cancel",
+            "Confirm"
+          ]
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium"
+    },
+    {
+      "id": "128",
+      "group": "13-android-widgets",
+      "slug": "quick-pending",
+      "title": "Quick Save · Save pending",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+      "coverage": [
+        "S103"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 500",
+          "sub": ""
+        },
+        {
+          "type": "loading",
+          "title": "Pending · waiting for network or save result",
+          "detail": ""
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium"
+    },
+    {
+      "id": "129",
+      "group": "13-android-widgets",
+      "slug": "quick-retry",
+      "title": "Quick Save · Save not confirmed",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+      "coverage": [
+        "S103"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 500",
+          "sub": ""
+        },
+        {
+          "type": "notice",
+          "title": "Not confirmed. Retry the same save.",
+          "detail": ""
+        },
+        {
+          "type": "button",
+          "title": "Retry",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium"
+    },
+    {
+      "id": "130",
+      "group": "13-android-widgets",
+      "slug": "quick-saved",
+      "title": "Quick Save · Contribution confirmed",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+      "coverage": [
+        "S103"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "Laptop",
+          "detail": "PHP 500",
+          "sub": ""
+        },
+        {
+          "type": "status",
+          "title": "Saved",
+          "detail": "Contribution confirmed"
+        },
+        {
+          "type": "button",
+          "title": "New save",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Medium"
+    },
+    {
+      "id": "131",
+      "group": "13-android-widgets",
+      "slug": "signed-out",
+      "title": "Widget · Sign in to SaveTrack",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S105"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "SaveTrack",
+          "detail": "Sign in to SaveTrack",
+          "sub": ""
+        },
+        {
+          "type": "button",
+          "title": "Sign in",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact"
+    },
+    {
+      "id": "132",
+      "group": "13-android-widgets",
+      "slug": "setup-needed",
+      "title": "Widget · Choose your widget settings",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S105"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "SaveTrack",
+          "detail": "Choose your widget settings",
+          "sub": ""
+        },
+        {
+          "type": "button",
+          "title": "Set up",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact"
+    },
+    {
+      "id": "133",
+      "group": "13-android-widgets",
+      "slug": "stale-data",
+      "title": "Widget · Open SaveTrack to refresh",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S105"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "SaveTrack",
+          "detail": "Open SaveTrack to refresh",
+          "sub": ""
+        },
+        {
+          "type": "button",
+          "title": "Refresh",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact"
+    },
+    {
+      "id": "134",
+      "group": "13-android-widgets",
+      "slug": "unavailable-goal",
+      "title": "Widget · Choose another goal",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S105"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "SaveTrack",
+          "detail": "Choose another goal",
+          "sub": ""
+        },
+        {
+          "type": "button",
+          "title": "Set up",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact"
+    },
+    {
+      "id": "135",
+      "group": "13-android-widgets",
+      "slug": "hidden-privacy",
+      "title": "Widget · Open SaveTrack",
+      "source": "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+      "coverage": [
+        "S105"
+      ],
+      "items": [
+        {
+          "type": "hero",
+          "title": "SaveTrack",
+          "detail": "Open SaveTrack",
+          "sub": ""
+        },
+        {
+          "type": "button",
+          "title": "Open app",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "widget",
+      "size": "Compact"
+    },
+    {
+      "id": "136",
+      "group": "14-app-states",
+      "slug": "empty-goals",
+      "title": "Goals",
+      "source": "lib/main.dart",
+      "coverage": [],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Personal",
+            "Shared"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "status",
+          "title": "Start with a savings goal",
+          "detail": "Give your next milestone a name and target."
+        },
+        {
+          "type": "button",
+          "title": "Create goal",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "state",
+      "nav": "Goals"
+    },
+    {
+      "id": "137",
+      "group": "14-app-states",
+      "slug": "empty-planner",
+      "title": "Planner",
+      "source": "lib/main.dart",
+      "coverage": [],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Daily",
+            "Weekly"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "week",
+          "title": "",
+          "detail": ""
+        },
+        {
+          "type": "status",
+          "title": "No tasks scheduled",
+          "detail": "Add a task for this day."
+        },
+        {
+          "type": "button",
+          "title": "+ Add task",
+          "detail": "",
+          "secondary": false
+        }
+      ],
+      "kind": "state",
+      "nav": "Planner"
+    },
+    {
+      "id": "138",
+      "group": "14-app-states",
+      "slug": "loading-content",
+      "title": "Loading content",
+      "source": "lib/main.dart",
+      "coverage": [],
+      "items": [
+        {
+          "type": "loading",
+          "title": "Loading your records",
+          "detail": ""
+        },
+        {
+          "type": "skeleton",
+          "title": "",
+          "detail": ""
+        },
+        {
+          "type": "skeleton",
+          "title": "",
+          "detail": ""
+        }
+      ],
+      "kind": "state"
+    },
+    {
+      "id": "139",
+      "group": "14-app-states",
+      "slug": "connection-error",
+      "title": "Goals",
+      "source": "lib/main.dart",
+      "coverage": [],
+      "items": [
+        {
+          "type": "tabs",
+          "title": "",
+          "detail": "",
+          "items": [
+            "Personal",
+            "Shared"
+          ],
+          "selected": 0
+        },
+        {
+          "type": "status",
+          "title": "Could not load goals",
+          "detail": "Check your connection and try again."
+        }
+      ],
+      "kind": "state",
+      "nav": "Goals"
+    }
+  ]
+}

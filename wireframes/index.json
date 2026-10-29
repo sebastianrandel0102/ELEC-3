@@ -1,0 +1,1959 @@
+﻿[
+    {
+        "id":  "001",
+        "title":  "Welcome back",
+        "file":  "01-access/001-sign-in.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S003"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "002",
+        "title":  "Create your account",
+        "file":  "01-access/002-create-account.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S004"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "003",
+        "title":  "Google sign-in handoff",
+        "file":  "01-access/003-google-sign-in.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S005"
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "004",
+        "title":  "Forgot Password",
+        "file":  "01-access/004-forgot-password.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/password_recovery_dialog.dart",
+        "coverage":  [
+                         "S006"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "005",
+        "title":  "Check your email",
+        "file":  "01-access/005-reset-link-sent.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/password_recovery_dialog.dart",
+        "coverage":  [
+                         "S007"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "006",
+        "title":  "Change Password",
+        "file":  "01-access/006-verify-password.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/password_dialog.dart",
+        "coverage":  [
+                         "S008"
+                     ],
+        "kind":  "dialog",
+        "note":  "Google verification is shown for a linked Google account.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "007",
+        "title":  "Set New Password",
+        "file":  "01-access/007-new-password.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/password_dialog.dart",
+        "coverage":  [
+                         "S009"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "008",
+        "title":  "Password updated",
+        "file":  "01-access/008-password-updated.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/password_dialog.dart",
+        "coverage":  [
+                         "S009"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "009",
+        "title":  "SaveTrack setup",
+        "file":  "01-access/009-setup-required.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S001"
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "010",
+        "title":  "Opening SaveTrack",
+        "file":  "01-access/010-session-loading.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S002"
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "011",
+        "title":  "Today",
+        "file":  "02-home/011-today.png",
+        "width":  960,
+        "height":  3238,
+        "source":  "lib/home_atelier.dart",
+        "coverage":  [
+                         "S010",
+                         "S012",
+                         "S013"
+                     ],
+        "kind":  "screen",
+        "note":  "Full scroll composition. The Assist section is hidden by default and can be enabled.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "012",
+        "title":  "Assist",
+        "file":  "02-home/012-assist-chooser.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/precision_components.dart",
+        "coverage":  [
+                         "S011"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "013",
+        "title":  "Choose a savings goal",
+        "file":  "02-home/013-quick-save-goal.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/home_atelier.dart",
+        "coverage":  [
+                         "S014"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "014",
+        "title":  "Customize Home",
+        "file":  "02-home/014-customize-home.png",
+        "width":  960,
+        "height":  2288,
+        "source":  "lib/atelier_preferences.dart",
+        "coverage":  [
+                         "S015"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "015",
+        "title":  "Appearance",
+        "file":  "02-home/015-appearance.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/atelier_preferences.dart",
+        "coverage":  [
+                         "S016"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "016",
+        "title":  "Goals",
+        "file":  "03-personal-goals/016-goals-gallery.png",
+        "width":  960,
+        "height":  1902,
+        "source":  "lib/home_atelier.dart",
+        "coverage":  [
+                         "S017",
+                         "S018",
+                         "S019"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "017",
+        "title":  "Goals",
+        "file":  "03-personal-goals/017-goals-grid.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/home_atelier.dart",
+        "coverage":  [
+                         "S019"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "018",
+        "title":  "Goals",
+        "file":  "03-personal-goals/018-goals-list.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/home_atelier.dart",
+        "coverage":  [
+                         "S019"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "019",
+        "title":  "Create a goal",
+        "file":  "03-personal-goals/019-goal-type.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S020"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "020",
+        "title":  "Create a goal",
+        "file":  "03-personal-goals/020-create-goal.png",
+        "width":  960,
+        "height":  2236,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S021"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "021",
+        "title":  "Edit goal",
+        "file":  "03-personal-goals/021-edit-goal.png",
+        "width":  960,
+        "height":  2172,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S022"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "022",
+        "title":  "Laptop",
+        "file":  "03-personal-goals/022-goal-details.png",
+        "width":  960,
+        "height":  2746,
+        "source":  "lib/precision_flows.dart",
+        "coverage":  [
+                         "S023"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "023",
+        "title":  "Add savings",
+        "file":  "03-personal-goals/023-add-savings.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/currency_savings_dialog.dart",
+        "coverage":  [
+                         "S024"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "024",
+        "title":  "Decrease Savings",
+        "file":  "03-personal-goals/024-decrease-savings.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/currency_savings_dialog.dart",
+        "coverage":  [
+                         "S026"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "025",
+        "title":  "Review conversion",
+        "file":  "03-personal-goals/025-conversion-review.png",
+        "width":  960,
+        "height":  2074,
+        "source":  "lib/currency_savings_dialog.dart",
+        "coverage":  [
+                         "S025"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "026",
+        "title":  "Laptop history",
+        "file":  "03-personal-goals/026-transaction-history.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S027"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "027",
+        "title":  "Savings added",
+        "file":  "03-personal-goals/027-transaction-detail.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/precision_flows.dart",
+        "coverage":  [
+                         "S028"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "028",
+        "title":  "Goal actions",
+        "file":  "03-personal-goals/028-goal-actions.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/precision_flows.dart",
+        "coverage":  [
+                         "S023"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "029",
+        "title":  "Delete goal?",
+        "file":  "03-personal-goals/029-delete-goal.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S029"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "030",
+        "title":  "Goal photo",
+        "file":  "03-personal-goals/030-cover-actions.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/goal_cover_widgets.dart",
+        "coverage":  [
+                         "S030"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "031",
+        "title":  "Crop goal cover",
+        "file":  "03-personal-goals/031-cover-crop.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/goal_cover_widgets.dart",
+        "coverage":  [
+                         "S031"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "032",
+        "title":  "Goal cover",
+        "file":  "03-personal-goals/032-cover-viewer.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/goal_cover_widgets.dart",
+        "coverage":  [
+                         "S032"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "033",
+        "title":  "Goal cover upload",
+        "file":  "03-personal-goals/033-cover-upload-recovery.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S032"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "034",
+        "title":  "Goals",
+        "file":  "04-shared-goals/034-shared-goals.png",
+        "width":  960,
+        "height":  1902,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S033"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "035",
+        "title":  "Create shared goal",
+        "file":  "04-shared-goals/035-create-shared-goal.png",
+        "width":  960,
+        "height":  2076,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S034"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "036",
+        "title":  "Goal settings",
+        "file":  "04-shared-goals/036-shared-settings.png",
+        "width":  960,
+        "height":  1900,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S035"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "037",
+        "title":  "Save Together",
+        "file":  "04-shared-goals/037-shared-details.png",
+        "width":  960,
+        "height":  2682,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S036"
+                     ],
+        "kind":  "screen",
+        "note":  "Owner view. Non-owner members see Leave goal instead of owner management controls.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "038",
+        "title":  "Add contribution",
+        "file":  "04-shared-goals/038-shared-contribution.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S037"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "039",
+        "title":  "Decrease shared savings",
+        "file":  "04-shared-goals/039-shared-decrease.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S038"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "040",
+        "title":  "Goal members",
+        "file":  "04-shared-goals/040-members.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S039"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "041",
+        "title":  "Invite members",
+        "file":  "04-shared-goals/041-invitations.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S040"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "042",
+        "title":  "Join Save Together",
+        "file":  "04-shared-goals/042-join-code.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S041"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "043",
+        "title":  "Join Save Together",
+        "file":  "04-shared-goals/043-join-preview.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S041"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "044",
+        "title":  "Shared activity",
+        "file":  "04-shared-goals/044-shared-history.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S042"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "045",
+        "title":  "Archive shared goal?",
+        "file":  "04-shared-goals/045-archive.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S043"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "046",
+        "title":  "Leave shared goal?",
+        "file":  "04-shared-goals/046-leave.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S044"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "047",
+        "title":  "Remove Sam?",
+        "file":  "04-shared-goals/047-remove-member.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S045"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "048",
+        "title":  "Revoke invitation?",
+        "file":  "04-shared-goals/048-revoke-invitation.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/shared_savings_screens.dart",
+        "coverage":  [
+                         "S046"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "049",
+        "title":  "Planner",
+        "file":  "05-planner/049-daily-planner.png",
+        "width":  960,
+        "height":  1736,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S047"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "050",
+        "title":  "Planner",
+        "file":  "05-planner/050-weekly-planner.png",
+        "width":  960,
+        "height":  2056,
+        "source":  "lib/home_atelier.dart",
+        "coverage":  [
+                         "S048"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "051",
+        "title":  "Add a task",
+        "file":  "05-planner/051-add-task.png",
+        "width":  960,
+        "height":  1962,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S049"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "052",
+        "title":  "Edit task",
+        "file":  "05-planner/052-edit-task.png",
+        "width":  960,
+        "height":  1962,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S050"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "053",
+        "title":  "Delete task?",
+        "file":  "05-planner/053-delete-task.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S051"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "054",
+        "title":  "Smart Suggestions",
+        "file":  "05-planner/054-smart-suggestions.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/smart_suggestions.dart",
+        "coverage":  [
+                         "S052"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "055",
+        "title":  "Select date",
+        "file":  "05-planner/055-date-picker.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/platform_pickers.dart",
+        "coverage":  [
+                         "S053"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "056",
+        "title":  "Select time",
+        "file":  "05-planner/056-time-picker.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/platform_pickers.dart",
+        "coverage":  [
+                         "S053"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "057",
+        "title":  "Smart Reminders",
+        "file":  "06-reminders/057-reminder-agenda.png",
+        "width":  960,
+        "height":  1972,
+        "source":  "lib/reminder_widgets.dart",
+        "coverage":  [
+                         "S054",
+                         "S057"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "058",
+        "title":  "Savings Reminder",
+        "file":  "06-reminders/058-savings-reminder.png",
+        "width":  960,
+        "height":  1772,
+        "source":  "lib/reminder_widgets.dart",
+        "coverage":  [
+                         "S055"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "059",
+        "title":  "Task Reminder",
+        "file":  "06-reminders/059-task-reminder.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/reminder_widgets.dart",
+        "coverage":  [
+                         "S056"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "060",
+        "title":  "Allow phone reminders",
+        "file":  "06-reminders/060-notification-permission.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/reminder_widgets.dart",
+        "coverage":  [
+                         "S057"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "061",
+        "title":  "Allow precise reminders",
+        "file":  "06-reminders/061-precise-timing.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/reminder_widgets.dart",
+        "coverage":  [
+                         "S057"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "062",
+        "title":  "Reports",
+        "file":  "07-reports/062-reports.png",
+        "width":  960,
+        "height":  2678,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S058",
+                         "S059",
+                         "S060",
+                         "S061"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "063",
+        "title":  "Savings Pulse",
+        "file":  "07-reports/063-savings-pulse.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/home_atelier.dart",
+        "coverage":  [
+                         "S059"
+                     ],
+        "kind":  "detail",
+        "note":  "Expanded wireframe of the embedded Savings Pulse component, not a separate route.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "064",
+        "title":  "Profile",
+        "file":  "08-profile-settings/064-profile.png",
+        "width":  960,
+        "height":  2450,
+        "source":  "lib/main.dart",
+        "coverage":  [
+                         "S062",
+                         "S106"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "065",
+        "title":  "Profile Picture",
+        "file":  "08-profile-settings/065-photo-actions.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/profile_photo_widgets.dart",
+        "coverage":  [
+                         "S063"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "066",
+        "title":  "Edit profile photo",
+        "file":  "08-profile-settings/066-photo-crop.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/profile_photo_widgets.dart",
+        "coverage":  [
+                         "S064"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "067",
+        "title":  "Uploading profile photo",
+        "file":  "08-profile-settings/067-photo-upload.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/profile_photo_widgets.dart",
+        "coverage":  [
+                         "S064"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "068",
+        "title":  "Profile photo",
+        "file":  "08-profile-settings/068-photo-viewer.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/profile_photo_widgets.dart",
+        "coverage":  [
+                         "S065"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "069",
+        "title":  "Remove profile photo?",
+        "file":  "08-profile-settings/069-remove-photo.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/profile_photo_widgets.dart",
+        "coverage":  [
+                         "S063"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "070",
+        "title":  "Currency Settings",
+        "file":  "08-profile-settings/070-currency-settings.png",
+        "width":  960,
+        "height":  2508,
+        "source":  "lib/currency_settings_screen.dart",
+        "coverage":  [
+                         "S066",
+                         "S068"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "071",
+        "title":  "Choose currency",
+        "file":  "08-profile-settings/071-currency-picker.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/currency_widgets.dart",
+        "coverage":  [
+                         "S067"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "072",
+        "title":  "SaveTrack AI",
+        "file":  "09-ai-coach/072-ai-welcome.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_coach_screen.dart",
+        "coverage":  [
+                         "S069"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "073",
+        "title":  "SaveTrack AI",
+        "file":  "09-ai-coach/073-ask-anything.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_coach_screen.dart",
+        "coverage":  [
+                         "S070"
+                     ],
+        "kind":  "screen",
+        "note":  "Illustrative conversation text.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "074",
+        "title":  "SaveTrack AI",
+        "file":  "09-ai-coach/074-coach-conversation.png",
+        "width":  960,
+        "height":  1788,
+        "source":  "lib/ai_coach/ai_coach_screen.dart",
+        "coverage":  [
+                         "S071",
+                         "S074"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "075",
+        "title":  "Choose a goal",
+        "file":  "09-ai-coach/075-context-selection.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_coach_screen.dart",
+        "coverage":  [
+                         "S072"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "076",
+        "title":  "Review AI Context",
+        "file":  "09-ai-coach/076-context-review.png",
+        "width":  960,
+        "height":  1930,
+        "source":  "lib/ai_coach/ai_widgets.dart",
+        "coverage":  [
+                         "S073"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "077",
+        "title":  "Make this space yours",
+        "file":  "09-ai-coach/077-ai-settings.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_settings_sheet.dart",
+        "coverage":  [
+                         "S075"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "078",
+        "title":  "Before your first question",
+        "file":  "09-ai-coach/078-provider-privacy.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_coach_screen.dart",
+        "coverage":  [
+                         "S076"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "079",
+        "title":  "Connect SaveTrack AI",
+        "file":  "09-ai-coach/079-ai-connection.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_setup_sheet.dart",
+        "coverage":  [
+                         "S077"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "080",
+        "title":  "Clear this chat?",
+        "file":  "09-ai-coach/080-clear-chat.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_coach_screen.dart",
+        "coverage":  [
+                         "S078"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "081",
+        "title":  "Conversation actions",
+        "file":  "09-ai-coach/081-ai-menu.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/ai_coach/ai_coach_screen.dart",
+        "coverage":  [
+                         "S078"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "082",
+        "title":  "Agent Studio Pro",
+        "file":  "10-agent-studio/082-agent-home.png",
+        "width":  960,
+        "height":  2646,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S079"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "083",
+        "title":  "Agent Studio Pro",
+        "file":  "10-agent-studio/083-agent-conversation.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S080"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "084",
+        "title":  "Speak naturally",
+        "file":  "10-agent-studio/084-voice-listening.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S081"
+                     ],
+        "kind":  "detail",
+        "note":  "Voice panel within Agent Studio.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "085",
+        "title":  "Review your transcript",
+        "file":  "10-agent-studio/085-transcript-review.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S082"
+                     ],
+        "kind":  "detail",
+        "note":  "Transcript-review state within Agent Studio.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "086",
+        "title":  "Review these details",
+        "file":  "10-agent-studio/086-interpretation.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S083"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "087",
+        "title":  "Mission builder",
+        "file":  "10-agent-studio/087-mission-builder.png",
+        "width":  960,
+        "height":  1710,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S084"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "088",
+        "title":  "Add step",
+        "file":  "10-agent-studio/088-action-picker.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_step_editor.dart",
+        "coverage":  [
+                         "S085"
+                     ],
+        "kind":  "sheet",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "089",
+        "title":  "Savings goal",
+        "file":  "10-agent-studio/089-step-goal.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_step_editor.dart",
+        "coverage":  [
+                         "S086"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "090",
+        "title":  "Planner task",
+        "file":  "10-agent-studio/090-step-task.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_step_editor.dart",
+        "coverage":  [
+                         "S086"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "091",
+        "title":  "Reminder",
+        "file":  "10-agent-studio/091-step-reminder.png",
+        "width":  960,
+        "height":  1858,
+        "source":  "lib/agent_studio/agent_step_editor.dart",
+        "coverage":  [
+                         "S086"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "092",
+        "title":  "Prepare contribution",
+        "file":  "10-agent-studio/092-step-contribution.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_step_editor.dart",
+        "coverage":  [
+                         "S086"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "093",
+        "title":  "Savings scenario",
+        "file":  "10-agent-studio/093-step-scenario.png",
+        "width":  960,
+        "height":  2250,
+        "source":  "lib/agent_studio/agent_step_editor.dart",
+        "coverage":  [
+                         "S086"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "094",
+        "title":  "Equal goal allocation",
+        "file":  "10-agent-studio/094-step-allocation.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_step_editor.dart",
+        "coverage":  [
+                         "S086"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "095",
+        "title":  "Confirm mission",
+        "file":  "10-agent-studio/095-mission-approval.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S087"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "096",
+        "title":  "Mission builder",
+        "file":  "10-agent-studio/096-mission-executing.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S088"
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "097",
+        "title":  "Mission builder",
+        "file":  "10-agent-studio/097-mission-partial.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S088"
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "098",
+        "title":  "What-If scenario",
+        "file":  "10-agent-studio/098-what-if-result.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/presentation/agent_action_preview.dart",
+        "coverage":  [
+                         "S089"
+                     ],
+        "kind":  "detail",
+        "note":  "Action preview embedded in an Agent mission.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "099",
+        "title":  "Equal goal allocation",
+        "file":  "10-agent-studio/099-allocation-preview.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/presentation/agent_action_preview.dart",
+        "coverage":  [
+                         "S090"
+                     ],
+        "kind":  "detail",
+        "note":  "Action preview embedded in an Agent mission.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "100",
+        "title":  "Mission history",
+        "file":  "10-agent-studio/100-mission-history.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/presentation/agent_history_screen.dart",
+        "coverage":  [
+                         "S091"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "101",
+        "title":  "Agent settings",
+        "file":  "11-agent-settings/101-agent-settings.png",
+        "width":  960,
+        "height":  3328,
+        "source":  "lib/agent_studio/agent_settings_screen.dart",
+        "coverage":  [
+                         "S092"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "102",
+        "title":  "Language \u0026 voice",
+        "file":  "11-agent-settings/102-language-voice.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_language_settings.dart",
+        "coverage":  [
+                         "S093"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "103",
+        "title":  "Voice \u0026 audio",
+        "file":  "11-agent-settings/103-voice-settings.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_settings_screen.dart",
+        "coverage":  [
+                         "S094"
+                     ],
+        "kind":  "detail",
+        "note":  "Expanded view of controls within Agent settings, not a separate route.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "104",
+        "title":  "Voice needs attention",
+        "file":  "11-agent-settings/104-voice-recovery.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_screen.dart",
+        "coverage":  [
+                         "S095"
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "105",
+        "title":  "Agent Autopilot",
+        "file":  "11-agent-settings/105-autopilot.png",
+        "width":  960,
+        "height":  3010,
+        "source":  "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+        "coverage":  [
+                         "S096"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "106",
+        "title":  "Enable automatic actions?",
+        "file":  "11-agent-settings/106-autopilot-confirm.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/autopilot/autopilot_settings_screen.dart",
+        "coverage":  [
+                         "S096"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "107",
+        "title":  "Autopilot Activity",
+        "file":  "11-agent-settings/107-automatic-actions.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/autopilot/autopilot_activity_screen.dart",
+        "coverage":  [
+                         "S097"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "108",
+        "title":  "Memory center",
+        "file":  "11-agent-settings/108-memory-center.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_settings_screen.dart",
+        "coverage":  [
+                         "S098"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "109",
+        "title":  "Save this preference?",
+        "file":  "11-agent-settings/109-memory-approval.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/agent_studio/agent_settings_screen.dart",
+        "coverage":  [
+                         "S098"
+                     ],
+        "kind":  "dialog",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "110",
+        "title":  "Home Screen Widgets",
+        "file":  "12-widget-studio/110-widget-gallery.png",
+        "width":  960,
+        "height":  3208,
+        "source":  "lib/home_widgets/widget_settings_screen.dart",
+        "coverage":  [
+                         "S099"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "111",
+        "title":  "Customize Your Widget",
+        "file":  "12-widget-studio/111-configure-savings-goal.png",
+        "width":  960,
+        "height":  2754,
+        "source":  "lib/home_widgets/widget_settings_screen.dart",
+        "coverage":  [
+                         "S100"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "112",
+        "title":  "Customize Your Widget",
+        "file":  "12-widget-studio/112-configure-today-s-planner.png",
+        "width":  960,
+        "height":  2472,
+        "source":  "lib/home_widgets/widget_settings_screen.dart",
+        "coverage":  [
+                         "S100"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "113",
+        "title":  "Customize Your Widget",
+        "file":  "12-widget-studio/113-configure-quick-save.png",
+        "width":  960,
+        "height":  3282,
+        "source":  "lib/home_widgets/widget_settings_screen.dart",
+        "coverage":  [
+                         "S100"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "114",
+        "title":  "Customize Your Widget",
+        "file":  "12-widget-studio/114-configure-today-overview.png",
+        "width":  960,
+        "height":  2870,
+        "source":  "lib/home_widgets/widget_settings_screen.dart",
+        "coverage":  [
+                         "S100"
+                     ],
+        "kind":  "screen",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "115",
+        "title":  "Savings Goal · Compact",
+        "file":  "13-android-widgets/115-savings-goal-compact.png",
+        "width":  960,
+        "height":  638,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S101"
+                     ],
+        "kind":  "widget",
+        "note":  "Illustrative full-details layout; launcher dimensions determine the exact content.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "116",
+        "title":  "Today\u0027s Planner · Compact",
+        "file":  "13-android-widgets/116-planner-compact.png",
+        "width":  960,
+        "height":  576,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S102"
+                     ],
+        "kind":  "widget",
+        "note":  "Full Details with task titles enabled.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "117",
+        "title":  "Quick Save · Compact",
+        "file":  "13-android-widgets/117-quick-save-compact.png",
+        "width":  960,
+        "height":  842,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+        "coverage":  [
+                         "S103"
+                     ],
+        "kind":  "widget",
+        "note":  "Representative supported size. Narrow widgets page through number keys.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "118",
+        "title":  "Today Overview · Compact",
+        "file":  "13-android-widgets/118-today-overview-compact.png",
+        "width":  960,
+        "height":  502,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S104"
+                     ],
+        "kind":  "widget",
+        "note":  "Overview uses the selected goal and today\u0027s task summary.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "119",
+        "title":  "Savings Goal · Medium",
+        "file":  "13-android-widgets/119-savings-goal-medium.png",
+        "width":  960,
+        "height":  980,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S101"
+                     ],
+        "kind":  "widget",
+        "note":  "Illustrative full-details layout; launcher dimensions determine the exact content.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "120",
+        "title":  "Today\u0027s Planner · Medium",
+        "file":  "13-android-widgets/120-planner-medium.png",
+        "width":  960,
+        "height":  994,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S102"
+                     ],
+        "kind":  "widget",
+        "note":  "Full Details with task titles enabled.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "121",
+        "title":  "Quick Save · Medium",
+        "file":  "13-android-widgets/121-quick-save-medium.png",
+        "width":  960,
+        "height":  1166,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+        "coverage":  [
+                         "S103"
+                     ],
+        "kind":  "widget",
+        "note":  "Representative supported size. Narrow widgets page through number keys.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "122",
+        "title":  "Today Overview · Medium",
+        "file":  "13-android-widgets/122-today-overview-medium.png",
+        "width":  960,
+        "height":  734,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S104"
+                     ],
+        "kind":  "widget",
+        "note":  "Overview uses the selected goal and today\u0027s task summary.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "123",
+        "title":  "Savings Goal · Expanded",
+        "file":  "13-android-widgets/123-savings-goal-expanded.png",
+        "width":  960,
+        "height":  1140,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S101"
+                     ],
+        "kind":  "widget",
+        "note":  "Illustrative full-details layout; launcher dimensions determine the exact content.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "124",
+        "title":  "Today\u0027s Planner · Expanded",
+        "file":  "13-android-widgets/124-planner-expanded.png",
+        "width":  960,
+        "height":  1144,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S102"
+                     ],
+        "kind":  "widget",
+        "note":  "Full Details with task titles enabled.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "125",
+        "title":  "Quick Save · Expanded",
+        "file":  "13-android-widgets/125-quick-save-expanded.png",
+        "width":  960,
+        "height":  1268,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+        "coverage":  [
+                         "S103"
+                     ],
+        "kind":  "widget",
+        "note":  "Representative supported size. Narrow widgets page through number keys.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "126",
+        "title":  "Today Overview · Expanded",
+        "file":  "13-android-widgets/126-today-overview-expanded.png",
+        "width":  960,
+        "height":  1034,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S104"
+                     ],
+        "kind":  "widget",
+        "note":  "Overview uses the selected goal and today\u0027s task summary.",
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "127",
+        "title":  "Quick Save · Review amount",
+        "file":  "13-android-widgets/127-quick-review.png",
+        "width":  960,
+        "height":  726,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+        "coverage":  [
+                         "S103"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "128",
+        "title":  "Quick Save · Save pending",
+        "file":  "13-android-widgets/128-quick-pending.png",
+        "width":  960,
+        "height":  776,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+        "coverage":  [
+                         "S103"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "129",
+        "title":  "Quick Save · Save not confirmed",
+        "file":  "13-android-widgets/129-quick-retry.png",
+        "width":  960,
+        "height":  770,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+        "coverage":  [
+                         "S103"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "130",
+        "title":  "Quick Save · Contribution confirmed",
+        "file":  "13-android-widgets/130-quick-saved.png",
+        "width":  960,
+        "height":  1002,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/QuickSaveRenderer.kt",
+        "coverage":  [
+                         "S103"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "131",
+        "title":  "Widget · Sign in to SaveTrack",
+        "file":  "13-android-widgets/131-signed-out.png",
+        "width":  960,
+        "height":  708,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S105"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "132",
+        "title":  "Widget · Choose your widget settings",
+        "file":  "13-android-widgets/132-setup-needed.png",
+        "width":  960,
+        "height":  708,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S105"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "133",
+        "title":  "Widget · Open SaveTrack to refresh",
+        "file":  "13-android-widgets/133-stale-data.png",
+        "width":  960,
+        "height":  708,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S105"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "134",
+        "title":  "Widget · Choose another goal",
+        "file":  "13-android-widgets/134-unavailable-goal.png",
+        "width":  960,
+        "height":  708,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S105"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "135",
+        "title":  "Widget · Open SaveTrack",
+        "file":  "13-android-widgets/135-hidden-privacy.png",
+        "width":  960,
+        "height":  656,
+        "source":  "android/app/src/main/kotlin/com/example/myproject/widgets/WidgetRenderer.kt",
+        "coverage":  [
+                         "S105"
+                     ],
+        "kind":  "widget",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "136",
+        "title":  "Goals",
+        "file":  "14-app-states/136-empty-goals.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "137",
+        "title":  "Planner",
+        "file":  "14-app-states/137-empty-planner.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "138",
+        "title":  "Loading content",
+        "file":  "14-app-states/138-loading-content.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    },
+    {
+        "id":  "139",
+        "title":  "Goals",
+        "file":  "14-app-states/139-connection-error.png",
+        "width":  960,
+        "height":  1702,
+        "source":  "lib/main.dart",
+        "coverage":  [
+
+                     ],
+        "kind":  "state",
+        "note":  null,
+        "style":  "reference-outline"
+    }
+]

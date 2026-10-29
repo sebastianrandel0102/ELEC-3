@@ -1,0 +1,28 @@
+﻿{
+    "status":  "passed",
+    "generated":  "2026-10-29",
+    "style":  "reference-outline",
+    "styleDescription":  "User reference: white canvas, thin black outlines, square corners, regular Arial text, crossed image and icon placeholders; no decorative phone frame or artifact captions.",
+    "sourceFilesScanned":  214,
+    "individualPngFiles":  139,
+    "imagesSuccessfullyDecoded":  139,
+    "sourceSurfaceIdsCovered":  106,
+    "widgetTypeSizeVariants":  12,
+    "brokenReadmePictureLinks":  0,
+    "minimumImageHeight":  502,
+    "maximumImageHeight":  3328,
+    "totalPngMegabytes":  5.38,
+    "visualReview":  [
+                         "Goals gallery",
+                         "Add savings",
+                         "Daily Planner",
+                         "Sign-in",
+                         "Quick Save Expanded",
+                         "Mission builder",
+                         "AI context review"
+                     ],
+    "limitations":  "Static source-based schematic wireframes with fictional records. Reference-style regeneration only; no live app or device test.",
+    "errors":  [
+
+               ]
+}
