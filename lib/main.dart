@@ -426,15 +426,23 @@ class _AuthScreenState extends State<AuthScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        _register
-                            ? 'Create your account'
-                            : 'Welcome back, my love',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -.6,
-                          color: context.atelierInk,
+                      LayoutBuilder(
+                        builder: (context, constraints) => Text(
+                          _register
+                              ? 'Create your account'
+                              : 'Welcome back, my love',
+                          textAlign: TextAlign.start,
+                          style: TextStyle(
+                            fontSize: _register
+                                ? 34
+                                : constraints.maxWidth < 360
+                                ? 26
+                                : 30,
+                            height: _register ? null : 1.2,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -.6,
+                            color: context.atelierInk,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 6),
